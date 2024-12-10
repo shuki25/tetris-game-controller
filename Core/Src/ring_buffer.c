@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "freeRTOS.h"
+#include "FreeRTOS.h"
 #include "ring_buffer.h"
 
 

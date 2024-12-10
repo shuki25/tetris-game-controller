@@ -10,7 +10,7 @@
 #include "ws2812.h"
 #include <math.h>
 #include <stdlib.h>
-#include "freertos.h"
+#include "FreeRTOS.h"
 
 const uint8_t color_groups[8][3] = { { 128, 0, 0 }, // red
         { 0, 48, 0 }, // green
