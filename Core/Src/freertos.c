@@ -35,7 +35,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define LED_HB_Pin GPIO_PIN_5
+#define LED_HB_GPIO_Port GPIOB
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -149,7 +150,8 @@ void StartHeartbeatTask(void *argument) {
     /* Infinite loop */
     for (;;) {
         // TODO: Toggle heartbeat LED
-        osDelay(1);
+        HAL_GPIO_TogglePin(LED_HB_GPIO_Port, LED_HB_Pin);
+        osDelay(500);
     }
     /* USER CODE END StartHeartbeatTask */
 }
