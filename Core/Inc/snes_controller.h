@@ -23,8 +23,17 @@
 #define INC_SNES_CONTROLLER_H_
 
 // TODO: Typedef for controller status in enum (e.g. SNES_CONTROLLER_OK, SNES_CONTROLLER_ERROR)
+typedef enum {
+	SNES_CONTROLLER_OK = 0,
+	SNES_CONTROLLER_ERROR
+} snes_controller_status_t;
 
 // TODO: Defines for shift register bit order and button mapping (B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R)
+#define SNES_BUTTON_B (1 << 0)
+#define SNES_BUTTON_
+#define SNES_BUTTON_
+#define SNES_BUTTON_
+#define SNES_BUTTON_
 
 // TODO: Typedef for SNES controller struct (e.g. snes_controller_t) for GPIO pins assignment for latch, clock, data, and button state
 
