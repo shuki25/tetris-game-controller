@@ -44,20 +44,25 @@ typedef enum {
 
 // TODO: Typedef for SNES controller struct (e.g. snes_controller_t) for GPIO pins assignment for latch, clock, data, and button state
 typedef struct {
-	uint16_t buttons;
 	GPIO_TypeDef* latch_port;
 	uint16_t latch_pin;
 	GPIO_TypeDef* clock_port;
 	uint16_t clock_pin;
 	GPIO_TypeDef* data_port;
 	uint16_t data_pin;
-} snes_controller_status_t;
+	uint16_t buttons_state;
+	uint16_t previous_buttons_state;
+	uint8_t read_rate; // in Hz
+	uint32_t last_read;
+	uint32_t delay_expire;
+} snes_controller_t;
 
 // TODO: Function prototypes for SNES controller functions (e.g. snes_controller_init, snes_controller_latch, snes_controller_clock, snes_controller_read)
 void snes_controller_init(snes_controller_t* controller,
                           GPIO_TypeDef* latch_port, uint16_t latch_pin,
                           GPIO_TypeDef* clock_port, uint16_t clock_pin,
-                          GPIO_TypeDef* data_port, uint16_t data_pin);
+                          GPIO_TypeDef* data_port, uint16_t data_pin,
+                          uint8_t read_rate);
 void snes_controller_latch(snes_controller_t* controller);
 void snes_controller_clock(snes_controller_t* controller);
 uint16_t snes_controller_read(snes_controller_t* controller);
