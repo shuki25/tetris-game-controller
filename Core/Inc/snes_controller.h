@@ -22,6 +22,8 @@
 #ifndef INC_SNES_CONTROLLER_H_
 #define INC_SNES_CONTROLLER_H_
 
+#include "main.h"
+
 // TODO: Typedef for controller status in enum (e.g. SNES_CONTROLLER_OK, SNES_CONTROLLER_ERROR)
 typedef enum {
 	SNES_CONTROLLER_OK = 0,
@@ -58,11 +60,11 @@ typedef struct {
 } snes_controller_t;
 
 // TODO: Function prototypes for SNES controller functions (e.g. snes_controller_init, snes_controller_latch, snes_controller_clock, snes_controller_read)
-void snes_controller_init(snes_controller_t *controller, GPIO_TypeDef *latch_port, uint16_t latch_pin,
+snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPIO_TypeDef *latch_port, uint16_t latch_pin,
         GPIO_TypeDef *clock_port, uint16_t clock_pin, GPIO_TypeDef *data_port, uint16_t data_pin,
         uint8_t read_rate);
-void snes_controller_latch(snes_controller_t* controller);
-void snes_controller_clock(snes_controller_t* controller);
-uint16_t snes_controller_read(snes_controller_t* controller);
+snes_controller_status_t snes_controller_latch(snes_controller_t* controller);
+snes_controller_status_t snes_controller_clock(snes_controller_t* controller);
+snes_controller_status_t snes_controller_read(snes_controller_t* controller);
 
 #endif /* INC_SNES_CONTROLLER_H_ */
