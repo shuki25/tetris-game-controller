@@ -1,25 +1,32 @@
 /**
-  ******************************************************************************
-  * @file           : game_loop.c
-  * @author         : Patrick Lebeau Jr., Dr. Joshua Butler
-  * @date           : Dec 9, 2024
-  * @brief          : Main game loop for Classic Tetris on LED Grid
-  ******************************************************************************
-  * @attention
-  *
-  * 2025 Imagine RIT Project: Classic Tetris on LED Grid
-  *
-  * Copyright (c) 2024-25 Rochester Institute of Technology.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : game_loop.c
+ * @author         : Patrick Lebeau Jr., Dr. Joshua Butler
+ * @date           : Dec 9, 2024
+ * @brief          : Main game loop for Classic Tetris on LED Grid
+ ******************************************************************************
+ * @attention
+ *
+ * 2025 Imagine RIT Project: Classic Tetris on LED Grid
+ *
+ * Copyright (c) 2024-25 Rochester Institute of Technology.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 
+#include "main.h"
+#include "stdint.h"
+
+#include "snes_controller.h"
 #include "game_loop.h"
+#include "itm_debug.h"
+
+uint32_t game_loop_counter = 0;
 
 /**
  * @brief  Initialize game state
@@ -74,5 +81,10 @@ void game_loop(void) {
 
         // TODO: Update UI
 
+        HAL_Delay(500);
+        game_loop_counter++;
+#if DEBUG_OUTPUT
+        printf("Game loop counter: %d\n", (int)game_loop_counter);
+#endif
     }
 }

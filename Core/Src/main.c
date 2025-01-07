@@ -27,6 +27,7 @@
 #include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
+#include "itm_debug.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

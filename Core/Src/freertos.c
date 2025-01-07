@@ -22,6 +22,8 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "itm_debug.h"
+#include "game_loop.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -129,8 +131,15 @@ void StartDefaultTask(void *argument) {
     /* init code for USB_HOST */
     MX_USB_HOST_Init();
     /* USER CODE BEGIN StartDefaultTask */
+#if DEBUG_OUTPUT
+    printf("Starting default task\nInitializing game variables and states\n");
+#endif
     game_init();
     /* Infinite loop */
+#if DEBUG_OUTPUT
+    printf("Entering game loop\n");
+#endif
+
     for (;;) {
         game_loop();
     }
