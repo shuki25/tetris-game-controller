@@ -22,12 +22,11 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "itm_debug.h"
-#include "game_loop.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "game_loop.h"
+#include "itm_debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -158,7 +157,8 @@ void StartHeartbeatTask(void *argument) {
     /* Infinite loop */
     for (;;) {
         // TODO: Toggle heartbeat LED
-        osDelay(1);
+        HAL_GPIO_TogglePin(LED_HB_GPIO_Port, LED_HB_Pin);
+        osDelay(500);
     }
     /* USER CODE END StartHeartbeatTask */
 }

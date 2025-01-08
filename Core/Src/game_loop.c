@@ -25,8 +25,11 @@
 #include "snes_controller.h"
 #include "game_loop.h"
 #include "itm_debug.h"
+#include "util.h"
+#include "cmsis_os.h"
 
 uint32_t game_loop_counter = 0;
+snes_controller_t snes_controller;
 
 /**
  * @brief  Initialize game state
@@ -43,6 +46,8 @@ void game_init(void) {
  * @retval None
  */
 void game_loop(void) {
+    snes_controller_status_t controller_status;
+    char output_buffer[80];
 
     // TODO: Load settings from EEPROM
 
@@ -51,6 +56,13 @@ void game_loop(void) {
     // TODO: Initialize game variables
 
     // TODO: Initialize game components
+    controller_status = snes_controller_init(&snes_controller, SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
+    SNES_CLOCK_GPIO_Port, SNES_CLOCK_Pin, SNES_DATA0_GPIO_Port, SNES_DATA0_Pin, 60);
+    if (controller_status != SNES_CONTROLLER_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller initialization failed\n");
+#endif
+    }
 
     // TODO: Start the main game loop
 
@@ -58,6 +70,15 @@ void game_loop(void) {
         // TODO: Respond to scoreboard requests
 
         // TODO: Poll SNES controller
+        controller_status = snes_controller_read(&snes_controller);
+        if (controller_status == SNES_CONTROLLER_NO_STATE_CHANGE) {
+            game_loop_counter++;
+        }
+        if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+#if DEBUG_OUTPUT
+            snes_controller_print(&snes_controller);
+#endif
+        }
 
         // TODO: Check timer for game speed
 
@@ -80,11 +101,6 @@ void game_loop(void) {
         // TODO: Render matrix and update LED grid
 
         // TODO: Update UI
-
-        HAL_Delay(500);
-        game_loop_counter++;
-#if DEBUG_OUTPUT
-        printf("Game loop counter: %d\n", (int)game_loop_counter);
-#endif
+        osThreadYield();
     }
 }
