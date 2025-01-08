@@ -88,12 +88,14 @@ snes_controller_status_t snes_controller_clock(snes_controller_t *controller, GP
 snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
     // TODO: Read the SNES controller
 
+    // Read rate throttling, if the timer expires, it is ready to read the controller
     if (TIM2->CNT < controller->time_expire) {
         return SNES_CONTROLLER_NOT_READY;
     }
 
     snes_controller_latch(controller);
     controller->buttons_state = 0x0000;
+
     controller->time_last_read = TIM2->CNT;
     controller->time_expire = controller->time_last_read + controller->delay_length;
     for (int i = 0; i < 16; i++) {
@@ -102,7 +104,10 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
                 << (15 - i));
         snes_controller_clock(controller, GPIO_PIN_SET);
     }
+
+    // Invert the button state as the controller is active low
     controller->buttons_state = ~controller->buttons_state;
+
     if (controller->buttons_state != controller->previous_buttons_state) {
         controller->previous_buttons_state = controller->buttons_state;
         return SNES_CONTROLLER_STATE_CHANGE;
@@ -112,7 +117,7 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
 }
 
 /**
- * @brief  Print the SNES controller state
+ * @brief  Print the SNES controller state (Debugging purposes)
  * @param  snes_controller_t *controller
  * @retval None
  */
