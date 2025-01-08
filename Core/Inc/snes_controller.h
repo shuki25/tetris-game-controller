@@ -27,7 +27,10 @@
 // TODO: Typedef for controller status in enum (e.g. SNES_CONTROLLER_OK, SNES_CONTROLLER_ERROR)
 typedef enum {
 	SNES_CONTROLLER_OK = 0,
-	SNES_CONTROLLER_ERROR
+	SNES_CONTROLLER_ERROR,
+	SNES_CONTROLLER_STATE_CHANGE,
+	SNES_CONTROLLER_NO_STATE_CHANGE,
+	SNES_CONTROLLER_NOT_READY
 } snes_controller_status_t;
 
 // TODO: Defines for shift register bit order and button mapping (B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R)
@@ -55,8 +58,9 @@ typedef struct {
 	uint16_t buttons_state;
 	uint16_t previous_buttons_state;
 	uint8_t read_rate; // in Hz
-	uint32_t last_read;
-	uint32_t delay_expire;
+	uint32_t time_last_read;
+	uint32_t delay_length;
+	uint32_t time_expire;
 } snes_controller_t;
 
 // TODO: Function prototypes for SNES controller functions (e.g. snes_controller_init, snes_controller_latch, snes_controller_clock, snes_controller_read)
@@ -64,7 +68,8 @@ snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPI
         GPIO_TypeDef *clock_port, uint16_t clock_pin, GPIO_TypeDef *data_port, uint16_t data_pin,
         uint8_t read_rate);
 snes_controller_status_t snes_controller_latch(snes_controller_t* controller);
-snes_controller_status_t snes_controller_clock(snes_controller_t* controller);
+snes_controller_status_t snes_controller_clock(snes_controller_t* controller, GPIO_PinState state);
 snes_controller_status_t snes_controller_read(snes_controller_t* controller);
+void snes_controller_print(snes_controller_t *controller);
 
 #endif /* INC_SNES_CONTROLLER_H_ */
