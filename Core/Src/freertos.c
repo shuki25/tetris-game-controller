@@ -154,6 +154,9 @@ void StartDefaultTask(void *argument) {
 /* USER CODE END Header_StartHeartbeatTask */
 void StartHeartbeatTask(void *argument) {
     /* USER CODE BEGIN StartHeartbeatTask */
+#if DEBUG_OUTPUT
+    printf("Starting heartbeat task\n");
+#endif
     /* Infinite loop */
     for (;;) {
         // TODO: Toggle heartbeat LED
@@ -172,6 +175,9 @@ void StartHeartbeatTask(void *argument) {
 /* USER CODE END Header_StartRj45LED */
 void StartRj45LED(void *argument) {
     /* USER CODE BEGIN StartRj45LED */
+#if DEBUG_OUTPUT
+    printf("Starting RJ45 LED task\n");
+#endif
     /* Infinite loop */
     for (;;) {
         // TODO: Implement RJ45 LED pattern based on I2C data activity
