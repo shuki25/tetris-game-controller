@@ -28,6 +28,7 @@ void game_init();
 // TODO: Typdef for game variables in struct
 
 // TODO: Add game_loop function prototype
-
+void game_init(void);
+void game_loop(void);
 
 #endif /* INC_GAME_LOOP_H_ */

@@ -26,7 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "game_loop.h"
+#include "itm_debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,8 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LED_HB_Pin GPIO_PIN_5
-#define LED_HB_GPIO_Port GPIOB
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -130,9 +130,15 @@ void StartDefaultTask(void *argument) {
     /* init code for USB_HOST */
     MX_USB_HOST_Init();
     /* USER CODE BEGIN StartDefaultTask */
-    // Adding here initialization
+#if DEBUG_OUTPUT
+    printf("Starting default task\nInitializing game variables and states\n");
+#endif
     game_init();
     /* Infinite loop */
+#if DEBUG_OUTPUT
+    printf("Entering game loop\n");
+#endif
+
     for (;;) {
 //        game_loop();
     }
@@ -148,8 +154,14 @@ void StartDefaultTask(void *argument) {
 /* USER CODE END Header_StartHeartbeatTask */
 void StartHeartbeatTask(void *argument) {
     /* USER CODE BEGIN StartHeartbeatTask */
+#if DEBUG_OUTPUT
+    printf("Starting heartbeat task\n");
+#endif
     /* Infinite loop */
     for (;;) {
+
+        // TODO: Toggle heartbeat LED
+
         HAL_GPIO_TogglePin(LED_HB_GPIO_Port, LED_HB_Pin);
         osDelay(500);
     }
@@ -165,6 +177,9 @@ void StartHeartbeatTask(void *argument) {
 /* USER CODE END Header_StartRj45LED */
 void StartRj45LED(void *argument) {
     /* USER CODE BEGIN StartRj45LED */
+#if DEBUG_OUTPUT
+    printf("Starting RJ45 LED task\n");
+#endif
     /* Infinite loop */
     for (;;) {
         // TODO: Implement RJ45 LED pattern based on I2C data activity
