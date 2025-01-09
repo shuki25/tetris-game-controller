@@ -140,7 +140,7 @@ void StartDefaultTask(void *argument) {
 #endif
 
     for (;;) {
-//        game_loop();
+        game_loop();
     }
     /* USER CODE END StartDefaultTask */
 }
