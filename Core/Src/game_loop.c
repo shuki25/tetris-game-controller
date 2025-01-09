@@ -35,8 +35,10 @@
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t game_loop_counter = 0;
+volatile uint32_t game_loop_counter = 0;
+volatile uint32_t render_count = 0;
 snes_controller_t snes_controller;
+extern TIM_HandleTypeDef htim3;
 
 /**
  * @brief  Splash screen
@@ -59,7 +61,6 @@ void splash() {
  */
 void game_init() {
     splash();
-    matrix_rendering_init();
     // TODO: Initialize game state (structs, bitboards, etc.)
 }
 
@@ -70,6 +71,9 @@ void game_init() {
  */
 void game_loop(void) {
     snes_controller_status_t controller_status;
+    matrix_rendering_status_t matrix_status;
+    led_matrix_t matrix;
+
     char output_buffer[80];
 
     // TODO: Load settings from EEPROM
@@ -79,6 +83,10 @@ void game_loop(void) {
     // TODO: Initialize game variables
 
     // TODO: Initialize game components
+    /* Generate and initialize the brightness lookup table */
+    brightness_lookup = generate_brightness_lookup_table(10);
+
+    matrix_status = matrix_rendering_init(&matrix, &led, &htim3, TIM_CHANNEL_1, 1000000 / 10, 512);
     controller_status = snes_controller_init(&snes_controller, SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
     SNES_CLOCK_GPIO_Port, SNES_CLOCK_Pin, SNES_DATA0_GPIO_Port, SNES_DATA0_Pin, 60);
     if (controller_status != SNES_CONTROLLER_OK) {
@@ -122,8 +130,14 @@ void game_loop(void) {
         // TODO: Get the next tetrimino from the RNG
 
         // TODO: Render matrix and update LED grid
-
+        matrix_status = matrix_rendering_test_render(&matrix);
+#if DEBUG_OUTPUT
+        if (matrix_status == MATRIX_RENDERING_UPDATED) {
+            render_count++;
+        }
+#endif
         // TODO: Update UI
+        game_loop_counter++;
         osThreadYield();
     }
 }
