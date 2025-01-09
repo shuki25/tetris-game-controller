@@ -20,13 +20,32 @@
   */
 
 #include "game_loop.h"
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
+#include "ws2812.h"
+#include "matrix_rendering.h"
+
+uint8_t update_screen_flag;
+led_t led;
+uint8_t *brightness_lookup = NULL;
+
+void splash(){
+    update_screen_flag = 0;
+    ssd1306_Init();
+    ssd1306_Fill(Black);
+    ssd1306_WriteString("RITetris", Font_16x26, White); // name undecided
+    ssd1306_SetCursor(3, 28);
+    ssd1306_UpdateScreen();
+}
 
 /**
  * @brief  Initialize game state
  * @param  None
  * @retval None
  */
-void game_init(void) {
+void game_init() {
+    splash();
+    matrix_rendering_init();
     // TODO: Initialize game state (structs, bitboards, etc.)
 }
 

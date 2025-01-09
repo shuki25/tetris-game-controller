@@ -21,14 +21,29 @@
 
 #include "matrix_rendering.h"
 #include "ws2812.h"
+#include "cmsis_os.h"
+extern led_t led;
+extern TIM_HandleTypeDef htim3;
+WS2812_error_t led_error;
 
 /**
  * @brief  Initialize WS2812 LED matrix
  * @param  None
  * @retval None
  */
-void matrix_rendering_init(void) {
+void matrix_rendering_init() {
     // TODO: Initialize WS2812 LED matrix
+    led_error = WS2812_init(&led, &htim3, TIM_CHANNEL_1, htim3.Init.Period, 16, 0);
+    if (led_error != WS2812_OK) {
+        Error_Handler();
+    }
+
+    led.data_sent_flag = 1;
+
+    WS2812_fill(&led, 0, 0, 32);
+//    WS2812_set_brightness(&led, 5);
+    WS2812_send(&led);
+    osDelay(10);
 }
 
 /**

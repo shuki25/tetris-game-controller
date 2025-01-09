@@ -23,6 +23,7 @@
 #define INC_GAME_LOOP_H_
 
 // TODO: Typedef for game state in enum (e.g. GAME_INIT, GAME_PLAY, GAME_OVER)
+void game_init();
 
 // TODO: Typdef for game variables in struct
 

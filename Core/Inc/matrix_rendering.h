@@ -23,7 +23,7 @@
 #define INC_MATRIX_RENDERING_H_
 
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
-
+void matrix_rendering_init();
 // TODO: Defines for LED matrix dimensions (e.g. LED_MATRIX_WIDTH, LED_MATRIX_HEIGHT)
 
 // TODO: Typedef for LED matrix struct (e.g. led_matrix_t)
