@@ -23,6 +23,8 @@
 #include "stdint.h"
 
 #include "snes_controller.h"
+#include "tetrimino.h"
+#include "tetrimino_shape.h"
 #include "game_loop.h"
 #include "itm_debug.h"
 #include "util.h"
@@ -48,6 +50,8 @@ void game_init(void) {
 void game_loop(void) {
     snes_controller_status_t controller_status;
     char output_buffer[80];
+    tetrimino_t tetrimino;
+    tetrimino_status_t tetrimino_status;
 
     // TODO: Load settings from EEPROM
 
@@ -63,6 +67,13 @@ void game_loop(void) {
         printf("SNES controller initialization failed\n");
 #endif
     }
+
+    tetrimino_status = tetrimino_init(&tetrimino);
+#if DEBUG_OUTPUT
+    if (tetrimino_status == TETRIMINO_OK) {
+        tetrimino_debug_print(&tetrimino);
+    }
+#endif
 
     // TODO: Start the main game loop
 
@@ -101,6 +112,7 @@ void game_loop(void) {
         // TODO: Render matrix and update LED grid
 
         // TODO: Update UI
+        game_loop_counter++;
         osThreadYield();
     }
 }
