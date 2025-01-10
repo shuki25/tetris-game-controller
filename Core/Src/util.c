@@ -24,10 +24,21 @@
 #include "util.h"
 
 void util_delay_us(uint32_t us) {
-    uint32_t start = DWT->CYCCNT;
-    uint32_t delay = us * (HAL_RCC_GetHCLKFreq() / 1000000);
-    while (DWT->CYCCNT - start < delay)
-        ;
+    uint32_t start = TIM2->CNT;
+    uint32_t end = start + us;
+    uint32_t rollover = 0xFFFFFFFF;
+    uint8_t done = 0;
+
+    if (start > end)
+        end = rollover - start + end; // It will rollover, so we need to adjust the end time
+
+    while (!done) {
+        if (TIM2->CNT >= end && start < end) { // Normal case
+            done = 1;
+        } else if (TIM2->CNT < start && TIM2->CNT >= end) { // Rollover case
+            done = 1;
+        }
+    }
 }
 
 void util_to_binary32(uint32_t num, char *binary) {
