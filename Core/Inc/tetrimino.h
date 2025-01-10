@@ -22,6 +22,8 @@
 #ifndef INC_TETRIMINO_H_
 #define INC_TETRIMINO_H_
 
+#include <stdint.h>
+
 // TODO: Typedef for tetrimino status in enum (e.g. TETRIMINO_OK, TETRIMINO_ERROR)
 typedef enum {
     TETRIMINO_OK = 0, TETRIMINO_ERROR
@@ -44,16 +46,18 @@ typedef enum {
 
 // TODO: Typedef for tetrimino struct (e.g. tetrimino_t)
 typedef struct {
-    tetrimino_piece_t piece;
-    tetrimino_rotation_t rotation;
-    uint8_t x;
-    uint8_t y;
-    tetrimino_piece_t next_piece;
+    tetrimino_piece_t piece;  // Current piece
+    tetrimino_rotation_t rotation;  // Current rotation position
+    uint8_t x;  // Current x position (of the tetrimino center)
+    uint8_t y;  // Current y position (of the tetrimino center)
+    tetrimino_piece_t next_piece; // Next random generated piece
+    uint8_t shape_offset; // offset pointer to the tetrimino_shape array of the current piece
 } tetrimino_t;
 
 // TODO: Function prototypes for tetrimino functions (e.g. tetrimino_init, tetrimino_rotate, tetrimino_move)
 
-tetrmino_status_t tetrimino_init(tetrimino_t *tetrimino);
-tetrmino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction);
+tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino);
+tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction);
+void tetrimino_debug_print(tetrimino_t *tetrimino);
 
 #endif /* INC_TETRIMINO_H_ */
