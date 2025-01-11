@@ -58,6 +58,7 @@ typedef struct {
 
 tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino);
 tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction);
+tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src);
 void tetrimino_debug_print(tetrimino_t *tetrimino);
 
 #endif /* INC_TETRIMINO_H_ */

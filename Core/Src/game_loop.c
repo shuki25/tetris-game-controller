@@ -32,6 +32,8 @@
 
 uint32_t game_loop_counter = 0;
 snes_controller_t snes_controller;
+tetrimino_t tetrimino;
+tetrimino_t tetrimino_pending;
 
 /**
  * @brief  Initialize game state
@@ -83,9 +85,14 @@ void game_loop(void) {
         // TODO: Poll SNES controller
         controller_status = snes_controller_read(&snes_controller);
         if (controller_status == SNES_CONTROLLER_NO_STATE_CHANGE) {
-            game_loop_counter++;
+
         }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+			if (snes_controller.buttons_state & SNES_BUTTON_A) {
+				tetrimino_rotate(&tetrimino, ROTATE_RIGHT);
+			} else if (snes_controller.buttons_state & SNES_BUTTON_B) {
+				tetrimino_rotate(&tetrimino, ROTATE_LEFT);
+			}
 #if DEBUG_OUTPUT
             snes_controller_print(&snes_controller);
 #endif

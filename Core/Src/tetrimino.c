@@ -48,11 +48,28 @@ tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
  * @retval status
  */
 tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction) {
-    // TODO: Rotate tetrimino object
+    tetrimino_t temp;
+
+	// TODO: Rotate tetrimino object
+	switch (direction) {
+	case ROTATE_LEFT:
+		temp.rotation = (tetrimino->rotation - 1);
+		if (temp.rotation < 0) {
+			temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
+		}
+		break;
+	case ROTATE_RIGHT:
+		temp.rotation = tetrimino->rotation + 1;
+		if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+			temp.rotation = 0;
+		}
+		break;
+	}
 
     // TODO: check for collision
 
     // TODO: update bitboard matrix object
+	tetrimino_copy(tetrimino, &temp);
 
     return TETRIMINO_OK;
 }
@@ -68,6 +85,11 @@ void tetrimino_move(void) {
     // TODO: check for collision
 
     // TODO: update bitboard matrix object
+}
+
+tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src) {
+	memcpy(dst, src, sizeof(tetrimino_t));
+	return TETRIMINO_OK;
 }
 
 void tetrimino_debug_print(tetrimino_t *tetrimino) {
