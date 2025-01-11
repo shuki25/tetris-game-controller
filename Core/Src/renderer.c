@@ -34,7 +34,7 @@ uint8_t generate_lookup_table(
             for (int j = 0; j < MATRIX_WIDTH; j++) {
                 lookup_table[i][j] = led_id;
 #if DEBUG_OUTPUT
-                printf("[%d][%d]: %d ", i, j, led_id);
+                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
 #endif
                 led_id++;
             }
@@ -42,7 +42,7 @@ uint8_t generate_lookup_table(
             for (int j = MATRIX_WIDTH; j > 0; j--) {
                 lookup_table[i][j] = led_id;
 #if DEBUG_OUTPUT
-                printf("[%d][%d]: %d ", i, j, led_id);
+                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
 #endif
                 led_id++;
             }
