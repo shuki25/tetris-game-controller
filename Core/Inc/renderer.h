@@ -19,38 +19,40 @@
  ******************************************************************************
  */
 
-#ifndef INC_MATRIX_RENDERING_H_
-#define INC_MATRIX_RENDERING_H_
+#ifndef INC_RENDERER_H_
+#define INC_RENDERER_H_
 
 #include <stdint.h>
 #include "ws2812.h"
+#include "matrix.h"
 
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
-    MATRIX_RENDERING_OK = 0,
-    MATRIX_RENDERING_ERROR,
-    MATRIX_RENDERING_WS2812_ERROR,
-    MATRIX_RENDERING_NOT_READY,
-    MATRIX_RENDERING_UPDATED
-} matrix_rendering_status_t;
+    RENDERING_OK = 0,
+    RENDERING_ERROR,
+    RENDERING_WS2812_ERROR,
+    RENDERING_NOT_READY,
+    RENDERING_UPDATED
+} renderer_status_t;
 
 // TODO: Defines for LED matrix dimensions (e.g. LED_MATRIX_WIDTH, LED_MATRIX_HEIGHT)
 
 // TODO: Typedef for LED matrix struct (e.g. led_matrix_t)
 typedef struct {
     uint8_t data_sent_flag;
-    uint16_t num_leds;
     uint8_t brightness;
     uint32_t time_last_sent;
     uint32_t next_update_time;
     uint32_t delay_length; // in microseconds
     uint16_t led_position;
+    uint16_t num_leds;
+    matrix_t* matrix;
     led_t *led;
 
-} led_matrix_t;
+} renderer_t;
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
-matrix_rendering_status_t matrix_rendering_init(led_matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
-        const uint32_t channel, uint32_t delay_length, uint16_t num_leds);
-matrix_rendering_status_t matrix_rendering_test_render(led_matrix_t *matrix);
-#endif /* INC_MATRIX_RENDERING_H_ */
+renderer_status_t renderer_init(renderer_t *rendering_info, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
+        const uint32_t channel, uint32_t delay_length);
+renderer_status_t renderer_test_render(renderer_t *rendering_info);
+#endif /* INC_RENDERER_H_ */
