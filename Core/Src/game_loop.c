@@ -23,6 +23,8 @@
 #include "stdint.h"
 
 #include "snes_controller.h"
+#include "tetrimino.h"
+#include "tetrimino_shape.h"
 #include "game_loop.h"
 #include "itm_debug.h"
 #include "util.h"
@@ -30,6 +32,8 @@
 
 uint32_t game_loop_counter = 0;
 snes_controller_t snes_controller;
+tetrimino_t tetrimino;
+tetrimino_t tetrimino_pending;
 
 /**
  * @brief  Initialize game state
@@ -48,6 +52,8 @@ void game_init(void) {
 void game_loop(void) {
     snes_controller_status_t controller_status;
     char output_buffer[80];
+    tetrimino_t tetrimino;
+    tetrimino_status_t tetrimino_status;
 
     // TODO: Load settings from EEPROM
 
@@ -64,6 +70,13 @@ void game_loop(void) {
 #endif
     }
 
+    tetrimino_status = tetrimino_init(&tetrimino);
+#if DEBUG_OUTPUT
+    if (tetrimino_status == TETRIMINO_OK) {
+        tetrimino_debug_print(&tetrimino);
+    }
+#endif
+
     // TODO: Start the main game loop
 
     for (;;) {
@@ -72,11 +85,19 @@ void game_loop(void) {
         // TODO: Poll SNES controller
         controller_status = snes_controller_read(&snes_controller);
         if (controller_status == SNES_CONTROLLER_NO_STATE_CHANGE) {
-            game_loop_counter++;
+
         }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+			if (snes_controller.buttons_state & SNES_BUTTON_A) {
+				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
+			} else if (snes_controller.buttons_state & SNES_BUTTON_B) {
+				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
+			}
 #if DEBUG_OUTPUT
             snes_controller_print(&snes_controller);
+			if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
+				tetrimino_debug_print(&tetrimino);
+			}
 #endif
         }
 
@@ -101,6 +122,7 @@ void game_loop(void) {
         // TODO: Render matrix and update LED grid
 
         // TODO: Update UI
+        game_loop_counter++;
         osThreadYield();
     }
 }

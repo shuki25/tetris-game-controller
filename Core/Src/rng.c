@@ -35,24 +35,41 @@
 
 #include <stdint.h>
 #include "rng.h"
+#include "main.h"
 
-static uint32_t rng_seed = 0;
+volatile static uint16_t rng_seed = 0;
 
 /**
  * @brief  Initialize random number generator
  * @param  seeding value
  * @retval None
  */
-void rng_init(void) {
+void rng_init(uint16_t seed) {
     // TODO: Initialize random number generator
+    if (seed == 0) {
+        seed = (uint16_t) TIM2->CNT & 0xFFFF;
+    }
+    rng_seed = seed;
 }
 
 /**
  * @brief  Compute the next random number
  * @param  None
- * @retval next chosen tetrimino identifier
+ * @retval next chosen 16-bit random number
  */
-uint8_t rng_next(void) {
+uint16_t rng_next(void) {
     // TODO: Compute the next random number using LFSR algorithm from the seeding value
+    uint16_t new_seed = rng_seed;
+
+    // XOR bits 1 and 9
+    uint16_t bit1 = (rng_seed >> 1) & 0x01;
+    uint16_t bit9 = (rng_seed >> 9) & 0x01;
+    uint16_t bit16 = bit1 ^ bit9;
+    new_seed = (new_seed >> 1) | (bit16 << 16);
+    if (!new_seed) {  // Eventually the seed will produce an endless sequence of zeros
+        new_seed = 0x8988;
+    }
+    rng_seed = new_seed;
+
     return rng_seed;
 }

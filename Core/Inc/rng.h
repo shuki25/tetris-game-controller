@@ -22,8 +22,9 @@
 #ifndef INC_RNG_H_
 #define INC_RNG_H_
 
-// TODO: Typedef for RNG status in enum (e.g. RNG_OK, RNG_ERROR)
+#include <stdint.h>
 
-// TODO: Prototypes for RNG functions (e.g. rng_init, rng_next)
+void rng_init(uint16_t seed);
+uint16_t rng_next(void);
 
 #endif /* INC_RNG_H_ */
