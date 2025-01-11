@@ -22,6 +22,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "game_loop.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -46,7 +47,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -159,7 +159,9 @@ void StartHeartbeatTask(void *argument) {
 #endif
     /* Infinite loop */
     for (;;) {
+
         // TODO: Toggle heartbeat LED
+
         HAL_GPIO_TogglePin(LED_HB_GPIO_Port, LED_HB_Pin);
         osDelay(500);
     }

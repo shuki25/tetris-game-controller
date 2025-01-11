@@ -27,31 +27,32 @@
 
 // TODO: Typedef for game status in enum (e.g. GAME_OK, GAME_ERROR)
 typedef enum {
-    GAME_OK = 0, GAME_ERROR
+	GAME_OK = 0, GAME_ERROR
 } game_status_t;
 
 // TODO: Typedef for game state in enum (e.g. GAME_INIT, GAME_PLAY, GAME_OVER)
+
 typedef enum {
-    GAME_STATE_SPLASH = 0,
-    GAME_STATE_SPLASH_WAIT,
-    GAME_STATE_MENU,
-    GAME_STATE_PLAY_MENU,
-    GAME_STATE_PREPARE_GAME,
-    GAME_STATE_GAME_IN_PROGRESS,
-    GAME_STATE_PAUSE,
-    GAME_STATE_GAME_ENDED,
-    GAME_STATE_HIGH_SCORE,
-    GAME_STATE_SETTINGS,
-    GAME_STATE_TEST_FEATURE
+	GAME_STATE_SPLASH = 0,
+	GAME_STATE_SPLASH_WAIT,
+	GAME_STATE_MENU,
+	GAME_STATE_PLAY_MENU,
+	GAME_STATE_PREPARE_GAME,
+	GAME_STATE_GAME_IN_PROGRESS,
+	GAME_STATE_PAUSE,
+	GAME_STATE_GAME_ENDED,
+	GAME_STATE_HIGH_SCORE,
+	GAME_STATE_SETTINGS,
+	GAME_STATE_TEST_FEATURE
 } game_state_t;
 
 // TODO: Typdef for game variables in struct
 typedef struct {
-    game_state_t state;
-    uint32_t score;
-    uint32_t level;
-    uint32_t lines;
-    uint32_t game_speed;
+	game_state_t state;
+	uint32_t score;
+	uint32_t level;
+	uint32_t lines;
+	uint32_t game_speed;
 } game_t;
 
 // TODO: Add game_loop function prototype
