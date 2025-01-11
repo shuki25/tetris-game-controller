@@ -26,7 +26,7 @@
 
 // TODO: Typedef for tetrimino status in enum (e.g. TETRIMINO_OK, TETRIMINO_ERROR)
 typedef enum {
-    TETRIMINO_OK = 0, TETRIMINO_ERROR
+    TETRIMINO_OK = 0, TETRIMINO_ERROR, TETRIMINO_REFRESH
 } tetrimino_status_t;
 
 // TODO: Constants for tetrimino pieces (e.g. TETRIMINO_I, TETRIMINO_J, TETRIMINO_L, TETRIMINO_O, TETRIMINO_S, TETRIMINO_T, TETRIMINO_Z
@@ -36,12 +36,12 @@ typedef enum {
 
 // TODO: Constants for tetrimino rotations (e.g. TETRIMINO_ROTATION_0, TETRIMINO_ROTATION_90, TETRIMINO_ROTATION_180, TETRIMINO_ROTATION_270)
 typedef enum {
-    TETRIMINO_ROTATION_0 = 0, TETRIMINO_ROTATION_90, TETRIMINO_ROTATION_180, TETRIMINO_ROTATION_270, TETRIMINO_ROTATION_COUNT
+    TETRIMINO_ROTATION_UP = 0, TETRIMINO_ROTATION_RIGHT, TETRIMINO_ROTATION_DOWN, TETRIMINO_ROTATION_LEFT, TETRIMINO_ROTATION_COUNT
 } tetrimino_rotation_t;
 
-// TODO: Constants for rotation directions (e.g. ROTATE_LEFT, ROTATE_RIGHT)
+// TODO: Constants for rotation directions (e.g. ROTATE_CCW, ROTATE_CW)
 typedef enum {
-    ROTATE_LEFT = 0, ROTATE_RIGHT
+    ROTATE_CCW = 0, ROTATE_CW
 } rotation_direction_t;
 
 // TODO: Typedef for tetrimino struct (e.g. tetrimino_t)

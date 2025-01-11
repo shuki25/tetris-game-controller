@@ -89,12 +89,15 @@ void game_loop(void) {
         }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
 			if (snes_controller.buttons_state & SNES_BUTTON_A) {
-				tetrimino_rotate(&tetrimino, ROTATE_RIGHT);
+				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
 			} else if (snes_controller.buttons_state & SNES_BUTTON_B) {
-				tetrimino_rotate(&tetrimino, ROTATE_LEFT);
+				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
 			}
 #if DEBUG_OUTPUT
             snes_controller_print(&snes_controller);
+			if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
+				tetrimino_debug_print(&tetrimino);
+			}
 #endif
         }
 
