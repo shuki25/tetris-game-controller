@@ -51,7 +51,7 @@ void game_init(void) {
  */
 void game_loop(void) {
     snes_controller_status_t controller_status;
-    char output_buffer[80];
+//    char output_buffer[80];
     tetrimino_t tetrimino;
     tetrimino_status_t tetrimino_status;
 
@@ -88,16 +88,16 @@ void game_loop(void) {
 
         }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
-			if (snes_controller.buttons_state & SNES_BUTTON_A) {
-				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
-			} else if (snes_controller.buttons_state & SNES_BUTTON_B) {
-				tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
-			}
+            if (snes_controller.buttons_state & SNES_BUTTON_A) {
+                tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
+            } else if (snes_controller.buttons_state & SNES_BUTTON_B) {
+                tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
+            }
 #if DEBUG_OUTPUT
             snes_controller_print(&snes_controller);
-			if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
-				tetrimino_debug_print(&tetrimino);
-			}
+            if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
+                tetrimino_debug_print(&tetrimino);
+            }
 #endif
         }
 
