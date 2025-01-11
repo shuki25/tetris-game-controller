@@ -50,9 +50,12 @@ typedef struct {
     led_t *led;
 
 } renderer_t;
+
+uint8_t generate_lookup_table(uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]);
+
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
-renderer_status_t renderer_init(renderer_t *renderer, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
+renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
         const uint32_t channel, uint32_t delay_length);
 renderer_status_t renderer_test_render(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */

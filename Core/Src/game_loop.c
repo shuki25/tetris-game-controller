@@ -46,7 +46,8 @@ uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
 uint32_t render_delay = (1000000 / 10);
-renderer_t rendering_info;
+renderer_t renderer;
+uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
 // Controller Variables
 snes_controller_t snes_controller;
@@ -126,7 +127,7 @@ void game_loop(void) {
 #endif
     }
 
-    rendering_status = renderer_init(&rendering_info, &matrix, &led,
+    rendering_status = renderer_init(&renderer, lookup_table, &matrix, &led,
             &htim3, TIM_CHANNEL_1, render_delay);
 
     if (rendering_status == RENDERER_OK) {
@@ -169,7 +170,7 @@ void game_loop(void) {
 
         // TODO: Render matrix and update LED grid
 
-        rendering_status = renderer_test_render(&rendering_info);
+        rendering_status = renderer_test_render(&renderer);
 #if DEBUG_OUTPUT
         if (rendering_status == RENDERER_UPDATED) {
             render_count++;
