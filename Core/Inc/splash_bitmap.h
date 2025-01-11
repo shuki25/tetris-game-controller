@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : rng.h
+  * @file           : splash_bitmap.h
   * @author         : Dr. Joshua Butler
   * @date           : Dec 9, 2024
-  * @brief          : Random number generator for selecting the next tetrimino
+  * @brief          : Tetrimino representation for Classic Tetris on LED Grid
   ******************************************************************************
   * @attention
   *
@@ -19,12 +19,10 @@
   ******************************************************************************
   */
 
-#ifndef INC_RNG_H_
-#define INC_RNG_H_
+#ifndef INC_SPLASH_BITMAP_H_
+#define INC_SPLASH_BITMAP_H_
 
-#include <stdint.h>
+extern const unsigned char *tetrimino_allArray[];
 
-void rng_init(uint16_t seed);
-uint16_t rng_next(void);
 
-#endif /* INC_RNG_H_ */
+#endif /* INC_SPLASH_BITMAP_H_ */

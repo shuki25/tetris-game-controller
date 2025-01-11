@@ -89,7 +89,7 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
     // TODO: Read the SNES controller
 
     // Read rate throttling, if the timer expires, it is ready to read the controller
-    if (TIM2->CNT < controller->time_expire) {
+    if (!util_time_expired(controller->time_last_read, controller->time_expire)) {
         return SNES_CONTROLLER_NOT_READY;
     }
 
