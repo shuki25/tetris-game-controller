@@ -18,8 +18,9 @@
  *
  ******************************************************************************
  */
-#include <renderer.h>
+
 #include <string.h>
+#include "renderer.h"
 #include "main.h"
 
 WS2812_error_t led_error;
@@ -29,26 +30,26 @@ WS2812_error_t led_error;
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_init(renderer_t *rendering_info, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
+renderer_status_t renderer_init(renderer_t *renderer, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
         const uint32_t channel, uint32_t delay_length) {
     // TODO: Initialize WS2812 LED matrix
 
     memset(led, 0, sizeof(led_t));
-    rendering_info->matrix = matrix;
-    rendering_info->led = led;
-    rendering_info->num_leds = (matrix->height * matrix->width);
-    rendering_info->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
+    renderer->matrix = matrix;
+    renderer->led = led;
+    renderer->num_leds = (matrix->height * matrix->width);
+    renderer->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
 
-    led_error = WS2812_init(rendering_info->led, htim, channel, htim->Init.Period, rendering_info->num_leds, 0);
+    led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period, renderer->num_leds, 0);
     if (led_error != WS2812_OK) {
-        return RENDERING_WS2812_ERROR;
+        return RENDERER_WS2812_ERROR;
     }
 
-    rendering_info->led->data_sent_flag = 1;
-    rendering_info->time_last_sent = TIM2->CNT;
-    rendering_info->next_update_time = rendering_info->time_last_sent + rendering_info->delay_length;
+    renderer->led->data_sent_flag = 1;
+    renderer->time_last_sent = TIM2->CNT;
+    renderer->next_update_time = renderer->time_last_sent + renderer->delay_length;
 
-    return RENDERING_OK;
+    return RENDERER_OK;
 }
 
 /**
@@ -84,7 +85,7 @@ void renderer_show_next_tetrimino(void) {
 renderer_status_t renderer_test_render(renderer_t *rendering_info) {
 
     if (TIM2->CNT < rendering_info->next_update_time) {
-        return RENDERING_NOT_READY;
+        return RENDERER_NOT_READY;
     }
 
     WS2812_clear(rendering_info->led);
@@ -98,6 +99,6 @@ renderer_status_t renderer_test_render(renderer_t *rendering_info) {
 
     rendering_info->next_update_time = TIM2->CNT + rendering_info->delay_length;
 
-    return RENDERING_UPDATED;
+    return RENDERER_UPDATED;
 
 }

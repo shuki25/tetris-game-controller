@@ -28,11 +28,11 @@
 
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
-    RENDERING_OK = 0,
-    RENDERING_ERROR,
-    RENDERING_WS2812_ERROR,
-    RENDERING_NOT_READY,
-    RENDERING_UPDATED
+    RENDERER_OK = 0,
+    RENDERER_ERROR,
+    RENDERER_WS2812_ERROR,
+    RENDERER_NOT_READY,
+    RENDERER_UPDATED
 } renderer_status_t;
 
 // TODO: Defines for LED matrix dimensions (e.g. LED_MATRIX_WIDTH, LED_MATRIX_HEIGHT)
@@ -52,7 +52,7 @@ typedef struct {
 } renderer_t;
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
-renderer_status_t renderer_init(renderer_t *rendering_info, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
+renderer_status_t renderer_init(renderer_t *renderer, matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim,
         const uint32_t channel, uint32_t delay_length);
-renderer_status_t renderer_test_render(renderer_t *rendering_info);
+renderer_status_t renderer_test_render(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */
