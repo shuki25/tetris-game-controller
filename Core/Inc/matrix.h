@@ -25,7 +25,7 @@
 
 // TODO: Typedef for matrix status in enum (e.g. MATRIX_OK, MATRIX_ERROR)
 typedef enum {
-	MATRIX_OK = 0, MATRIX_ERROR
+    MATRIX_OK = 0, MATRIX_ERROR
 } matrix_status_t;
 
 // TODO: Defines for matrix dimensions (e.g. MATRIX_WIDTH, MATRIX_HEIGHT)
@@ -34,8 +34,8 @@ typedef enum {
 
 // TODO: Typedef for matrix struct (e.g. matrix_t)
 typedef struct {
-	uint8_t height;
-	uint8_t width;
+    uint8_t height;
+    uint8_t width;
 } matrix_t;
 
 matrix_status_t matrix_init();
