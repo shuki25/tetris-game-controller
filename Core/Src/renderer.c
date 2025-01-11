@@ -26,20 +26,32 @@
 #include "itm_debug.h"
 
 uint8_t generate_lookup_table(
-		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
-	uint16_t led_id = 0;
+        uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
+    uint16_t led_id = 0;
 
-	for (int i = 0; i < MATRIX_HEIGHT; i++) {
-		for (int j = 0; j < MATRIX_WIDTH; j++) {
-			lookup_table[i][j] = led_id;
+    for (int i = 0; i < MATRIX_HEIGHT; i++) {
+        if (i % 2 == 0) {
+            for (int j = 0; j < MATRIX_WIDTH; j++) {
+                lookup_table[i][j] = led_id;
 #if DEBUG_OUTPUT
-			printf("[%d][%d] %d", i, j, lookup_table[i][j]);
+                printf("[%d][%d]: %d ", i, j, led_id);
 #endif
-			led_id++;
-		}
-	}
-
-	return 0;
+                led_id++;
+            }
+        } else {
+            for (int j = MATRIX_WIDTH; j > 0; j--) {
+                lookup_table[i][j] = led_id;
+#if DEBUG_OUTPUT
+                printf("[%d][%d]: %d ", i, j, led_id);
+#endif
+                led_id++;
+            }
+        }
+#if DEBUG_OUTPUT
+        printf("\n");
+#endif
+    }
+    return 0;
 }
 
 WS2812_error_t led_error;
@@ -49,33 +61,33 @@ WS2812_error_t led_error;
  * @retval None
  */
 renderer_status_t renderer_init(renderer_t *renderer,
-		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
-		led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
-		uint32_t delay_length) {
-	// TODO: Initialize WS2812 LED matrix
+        uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
+        led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
+        uint32_t delay_length) {
+    // TODO: Initialize WS2812 LED matrix
 
-	memset(led, 0, sizeof(led_t));
-	renderer->matrix = matrix;
-	renderer->led = led;
-	renderer->num_leds = (matrix->height * matrix->width);
-	renderer->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
+    memset(led, 0, sizeof(led_t));
+    renderer->matrix = matrix;
+    renderer->led = led;
+    renderer->num_leds = (matrix->height * matrix->width);
+    renderer->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
 
-	led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period,
-			renderer->num_leds, 0);
-	if (led_error != WS2812_OK) {
-		return RENDERER_WS2812_ERROR;
-	}
+    led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period,
+            renderer->num_leds, 0);
+    if (led_error != WS2812_OK) {
+        return RENDERER_WS2812_ERROR;
+    }
 
-	renderer->led->data_sent_flag = 1;
-	renderer->time_last_sent = TIM2->CNT;
-	renderer->next_update_time = renderer->time_last_sent
-			+ renderer->delay_length;
+    renderer->led->data_sent_flag = 1;
+    renderer->time_last_sent = TIM2->CNT;
+    renderer->next_update_time = renderer->time_last_sent
+            + renderer->delay_length;
 
-	if (generate_lookup_table(lookup_table) != 0) {
-		return RENDERER_ERROR;
-	}
+    if (generate_lookup_table(lookup_table) != 0) {
+        return RENDERER_ERROR;
+    }
 
-	return RENDERER_OK;
+    return RENDERER_OK;
 }
 
 /**
@@ -84,7 +96,7 @@ renderer_status_t renderer_init(renderer_t *renderer,
  * @retval None
  */
 void renderer_render(void) {
-	// TODO: Send final matrix to WS2812 LED matrix
+    // TODO: Send final matrix to WS2812 LED matrix
 //    WS2812_fill(matrix->led, 0, 0, 32);
 //    WS2812_set_brightness(&led, 5);
 //    WS2812_send(&led);
@@ -96,7 +108,7 @@ void renderer_render(void) {
  * @retval None
  */
 void renderer_clear(void) {
-	// TODO: Clear WS2812 LED matrix
+    // TODO: Clear WS2812 LED matrix
 }
 
 /**
@@ -105,26 +117,26 @@ void renderer_clear(void) {
  * @retval None
  */
 void renderer_show_next_tetrimino(void) {
-	// TODO: Show next tetrimino on WS2812 LED matrix
+    // TODO: Show next tetrimino on WS2812 LED matrix
 }
 
 renderer_status_t renderer_test_render(renderer_t *rendering_info) {
 
-	if (TIM2->CNT < rendering_info->next_update_time) {
-		return RENDERER_NOT_READY;
-	}
+    if (TIM2->CNT < rendering_info->next_update_time) {
+        return RENDERER_NOT_READY;
+    }
 
-	WS2812_clear(rendering_info->led);
-	WS2812_set_LED(rendering_info->led, rendering_info->led_position, 0, 0, 64);
-	WS2812_send(rendering_info->led);
+    WS2812_clear(rendering_info->led);
+    WS2812_set_LED(rendering_info->led, rendering_info->led_position, 0, 0, 64);
+    WS2812_send(rendering_info->led);
 
-	rendering_info->led_position++;
-	if (rendering_info->led_position >= rendering_info->num_leds) {
-		rendering_info->led_position = 0;
-	}
+    rendering_info->led_position++;
+    if (rendering_info->led_position >= rendering_info->num_leds) {
+        rendering_info->led_position = 0;
+    }
 
-	rendering_info->next_update_time = TIM2->CNT + rendering_info->delay_length;
+    rendering_info->next_update_time = TIM2->CNT + rendering_info->delay_length;
 
-	return RENDERER_UPDATED;
+    return RENDERER_UPDATED;
 
 }
