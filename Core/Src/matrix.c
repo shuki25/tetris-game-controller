@@ -20,14 +20,18 @@
   */
 
 #include "matrix.h"
+#include <string.h>
 
 /**
  * @brief  Initialize bitboards (tetrimino, fallen blocks, palette)
  * @param  bitboards
  * @retval None
  */
-void matrix_init(void) {
-    // TODO: Initialize bitboards (tetrimino, fallen blocks, palette)
+matrix_status_t matrix_init(matrix_t* matrix) {
+    memset(matrix, 0, sizeof(matrix_t));
+    matrix->height = MATRIX_HEIGHT;
+    matrix->width = MATRIX_WIDTH;
+    return MATRIX_OK;
 }
 
 /**
