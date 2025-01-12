@@ -51,6 +51,7 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino,
 		rotation_direction_t direction) {
 	tetrimino_t temp;
 
+	tetrimino_copy(&temp, tetrimino);
 	// TODO: Rotate tetrimino object
 	switch (direction) {
 	case ROTATE_CW:
