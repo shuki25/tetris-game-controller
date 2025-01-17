@@ -297,12 +297,12 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-            rendering_status = renderer_test_render(&renderer);
-#if DEBUG_OUTPUT
-            if (rendering_status == RENDERER_UPDATED) {
-                render_count++;
-            }
-#endif
+//            rendering_status = renderer_test_render(&renderer);
+//#if DEBUG_OUTPUT
+//            if (rendering_status == RENDERER_UPDATED) {
+//                render_count++;
+//            }
+//#endif
             /* Developer test code END */
             break;
 

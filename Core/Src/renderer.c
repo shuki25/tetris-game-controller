@@ -94,10 +94,9 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer, uint16_t lookup
 
     // NOTE: i is rows, j is columns by convention
 
-    // render the top and bottom boundary line
+    // render bottom boundary line
     for(int j=0; j < MATRIX_WIDTH; j++){
         uint16_t led_bottom_num = lookup_table[0][j];
-        uint16_t led_top_num = lookup_table[MATRIX_HEIGHT-1][j];
         WS2812_set_LED(renderer->led, led_bottom_num, 0, 0, 64);
         WS2812_set_LED(renderer->led, led_top_num, 0, 0, 64);
     }
