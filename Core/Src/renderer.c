@@ -39,7 +39,7 @@ uint8_t generate_lookup_table(
                 led_id++;
             }
         } else {
-            for (int j = MATRIX_WIDTH; j > 0; j--) {
+            for (int j = MATRIX_WIDTH - 1; j >= 0; j--) {
                 lookup_table[i][j] = led_id;
 #if DEBUG_OUTPUT
                 printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);

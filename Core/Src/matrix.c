@@ -28,10 +28,10 @@
  * @retval None
  */
 matrix_status_t matrix_init(matrix_t *matrix) {
-	memset(matrix, 0, sizeof(matrix_t));
-	matrix->height = MATRIX_HEIGHT;
-	matrix->width = MATRIX_WIDTH;
-	return MATRIX_OK;
+    memset(matrix, 0, sizeof(matrix_t));
+    matrix->height = MATRIX_HEIGHT;
+    matrix->width = MATRIX_WIDTH;
+    return MATRIX_OK;
 }
 
 /**
@@ -40,9 +40,9 @@ matrix_status_t matrix_init(matrix_t *matrix) {
  * @retval None
  */
 void matrix_add_tetrimino(void) {
-	// TODO: Add tetrimino to matrix
+    // TODO: Add tetrimino to matrix
 
-	// TODO: Update palette bitboards
+    // TODO: Update palette bitboards
 }
 
 /**
@@ -51,7 +51,7 @@ void matrix_add_tetrimino(void) {
  * @retval None
  */
 void matrix_flatten(void) {
-	// TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
+    // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
 }
 
 /**
@@ -60,7 +60,7 @@ void matrix_flatten(void) {
  * @retval None
  */
 void matrix_clear(void) {
-	// TODO: Clear fallen blocks from matrix
+    // TODO: Clear fallen blocks from matrix
 }
 
 /**
@@ -69,7 +69,7 @@ void matrix_clear(void) {
  * @retval True if collision, false otherwise
  */
 void matrix_check_collision(void) {
-	// TODO: Check for collision between tetrimino, boundaries, and fallen blocks
+    // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
 }
 
 /**
@@ -78,7 +78,7 @@ void matrix_check_collision(void) {
  * @retval True if line clear, false otherwise
  */
 void matrix_check_line_clear(void) {
-	// TODO: Check for line clear (full rows)
+    // TODO: Check for line clear (full rows)
 }
 
 /**
@@ -87,7 +87,7 @@ void matrix_check_line_clear(void) {
  * @retval Number of rows cleared
  */
 void matrix_line_clear(void) {
-	// TODO: Clear full rows
+    // TODO: Clear full rows
 
-	// TODO: Reposition fallen blocks
+    // TODO: Reposition fallen blocks
 }

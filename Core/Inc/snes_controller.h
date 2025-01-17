@@ -24,7 +24,6 @@
 
 #include "main.h"
 
-// TODO: Typedef for controller status in enum (e.g. SNES_CONTROLLER_OK, SNES_CONTROLLER_ERROR)
 typedef enum {
 	SNES_CONTROLLER_OK = 0,
 	SNES_CONTROLLER_ERROR,
@@ -33,7 +32,7 @@ typedef enum {
 	SNES_CONTROLLER_NOT_READY
 } snes_controller_status_t;
 
-// TODO: Defines for shift register bit order and button mapping (B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R)
+// Defines for shift register bit order and button mapping (B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R)
 #define SNES_BUTTON_B	(1 << 15)
 #define SNES_BUTTON_Y	(1 << 14)
 #define SNES_BUTTON_SELECT	(1 << 13)
@@ -47,7 +46,6 @@ typedef enum {
 #define SNES_BUTTON_L	(1 << 5)
 #define SNES_BUTTON_R	(1 << 4)
 
-// TODO: Typedef for SNES controller struct (e.g. snes_controller_t) for GPIO pins assignment for latch, clock, data, and button state
 typedef struct {
 	GPIO_TypeDef* latch_port;
 	uint16_t latch_pin;
@@ -63,7 +61,6 @@ typedef struct {
 	uint32_t time_expire;
 } snes_controller_t;
 
-// TODO: Function prototypes for SNES controller functions (e.g. snes_controller_init, snes_controller_latch, snes_controller_clock, snes_controller_read)
 snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPIO_TypeDef *latch_port, uint16_t latch_pin,
         GPIO_TypeDef *clock_port, uint16_t clock_pin, GPIO_TypeDef *data_port, uint16_t data_pin,
         uint8_t read_rate);

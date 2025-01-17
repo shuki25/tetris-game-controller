@@ -36,7 +36,7 @@
 snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPIO_TypeDef *latch_port,
         uint16_t latch_pin, GPIO_TypeDef *clock_port, uint16_t clock_pin, GPIO_TypeDef *data_port,
         uint16_t data_pin, uint8_t read_rate) {
-    // TODO: Initialize SNES controller struct
+
     controller->latch_port = latch_port;
     controller->latch_pin = latch_pin;
     controller->clock_port = clock_port;
@@ -59,7 +59,7 @@ snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPI
  * @retval None
  */
 snes_controller_status_t snes_controller_latch(snes_controller_t *controller) {
-    // TODO: Latch the SNES controller
+
     HAL_GPIO_WritePin(controller->latch_port, controller->latch_pin, GPIO_PIN_SET);
     util_delay_us(12);
     HAL_GPIO_WritePin(controller->latch_port, controller->latch_pin, GPIO_PIN_RESET);
@@ -73,7 +73,7 @@ snes_controller_status_t snes_controller_latch(snes_controller_t *controller) {
  * @retval None
  */
 snes_controller_status_t snes_controller_clock(snes_controller_t *controller, GPIO_PinState state) {
-    // TODO: Clock the SNES controller
+
     HAL_GPIO_WritePin(controller->clock_port, controller->clock_pin, state);
     util_delay_us(5);
 
@@ -86,7 +86,6 @@ snes_controller_status_t snes_controller_clock(snes_controller_t *controller, GP
  * @retval status of the SNES controller
  */
 snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
-    // TODO: Read the SNES controller
 
     // Read rate throttling, if the timer expires, it is ready to read the controller
     if (!util_time_expired(controller->time_last_read, controller->time_expire)) {
