@@ -26,6 +26,9 @@
 #include "ws2812.h"
 #include "matrix.h"
 
+#define MAX_PLAYFIELD_HEIGHT (20)
+#define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
+
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
 	RENDERER_OK = 0,

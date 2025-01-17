@@ -95,16 +95,15 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer, uint16_t lookup
     // NOTE: i is rows, j is columns by convention
 
     // render bottom boundary line
-    for(int j=0; j < MATRIX_WIDTH; j++){
+    for(int j=0; j < (MAX_PLAYFIELD_WIDTH); j++){
         uint16_t led_bottom_num = lookup_table[0][j];
         WS2812_set_LED(renderer->led, led_bottom_num, 0, 0, 64);
-        WS2812_set_LED(renderer->led, led_top_num, 0, 0, 64);
     }
 
     // render the left and right boundary lines
-    for(int i=0; i < MATRIX_HEIGHT; i++){
+    for(int i=0; i <= MAX_PLAYFIELD_HEIGHT; i++){
         uint16_t led_left_side_num = lookup_table[i][0];
-        uint16_t led_right_side_num = lookup_table[i][MATRIX_WIDTH-1];
+        uint16_t led_right_side_num = lookup_table[i][MATRIX_WIDTH-5];
         WS2812_set_LED(renderer->led, led_left_side_num, 0, 0, 64);
         WS2812_set_LED(renderer->led, led_right_side_num, 0, 0, 64);
     }
