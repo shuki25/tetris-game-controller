@@ -29,7 +29,7 @@ typedef enum {
 } matrix_status_t;
 
 // TODO: Defines for matrix dimensions (e.g. MATRIX_WIDTH, MATRIX_HEIGHT)
-#define MATRIX_HEIGHT (16)
+#define MATRIX_HEIGHT (32)
 #define MATRIX_WIDTH (16)
 
 // TODO: Typedef for matrix struct (e.g. matrix_t)

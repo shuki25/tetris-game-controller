@@ -54,6 +54,8 @@ typedef struct {
 uint8_t generate_lookup_table(
 		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]);
 
+renderer_status_t renderer_create_boundary(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]);
+
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
 renderer_status_t renderer_init(renderer_t *renderer,

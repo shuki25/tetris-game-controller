@@ -157,9 +157,17 @@ void game_loop(void) {
 #endif
 	}
 
+	rendering_status = renderer_create_boundary(&renderer, lookup_table);
+
+	if (rendering_status == RENDERER_OK){
+#if DEBUG_OUTPUT
+	    printf("Rendering boundary success\n");
+#endif
+	}
+
 	// If you want to test a feature, uncomment the following line
 	// game.state = GAME_STATE_TEST_FEATURE;
-	game.state = GAME_STATE_GAME_IN_PROGRESS;
+	game.state = GAME_STATE_TEST_FEATURE;
 
 	for (;;) {
 		// TODO: Respond to scoreboard requests
@@ -264,12 +272,12 @@ void game_loop(void) {
 			/* ------------------------ TEST FEATURE ------------------------ */
 		case GAME_STATE_TEST_FEATURE:
 			/* Developer test code START */
-			rendering_status = renderer_test_render(&renderer);
-#if DEBUG_OUTPUT
-			if (rendering_status == RENDERER_UPDATED) {
-				render_count++;
-			}
-#endif
+//			rendering_status = renderer_test_render(&renderer);
+//#if DEBUG_OUTPUT
+//			if (rendering_status == RENDERER_UPDATED) {
+//				render_count++;
+//			}
+//#endif
 			/* Developer test code END */
 			break;
 
