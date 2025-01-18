@@ -31,15 +31,15 @@
  * @retval status
  */
 tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
-	// TODO: Initialize tetrimino object
-	memset(tetrimino, 0, sizeof(tetrimino_t));
-	rng_init(0);
-	tetrimino->piece = TETRIMINO_T;
-	tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
+    // TODO: Initialize tetrimino object
+    memset(tetrimino, 0, sizeof(tetrimino_t));
+    rng_init(0);
+    tetrimino->piece = TETRIMINO_T;
+    tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
 //    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
-	tetrimino->next_piece = rng_next() % TETRIMINO_COUNT;
+    tetrimino->next_piece = rng_next() % TETRIMINO_COUNT;
 
-	return TETRIMINO_OK;
+    return TETRIMINO_OK;
 }
 
 /**
@@ -47,36 +47,35 @@ tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
  * @param  tetrimino object
  * @retval status
  */
-tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino,
-		rotation_direction_t direction) {
-	tetrimino_t temp;
+tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction) {
+    tetrimino_t temp;
 
-	tetrimino_copy(&temp, tetrimino);
-	// TODO: Rotate tetrimino object
-	switch (direction) {
-	case ROTATE_CW:
-		temp.rotation = (tetrimino->rotation - 1);
-		if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-			temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
-		}
-		break;
-	case ROTATE_CCW:
-		temp.rotation = tetrimino->rotation + 1;
-		if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-			temp.rotation = 0;
-		}
-		break;
-	default:
-		return TETRIMINO_ERROR;
-		break;
-	}
+    tetrimino_copy(&temp, tetrimino);
+    // TODO: Rotate tetrimino object
+    switch (direction) {
+    case ROTATE_CW:
+        temp.rotation = (tetrimino->rotation + 1);
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = 0;
+        }
+        break;
+    case ROTATE_CCW:
+        temp.rotation = tetrimino->rotation - 1;
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
+        }
+        break;
+    default:
+        return TETRIMINO_ERROR;
+        break;
+    }
 
-	// TODO: check for collision
+    // TODO: check for collision
 
-	// TODO: update bitboard matrix object
-	tetrimino_copy(tetrimino, &temp);
+    // TODO: update bitboard matrix object
+    tetrimino_copy(tetrimino, &temp);
 
-	return TETRIMINO_REFRESH;
+    return TETRIMINO_REFRESH;
 }
 
 /**
@@ -85,37 +84,36 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino,
  * @retval status
  */
 void tetrimino_move(void) {
-	// TODO: Move tetrimino object in specified direction
+    // TODO: Move tetrimino object in specified direction
 
-	// TODO: check for collision
+    // TODO: check for collision
 
-	// TODO: update bitboard matrix object
+    // TODO: update bitboard matrix object
 }
 
 tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src) {
-	memcpy(dst, src, sizeof(tetrimino_t));
-	return TETRIMINO_OK;
+    memcpy(dst, src, sizeof(tetrimino_t));
+    return TETRIMINO_OK;
 }
 
 void tetrimino_debug_print(tetrimino_t *tetrimino) {
-	uint8_t bitmap;
-	printf("===================\n");
-	printf("Tetrimino: %d\n", tetrimino->piece);
-	printf("Rotation: %d\n", tetrimino->rotation);
-	printf("X: %d\n", tetrimino->x);
-	printf("Y: %d\n", tetrimino->y);
-	printf("Next: %d\n", tetrimino->next_piece);
-	for (uint8_t i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
-		for (uint8_t j = 0; j < TETRIMINO_BLOCK_SIZE; j++) {
-			bitmap =
-					tetrimino_shape[tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation]
-							+ i];
-			if (bitmap & (1 << j)) {
-				printf("*");
-			} else {
-				printf("-");
-			}
-		}
-		printf("\n");
-	}
+    uint8_t bitmap;
+    printf("===================\n");
+    printf("Tetrimino: %d\n", tetrimino->piece);
+    printf("Rotation: %d\n", tetrimino->rotation);
+    printf("Offset: %d\n", tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation]);
+    printf("X: %d\n", tetrimino->x);
+    printf("Y: %d\n", tetrimino->y);
+    printf("Next: %d\n", tetrimino->next_piece);
+    for (uint8_t i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
+        for (uint8_t j = TETRIMINO_BLOCK_SIZE - 1; j < TETRIMINO_BLOCK_SIZE; j--) {
+            bitmap = tetrimino_shape[tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation] + i];
+            if (bitmap & (1 << j)) {
+                printf("*");
+            } else {
+                printf("-");
+            }
+        }
+        printf("\n");
+    }
 }
