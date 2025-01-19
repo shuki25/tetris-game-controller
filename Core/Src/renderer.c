@@ -25,31 +25,30 @@
 #include "main.h"
 #include "itm_debug.h"
 
-uint8_t generate_lookup_table(
-        uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
+uint8_t generate_lookup_table(uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
     uint16_t led_id = 0;
 
     for (int i = 0; i < MATRIX_HEIGHT; i++) {
         if (i % 2 == 0) {
             for (int j = 0; j < MATRIX_WIDTH; j++) {
                 lookup_table[i][j] = led_id;
-#if DEBUG_OUTPUT
-                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
-#endif
+//#if DEBUG_OUTPUT
+//                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
+//#endif
                 led_id++;
             }
         } else {
             for (int j = MATRIX_WIDTH - 1; j >= 0; j--) {
                 lookup_table[i][j] = led_id;
-#if DEBUG_OUTPUT
-                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
-#endif
+//#if DEBUG_OUTPUT
+//                printf("[%d][%d]: %d ", i, j, lookup_table[i][j]);
+//#endif
                 led_id++;
             }
         }
-#if DEBUG_OUTPUT
-        printf("\n");
-#endif
+//#if DEBUG_OUTPUT
+//        printf("\n");
+//#endif
     }
     return 0;
 }
@@ -60,10 +59,8 @@ WS2812_error_t led_error;
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_init(renderer_t *renderer,
-        uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
-        led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
-        uint32_t delay_length) {
+renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH],
+        matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel, uint32_t delay_length) {
     // TODO: Initialize WS2812 LED matrix
 
     memset(led, 0, sizeof(led_t));
@@ -72,16 +69,14 @@ renderer_status_t renderer_init(renderer_t *renderer,
     renderer->num_leds = (matrix->height * matrix->width);
     renderer->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
 
-    led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period,
-            renderer->num_leds, 0);
+    led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period, renderer->num_leds, 0);
     if (led_error != WS2812_OK) {
         return RENDERER_WS2812_ERROR;
     }
 
     renderer->led->data_sent_flag = 1;
     renderer->time_last_sent = TIM2->CNT;
-    renderer->next_update_time = renderer->time_last_sent
-            + renderer->delay_length;
+    renderer->next_update_time = renderer->time_last_sent + renderer->delay_length;
 
     if (generate_lookup_table(lookup_table) != 0) {
         return RENDERER_ERROR;
