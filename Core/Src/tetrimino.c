@@ -19,6 +19,7 @@
  ******************************************************************************
  */
 
+#include "matrix.h"
 #include "string.h"
 #include "tetrimino.h"
 #include "tetrimino_shape.h"
@@ -34,8 +35,11 @@ tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
     // TODO: Initialize tetrimino object
     memset(tetrimino, 0, sizeof(tetrimino_t));
     rng_init(0);
+    tetrimino->x = 5;
+    tetrimino->y = PLAYING_FIELD_HEIGHT;
     tetrimino->piece = TETRIMINO_T;
     tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
+    tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
 //    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
     tetrimino->next_piece = rng_next() % TETRIMINO_COUNT;
 
@@ -73,6 +77,7 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
     // TODO: check for collision
 
     // TODO: update bitboard matrix object
+    temp.shape_offset = tetrimino_shape_offset_lut[temp.piece][temp.rotation];
     tetrimino_copy(tetrimino, &temp);
 
     return TETRIMINO_REFRESH;
