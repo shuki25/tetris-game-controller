@@ -116,7 +116,6 @@ void renderer_show_next_tetrimino(void) {
 }
 
 renderer_status_t renderer_test_render(renderer_t *rendering_info) {
-
     if (TIM2->CNT < rendering_info->next_update_time) {
         return RENDERER_NOT_READY;
     }

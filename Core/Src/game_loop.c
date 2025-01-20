@@ -36,11 +36,13 @@
 #include "util.h"
 #include "cmsis_os.h"
 #include "ring_buffer.h"
+#include "ui.h"
 
 // Debugger Expression Variables
 uint32_t game_loop_counter = 0;
 uint32_t render_count = 0;
 uint32_t controller_count = 0;
+uint32_t redraw_screen_count = 0;
 
 // Matrix Variables
 matrix_t matrix;
@@ -109,6 +111,8 @@ void game_loop(void) {
     uint8_t matrix_update_flag = 0;
     uint16_t controller_current_buttons;
     RingBuffer controller_buffer;
+    uint32_t press_start_timer_start = 0;
+    uint32_t press_start_state = 0;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -124,7 +128,9 @@ void game_loop(void) {
     // TODO: Initialize game variables
 
     // TODO: Initialize game components
-    /* Generate and initialize the brightness lookup table */
+
+    // Initialize OLED display driver
+    ui_init();
 
     controller_status = snes_controller_init(&snes_controller,
     SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
@@ -135,7 +141,6 @@ void game_loop(void) {
         printf("SNES controller initialization failed\n");
 #endif
     }
-
     tetrimino_status = tetrimino_init(&tetrimino);
 #if DEBUG_OUTPUT
     if (tetrimino_status == TETRIMINO_OK) {
@@ -143,7 +148,7 @@ void game_loop(void) {
     }
 #endif
 
-    // TODO: Start the main game loop
+    /* Generate and initialize the brightness lookup table */
     brightness_lookup = generate_brightness_lookup_table(10);
 
     if (brightness_lookup != NULL) {
@@ -177,8 +182,8 @@ void game_loop(void) {
     }
 
     // If you want to test a feature, uncomment the following line
-    // game.state = GAME_STATE_TEST_FEATURE;
-    game.state = GAME_STATE_GAME_IN_PROGRESS;
+//    game.state = GAME_STATE_TEST_FEATURE;
+//    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -202,14 +207,35 @@ void game_loop(void) {
         /* ---------------------- SPLASH SCREEN ---------------------- */
         case GAME_STATE_SPLASH:
             // TODO: Display splash screen
-
+            ui_splash_screen();
             // TODO: Wait for user input to start game
             game.state = GAME_STATE_SPLASH_WAIT;
+
             break;
 
             /* ------------------------- SPLASH WAIT ------------------------ */
         case GAME_STATE_SPLASH_WAIT:
-            // TODO: Wait for user input to start game
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_START) {
+//                    game.state = GAME_STATE_MENU;
+                    game.state = GAME_STATE_GAME_IN_PROGRESS;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            }
+            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+                press_start_timer_start = TIM2->CNT;
+                press_start_state = !press_start_state;
+                ssd1306_SetCursor(30, 55);
+                if (press_start_state) {
+                    ssd1306_WriteString("                ", Font_6x8, White); // erase line
+                } else {
+                    ssd1306_WriteString("Press start", Font_6x8, White);
+                }
+                ssd1306_UpdateScreen();
+                redraw_screen_count++;
+            }
             break;
 
             /* ------------------------- MAIN MENU -------------------------- */
@@ -403,4 +429,3 @@ void game_loop(void) {
 
     } // end for loop
 } // end game_loop
-

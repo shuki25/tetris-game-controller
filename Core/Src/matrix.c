@@ -55,6 +55,7 @@ matrix_status_t matrix_reset_playfield(matrix_t *matrix) {
  * @param  bitboards, tetrimino object, tetrimino coordinates
  * @retval None
  */
+
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     uint8_t shape_offset = 0;
     uint16_t row_bitmap = 0;
@@ -120,7 +121,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
 
     return MATRIX_REFRESH;
 
-    // TODO: Update palette bitboards
+	// TODO: Update palette bitboards
 }
 
 /**
@@ -129,7 +130,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
  * @retval None
  */
 void matrix_flatten(void) {
-    // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
+	// TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
 }
 
 /**
@@ -138,7 +139,7 @@ void matrix_flatten(void) {
  * @retval None
  */
 void matrix_clear(void) {
-    // TODO: Clear fallen blocks from matrix
+	// TODO: Clear fallen blocks from matrix
 }
 
 /**
@@ -147,7 +148,7 @@ void matrix_clear(void) {
  * @retval True if collision, false otherwise
  */
 void matrix_check_collision(void) {
-    // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
+	// TODO: Check for collision between tetrimino, boundaries, and fallen blocks
 }
 
 /**
@@ -156,7 +157,7 @@ void matrix_check_collision(void) {
  * @retval True if line clear, false otherwise
  */
 void matrix_check_line_clear(void) {
-    // TODO: Check for line clear (full rows)
+	// TODO: Check for line clear (full rows)
 }
 
 /**
@@ -165,9 +166,9 @@ void matrix_check_line_clear(void) {
  * @retval Number of rows cleared
  */
 void matrix_line_clear(void) {
-    // TODO: Clear full rows
+	// TODO: Clear full rows
 
-    // TODO: Reposition fallen blocks
+	// TODO: Reposition fallen blocks
 }
 
 void matrix_debug_print(matrix_t *matrix) {

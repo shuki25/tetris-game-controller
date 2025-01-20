@@ -90,4 +90,3 @@ const uint8_t tetrimino_shape_offset_lut[TETRIMINO_COUNT][TETRIMINO_ROTATION_COU
 const uint8_t tetrimino_spawn[TETRIMINO_COUNT] = { 2, 2, 0, 0, 0, 2, 1 };
 
 // @formatter:on
-

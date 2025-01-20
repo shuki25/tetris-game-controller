@@ -27,5 +27,8 @@
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
 
 // TODO: Function prototypes for UI functions (e.g. ui_init, ui_main_menu_selection, ui_game_progress, ui_game_over_screen)
+void ui_init();
+void ui_splash_screen();
+void ui_test();
 
 #endif /* INC_UI_H_ */
