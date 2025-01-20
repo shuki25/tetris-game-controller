@@ -22,23 +22,46 @@
 #ifndef INC_MATRIX_H_
 #define INC_MATRIX_H_
 #include <stdint.h>
+#include "tetrimino.h"
 
-// TODO: Typedef for matrix status in enum (e.g. MATRIX_OK, MATRIX_ERROR)
 typedef enum {
-	MATRIX_OK = 0, MATRIX_ERROR
+    MATRIX_OK = 0,
+    MATRIX_ERROR,
+    MATRIX_OUT_OF_BOUNDS,
+    MATRIX_REFRESH,
+    MATRIX_NO_CHANGE,
+    MATRIX_COLLISION_DETECTED
 } matrix_status_t;
 
-// TODO: Defines for matrix dimensions (e.g. MATRIX_WIDTH, MATRIX_HEIGHT)
 #define MATRIX_HEIGHT (32)
 #define MATRIX_WIDTH (16)
 
-// TODO: Typedef for matrix struct (e.g. matrix_t)
+#if (MATRIX_HEIGHT < 32)
+#define PLAYING_FIELD_HEIGHT (15)
+#else
+#define PLAYING_FIELD_HEIGHT (20)
+#endif
+#define PLAYING_FIELD_WIDTH (10)
+#define PLAYING_FIELD_BOUNDARY_BITMAP (0xE007E007)  // boundary bitmap for boundary check
+#define PLAYING_FIELD_MASK (0x1FF81FF8)  // playfield mask for rendering without boundary
+#define PLAYING_FIELD_MASK_BOUNDARY (0x3FFC3FFC)  // playfield mask for rendering with boundary
+#define PLAYING_FIELD_ODD_MASK (0x1FF80000)  // playfield mask for odd rows
+#define PLAYING_FIELD_EVEN_MASK (0x00001FF8)  // playfield mask for even rows
+#define MATRIX_DATA_SIZE (PLAYING_FIELD_HEIGHT >> 1)  // divide by 2 as each uint32_t holds 2 rows
+
 typedef struct {
-	uint8_t height;
-	uint8_t width;
+    uint8_t height;
+    uint8_t width;
+    uint32_t playfield[MATRIX_DATA_SIZE];
+    uint32_t stack[PLAYING_FIELD_HEIGHT];
+    uint32_t palette1[PLAYING_FIELD_HEIGHT];
+    uint32_t palette2[PLAYING_FIELD_HEIGHT];
 } matrix_t;
 
+// Function prototypes for matrix functions
 matrix_status_t matrix_init();
-// TODO: Function prototypes for matrix functions (e.g. matrix_init, matrix_flatten, matrix_clear, matrix_check_collision)
+matrix_status_t matrix_reset_playfield(matrix_t *matrix);
+matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
+void matrix_debug_print(matrix_t *matrix);
 
 #endif /* INC_MATRIX_H_ */

@@ -35,10 +35,12 @@
 #include "itm_debug.h"
 #include "util.h"
 #include "cmsis_os.h"
+#include "ring_buffer.h"
 
 // Debugger Expression Variables
 uint32_t game_loop_counter = 0;
 uint32_t render_count = 0;
+uint32_t controller_count = 0;
 
 // Matrix Variables
 matrix_t matrix;
@@ -54,8 +56,8 @@ uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 // Controller Variables
 snes_controller_t snes_controller;
 game_t game;
-tetrimino_t tetrimino;
-tetrimino_t tetrimino_pending;
+//tetrimino_t tetrimino;
+//tetrimino_t tetrimino_pending;
 
 // TIM Variables
 extern TIM_HandleTypeDef htim3;
@@ -66,12 +68,12 @@ extern TIM_HandleTypeDef htim3;
  * @retval None
  */
 void splash() {
-	update_screen_flag = 0;
-	ssd1306_Init();
-	ssd1306_Fill(Black);
-	ssd1306_WriteString("RITetris", Font_16x26, White); // name undecided
-	ssd1306_SetCursor(3, 28);
-	ssd1306_UpdateScreen();
+    update_screen_flag = 0;
+    ssd1306_Init();
+    ssd1306_Fill(Black);
+    ssd1306_WriteString("RITetris", Font_16x26, White); // name undecided
+    ssd1306_SetCursor(3, 28);
+    ssd1306_UpdateScreen();
 }
 
 /**
@@ -81,15 +83,15 @@ void splash() {
  */
 game_status_t game_init(void) {
 //    splash();
-	// TODO: Initialize game state (structs, bitboards, etc.)
-	memset(&game, 0, sizeof(game_t));
-	game.state = GAME_STATE_SPLASH;
-	game.score = 0;
-	game.level = 0;
-	game.lines = 0;
-	game.game_speed = 1000;
+    // TODO: Initialize game state (structs, bitboards, etc.)
+    memset(&game, 0, sizeof(game_t));
+    game.state = GAME_STATE_SPLASH;
+    game.score = 0;
+    game.level = 0;
+    game.lines = 0;
+    game.game_speed = 1000;
 
-	return GAME_OK;
+    return GAME_OK;
 }
 
 /**
@@ -98,12 +100,22 @@ game_status_t game_init(void) {
  * @retval None
  */
 void game_loop(void) {
-	snes_controller_status_t controller_status;
-	matrix_status_t matrix_status;
-	renderer_status_t rendering_status;
+    snes_controller_status_t controller_status;
+    matrix_status_t matrix_status;
+    renderer_status_t rendering_status;
 //    char output_buffer[80];
-	tetrimino_t tetrimino;
-	tetrimino_status_t tetrimino_status;
+    tetrimino_t tetrimino;
+    tetrimino_status_t tetrimino_status;
+    uint8_t matrix_update_flag = 0;
+    uint16_t controller_current_buttons;
+    RingBuffer controller_buffer;
+
+    if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
+#if DEBUG_OUTPUT
+        printf("Failed to initialize ring buffer\n");
+#endif
+        Error_Handler();
+    }
 
 	// TODO: Load settings from EEPROM
 
@@ -111,25 +123,61 @@ void game_loop(void) {
 
 	// TODO: Initialize game variables
 
-	// TODO: Initialize game components
-	/* Generate and initialize the brightness lookup table */
+    // TODO: Initialize game components
+    /* Generate and initialize the brightness lookup table */
 
-	controller_status = snes_controller_init(&snes_controller,
-	SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
-	SNES_CLOCK_GPIO_Port, SNES_CLOCK_Pin, SNES_DATA0_GPIO_Port,
-	SNES_DATA0_Pin, 60);
-	if (controller_status != SNES_CONTROLLER_OK) {
+    controller_status = snes_controller_init(&snes_controller,
+    SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
+    SNES_CLOCK_GPIO_Port, SNES_CLOCK_Pin, SNES_DATA0_GPIO_Port,
+    SNES_DATA0_Pin, 60);
+    if (controller_status != SNES_CONTROLLER_OK) {
 #if DEBUG_OUTPUT
 		printf("SNES controller initialization failed\n");
 #endif
 	}
-
-	tetrimino_status = tetrimino_init(&tetrimino);
+    tetrimino_status = tetrimino_init(&tetrimino);
 #if DEBUG_OUTPUT
-	if (tetrimino_status == TETRIMINO_OK) {
-		tetrimino_debug_print(&tetrimino);
-	}
+    if (tetrimino_status == TETRIMINO_OK) {
+        tetrimino_debug_print(&tetrimino);
+    }
 #endif
+
+    // TODO: Start the main game loop
+    brightness_lookup = generate_brightness_lookup_table(10);
+
+    if (brightness_lookup != NULL) {
+#if DEBUG_OUTPUT
+        printf("Generated brightness lookup table\n");
+#endif
+    }
+
+    matrix_status = matrix_init(&matrix);
+
+    if (matrix_status == MATRIX_OK) {
+#if DEBUG_OUTPUT
+        printf("Matrix initialization success\n");
+        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+        if (matrix_status == MATRIX_COLLISION_DETECTED) {
+            printf("Add Tetrimino to Matrix: Collision detected\n");
+        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+            printf("Add Tetrimino to Matrix: Out of bounds\n");
+        }
+        matrix_debug_print(&matrix);
+#endif
+    }
+
+    rendering_status = renderer_init(&renderer, lookup_table, &matrix, &led, &htim3, TIM_CHANNEL_1,
+            render_delay);
+
+    if (rendering_status == RENDERER_OK) {
+#if DEBUG_OUTPUT
+        printf("Rendering initialization success\n");
+#endif
+    }
+
+    // If you want to test a feature, uncomment the following line
+    // game.state = GAME_STATE_TEST_FEATURE;
+    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
 	// TODO: Start the main game loop
 	brightness_lookup = generate_brightness_lookup_table(10);
@@ -164,124 +212,223 @@ void game_loop(void) {
 	for (;;) {
 		// TODO: Respond to scoreboard requests
 
-		// TODO: Poll SNES controller before any other processing in the state machine
-		controller_status = snes_controller_read(&snes_controller);
-		if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
-
-		}
-
-		switch (game.state) {
-
-		/* ---------------------- SPLASH SCREEN ---------------------- */
-		case GAME_STATE_SPLASH:
-			// TODO: Display splash screen
-
-			// TODO: Wait for user input to start game
-			game.state = GAME_STATE_SPLASH_WAIT;
-			break;
-
-			/* ------------------------- SPLASH WAIT ------------------------ */
-		case GAME_STATE_SPLASH_WAIT:
-			// TODO: Wait for user input to start game
-			break;
-
-			/* ------------------------- MAIN MENU -------------------------- */
-		case GAME_STATE_MENU:
-			// TODO: Display main menu
-			break;
-
-			/* ------------------------ PLAYING MENU ------------------------ */
-		case GAME_STATE_PLAY_MENU:
-			// TODO: Display playing menu
-			break;
-
-			/* -------------------- PREPARE GAME STATE ---------------------- */
-		case GAME_STATE_PREPARE_GAME:
-			// TODO: Initialize game variables
-			break;
-
-			/* ---------------------- GAME IN PROGRESS ---------------------- */
-		case GAME_STATE_GAME_IN_PROGRESS:
-			if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
-				if (snes_controller.buttons_state & SNES_BUTTON_A) {
-					tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
-				} else if (snes_controller.buttons_state & SNES_BUTTON_B) {
-					tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
-				}
+        // TODO: Poll SNES controller before any other processing in the state machine
+        controller_status = snes_controller_read(&snes_controller);
+        if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+            if (ring_buffer_enqueue(&controller_buffer, &snes_controller.buttons_state) == false) {
 #if DEBUG_OUTPUT
-				snes_controller_print(&snes_controller);
-				if (tetrimino_status == TETRIMINO_REFRESH
-						&& snes_controller.buttons_state) {
-					tetrimino_debug_print(&tetrimino);
-				}
+                printf("Controller buffer is full. Dropping.\n");
 #endif
-			}
+                Error_Handler();
+            }
+            if (snes_controller.buttons_state) {
+                controller_count++;
+            }
+        }
 
-			// TODO: Check timer for game speed
+        switch (game.state) {
 
-			// TODO: Process input
+        /* ---------------------- SPLASH SCREEN ---------------------- */
+        case GAME_STATE_SPLASH:
+            // TODO: Display splash screen
 
-			// TODO: Update tetromino rotation
+            // TODO: Wait for user input to start game
+            game.state = GAME_STATE_SPLASH_WAIT;
+            break;
 
-			// TODO: Update tetromino position
+            /* ------------------------- SPLASH WAIT ------------------------ */
+        case GAME_STATE_SPLASH_WAIT:
+            // TODO: Wait for user input to start game
+            break;
 
-			// TODO: Check for collision
+            /* ------------------------- MAIN MENU -------------------------- */
+        case GAME_STATE_MENU:
+            // TODO: Display main menu
+            break;
 
-			// TODO: Check for line clear
+            /* ------------------------ PLAYING MENU ------------------------ */
+        case GAME_STATE_PLAY_MENU:
+            // TODO: Display playing menu
+            break;
 
-			// TODO: Check for topout condition
+            /* -------------------- PREPARE GAME STATE ---------------------- */
+        case GAME_STATE_PREPARE_GAME:
+            // TODO: Initialize game variables
+            break;
 
-			// TODO: Is tetrimino locked in place?
+            /* ---------------------- GAME IN PROGRESS ---------------------- */
+        case GAME_STATE_GAME_IN_PROGRESS:
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                controller_status = SNES_CONTROLLER_STATE_CHANGE;
+            } else {
+                controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
+            }
 
-			// TODO: Get the next tetrimino from the RNG
+            if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+                matrix_update_flag = 0;
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
+                } else if (controller_current_buttons & SNES_BUTTON_B) {
+                    tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
+                } else if (controller_current_buttons & SNES_BUTTON_R) {
+                    tetrimino.piece++;
+                    if (tetrimino.piece >= TETRIMINO_COUNT) {
+                        tetrimino.piece = 0;
+                    }
+                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino_status = TETRIMINO_REFRESH;
 
-			// TODO: Render matrix and update LED grid
-
-			// TODO: Update UI
-
-			break;
-
-			/* ------------------------- PAUSE MENU ------------------------ */
-		case GAME_STATE_PAUSE:
-			// TODO: Display pause menu
-			break;
-
-			/* -------------------------- GAME OVER ------------------------ */
-		case GAME_STATE_GAME_ENDED:
-			// TODO: Display game over screen
-			break;
-
-			/* ------------------------ HIGH SCORES ------------------------ */
-		case GAME_STATE_HIGH_SCORE:
-			// TODO: Display high scores
-			break;
-
-			/* ------------------------ SETTINGS MENU ---------------------- */
-		case GAME_STATE_SETTINGS:
-			// TODO: Display settings menu
-			break;
-
-			/* ------------------------ TEST FEATURE ------------------------ */
-		case GAME_STATE_TEST_FEATURE:
-			/* Developer test code START */
-			rendering_status = renderer_test_render(&renderer);
+                } else if (controller_current_buttons & SNES_BUTTON_L) {
+                    tetrimino.piece--;
+                    if (tetrimino.piece >= TETRIMINO_COUNT) {
+                        tetrimino.piece = TETRIMINO_COUNT - 1;
+                    }
+                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino_status = TETRIMINO_REFRESH;
+                } else if (controller_current_buttons & SNES_BUTTON_UP) {
+                    tetrimino.y++;
+                    if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+                        tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.y--;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.y--;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if (tetrimino.y > 0) {
+                        tetrimino.y--;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.y++;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.y++;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
+                    tetrimino.x--;
+                    if (tetrimino.x > PLAYING_FIELD_WIDTH) {
+                        tetrimino.x = 0;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.x++;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.x++;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
+                    tetrimino.x++;
+                    if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
+                        tetrimino.x = PLAYING_FIELD_WIDTH - 1;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.x--;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.x--;
+                    }
+                    matrix_update_flag = 1;
+                } else {
+                    tetrimino_status = TETRIMINO_OK;
+                }
+                if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
+                    // Revert tetrimino position and refresh matrix
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                } else if (tetrimino_status == TETRIMINO_REFRESH) {
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        // TODO: Reverse tetrimino position
+                    }
+                    matrix_update_flag = 1;
+                }
 #if DEBUG_OUTPUT
-			if (rendering_status == RENDERER_UPDATED) {
-				render_count++;
-			}
+                snes_controller.buttons_state = controller_current_buttons;
+                snes_controller_print(&snes_controller);
+                if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
+                    tetrimino_debug_print(&tetrimino);
+                }
+                if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                    printf("Matrix collision detected\n");
+                } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                    printf("Matrix out of bounds\n");
+                }
+                if (matrix_update_flag) {
+                    matrix_debug_print(&matrix);
+                    matrix_status = MATRIX_NO_CHANGE;
+                } else {
+                    printf("Matrix status: %d\n", matrix_status);
+                }
 #endif
-			/* Developer test code END */
-			break;
+            }
 
-			/* ----------------------- UNKNOWN STATES ---------------------- */
-		default:
-			// TODO: Handle unknown states (fail-safe)
-			break;
-		} // end switch
+            // TODO: Check timer for game speed
 
-		game_loop_counter++;
-		osThreadYield();
+            // TODO: Process input
 
-	} // end for loop
+            // TODO: Update tetromino rotation
+
+            // TODO: Update tetromino position
+
+            // TODO: Check for collision
+
+            // TODO: Check for line clear
+
+            // TODO: Check for topout condition
+
+            // TODO: Is tetrimino locked in place?
+
+            // TODO: Get the next tetrimino from the RNG
+
+            // TODO: Render matrix and update LED grid
+
+            // TODO: Update UI
+
+            break;
+
+            /* ------------------------- PAUSE MENU ------------------------ */
+        case GAME_STATE_PAUSE:
+            // TODO: Display pause menu
+            break;
+
+            /* -------------------------- GAME OVER ------------------------ */
+        case GAME_STATE_GAME_ENDED:
+            // TODO: Display game over screen
+            break;
+
+            /* ------------------------ HIGH SCORES ------------------------ */
+        case GAME_STATE_HIGH_SCORE:
+            // TODO: Display high scores
+            break;
+
+            /* ------------------------ SETTINGS MENU ---------------------- */
+        case GAME_STATE_SETTINGS:
+            // TODO: Display settings menu
+            break;
+
+            /* ------------------------ TEST FEATURE ------------------------ */
+        case GAME_STATE_TEST_FEATURE:
+            /* Developer test code START */
+            rendering_status = renderer_test_render(&renderer);
+#if DEBUG_OUTPUT
+            if (rendering_status == RENDERER_UPDATED) {
+                render_count++;
+            }
+#endif
+            /* Developer test code END */
+            break;
+
+            /* ----------------------- UNKNOWN STATES ---------------------- */
+        default:
+            // TODO: Handle unknown states (fail-safe)
+            break;
+        } // end switch
+
+        game_loop_counter++;
+        osThreadYield();
+
+    } // end for loop
 } // end game_loop
-
