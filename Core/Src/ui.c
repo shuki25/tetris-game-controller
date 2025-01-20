@@ -38,7 +38,7 @@ void ui_init() {
 }
 
 void ui_splash_screen() {
-    ssd1306_SetContrast(50); // to Dr. Butler - what does this do? i tried to change value but it seems to do nothing
+//    ssd1306_SetContrast(50); // to Dr. Butler - what does this do? i tried to change value but it seems to do nothing
     ssd1306_Fill(Black);
 
     ssd1306_SetCursor(5, 8);
@@ -62,13 +62,13 @@ void ui_splash_screen() {
     }
 
     bitmap_number++;
-    for (int i = 60; i <= 90; i +=10) { // Moves right}
-    	ssd1306_SetCursor(i, 0);
+    for (int i = 60; i <= 90; i += 10) { // Moves right}
+        ssd1306_SetCursor(i, 0);
         ssd1306_WriteString("     ", Font_16x26, White);
         ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 13, 20, White);
         ssd1306_UpdateScreen();
-		ssd1306_SetCursor((i-5), 0); // to clean up after displaying
-		ssd1306_WriteString("     ", Font_16x26, White);
+        ssd1306_SetCursor((i - 5), 0); // to clean up after displaying
+        ssd1306_WriteString("     ", Font_16x26, White);
         osDelay(350);
     }
 
@@ -133,17 +133,19 @@ void ui_splash_screen() {
     ssd1306_DrawBitmap(24, 0, tetrimino_allArray[3], 75, 55, White); // T DOWN outline but bigger
     ssd1306_UpdateScreen();
 
-    while(1)  // 'Press Start' blinking cycle
-    {
-    	ssd1306_SetCursor(30, 55);
-        ssd1306_WriteString("Press start", Font_6x8, White);
-        ssd1306_UpdateScreen();
-        osDelay(600);
-        ssd1306_SetCursor(30, 55);
-        ssd1306_WriteString("                ", Font_6x8, White); // erasing
-        ssd1306_UpdateScreen();
-        osDelay(600);
-    }
+    // Blinking press start is handled in game_loop (non-blocking)
+
+//    while (1)  // 'Press Start' blinking cycle
+//    {
+//        ssd1306_SetCursor(30, 55);
+//        ssd1306_WriteString("Press start", Font_6x8, White);
+//        ssd1306_UpdateScreen();
+//        osDelay(600);
+//        ssd1306_SetCursor(30, 55);
+//        ssd1306_WriteString("                ", Font_6x8, White); // erasing
+//        ssd1306_UpdateScreen();
+//        osDelay(600);
+//    }
 
 }
 
