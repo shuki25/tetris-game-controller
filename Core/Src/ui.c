@@ -33,7 +33,6 @@
  * @retval None
  */
 void ui_init() {
-    // TODO: Initialize OLED display
     ssd1306_Init();
 }
 

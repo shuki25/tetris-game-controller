@@ -185,7 +185,6 @@ void game_loop(void) {
 //    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
-    // TODO: Start the main game loop
     for (;;) {
         // TODO: Respond to scoreboard requests
 
@@ -216,7 +215,6 @@ void game_loop(void) {
 
             /* ------------------------- SPLASH WAIT ------------------------ */
         case GAME_STATE_SPLASH_WAIT:
-            // TODO: Wait for user input to start game
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
 //                    game.state = GAME_STATE_MENU;
