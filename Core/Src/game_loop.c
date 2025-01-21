@@ -91,7 +91,7 @@ void splash() {
  */
 game_status_t game_init(void) {
 //    splash();
-    //eeprom_init();
+    //eeprom_init(eeprom);
 
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));

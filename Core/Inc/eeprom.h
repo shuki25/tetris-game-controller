@@ -31,6 +31,7 @@ extern "C" {
 #define EEPROM_SETTINGS_OFFSET 0
 #define EEPROM_HIGH_SCORE_START_PAGE 2
 #define EEPROM_NUM_HIGH_SCORE_PAGES 5
+#define EEPROM_HIGH_SCORE_OFFSET 0
 
 typedef enum {
     EEPROM_OK = 0,

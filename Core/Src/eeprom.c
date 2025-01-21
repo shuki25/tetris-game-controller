@@ -274,7 +274,7 @@ eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *hi
                 return status;
             }
         }
-        status = eeprom_write(eeprom, EEPROM_NUM_HIGH_SCORE_PAGES + i, EEPROM_HIGH_SCORE_START_PAGE, buffer,
+        status = eeprom_write(eeprom, EEPROM_HIGH_SCORE_START_PAGE + i, EEPROM_HIGH_SCORE_OFFSET, buffer,
                 sizeof(high_scores));
 
         if (status != EEPROM_OK) {
