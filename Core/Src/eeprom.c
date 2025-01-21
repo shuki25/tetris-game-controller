@@ -246,3 +246,46 @@ eeprom_status_t eeprom_write_settings(eeprom_t *eeprom, saved_settings_t *settin
     return EEPROM_OK;
 }
 
+eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]) {
+    eeprom_status_t status;
+    uint8_t buffer[EEPROM_PAGE_SIZE];
+    memset(buffer, 0, EEPROM_PAGE_SIZE);
+
+    status = eeprom_read(eeprom, EEPROM_SETTINGS_PAGE, EEPROM_SETTINGS_OFFSET, buffer,
+            sizeof(saved_settings_t));
+    if (status != EEPROM_OK) {
+        return status;
+    }
+    memcpy(settings, buffer, sizeof(saved_settings_t));
+    return EEPROM_OK;
+}
+
+eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]) {
+    eeprom_status_t status;
+
+    for(int i = 0; i < EEPROM_NUM_HIGH_SCORE_PAGES; i++) {
+        uint8_t buffer[EEPROM_PAGE_SIZE];
+        memset(buffer, 0, EEPROM_PAGE_SIZE);
+
+        memcpy(buffer, highscores[i], sizeof(game_high_score_t));
+        if (eeprom->write_protected == 1) {
+            status = eeprom_write_protect(eeprom, 0);
+            if (status != EEPROM_OK) {
+                return status;
+            }
+        }
+        status = eeprom_write(eeprom, EEPROM_NUM_HIGH_SCORE_PAGES + i, EEPROM_HIGH_SCORE_START_PAGE, buffer,
+                sizeof(high_scores));
+
+        if (status != EEPROM_OK) {
+            return status;
+        }
+
+        if (eeprom->write_protected == 0) {
+            eeprom_write_protect(eeprom, 1);
+        }
+    }
+
+    return EEPROM_OK;
+}
+

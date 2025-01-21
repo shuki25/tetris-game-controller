@@ -37,6 +37,7 @@
 #include "cmsis_os.h"
 #include "ring_buffer.h"
 #include "ui.h"
+#include "eeprom.h"
 
 // Debugger Expression Variables
 uint32_t game_loop_counter = 0;
@@ -60,9 +61,14 @@ snes_controller_t snes_controller;
 game_t game;
 //tetrimino_t tetrimino;
 //tetrimino_t tetrimino_pending;
+game_high_score_t high_scores[5];
+saved_settings_t settings;
 
 // TIM Variables
 extern TIM_HandleTypeDef htim3;
+
+// EEPROM Variables
+eeprom_t eeprom;
 
 /**
  * @brief  Splash screen
@@ -85,6 +91,8 @@ void splash() {
  */
 game_status_t game_init(void) {
 //    splash();
+    //eeprom_init();
+
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));
     game.state = GAME_STATE_SPLASH;
@@ -122,8 +130,10 @@ void game_loop(void) {
     }
 
     // TODO: Load settings from EEPROM
+    eeprom_get_settings(eeprom, saved_settings);
 
     // TODO: Load high scores from EEPROM
+    eeprom_get_high_scores(eeeprom, high_scores);
 
     // TODO: Initialize game variables
 
