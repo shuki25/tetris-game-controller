@@ -154,11 +154,11 @@ void game_loop(void) {
 #endif
     }
 
-    // TODO: Load settings from EEPROM
+    // Load settings from EEPROM
     memset(&settings, 0, sizeof(saved_settings_t));
     eeprom_get_settings(&eeprom, &settings);
 
-    // TODO: Load high scores from EEPROM
+    // Load high scores from EEPROM
     for(int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++ ) {
         memset(&high_scores[i], 0, sizeof(game_high_score_t));
     }
