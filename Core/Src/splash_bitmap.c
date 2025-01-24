@@ -151,6 +151,6 @@ const unsigned char tetrimino_bitmap_frame_5[] = {
 };
 
 // Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 48)
-const int tetrimino_allArray_LEN = 5;
+const int tetrimino_allArray_LEN = 6;
 const unsigned char *tetrimino_allArray[] = { tetrimino_bitmap_frame_0, tetrimino_bitmap_frame_1,
         tetrimino_bitmap_frame_2, tetrimino_bitmap_frame_3, tetrimino_bitmap_frame_4, tetrimino_bitmap_frame_5 };

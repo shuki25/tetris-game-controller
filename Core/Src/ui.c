@@ -155,26 +155,13 @@ void ui_splash_screen() {
  */
 void ui_main_menu_selection(void) {
     // TODO: Display main menu selection
-	char *main_menu_list[4] = {"Play game", "High Score", "Settings", "Credits"};
+
 
 	ssd1306_Fill(Black);
 	frame_maker();
 	ssd1306_SetCursor(31, 0);
 	ssd1306_WriteString(" Main Menu ", Font_6x8, White);
-
-	ssd1306_SetCursor(32, 14);
-	ssd1306_WriteString(main_menu_list[0], Font_7x10, White);
-
-	ssd1306_SetCursor(32, 30);
-	ssd1306_WriteString(main_menu_list[1], Font_7x10, White);
-
-	ssd1306_SetCursor(32, 48);
-	ssd1306_WriteString(main_menu_list[2], Font_7x10, White);
-
-
 	ssd1306_UpdateScreen();
-
-
 }
 
 void frame_maker(void)

@@ -132,6 +132,7 @@ void game_loop(void) {
     // Initialize OLED display driver
     ui_init();
 
+
     controller_status = snes_controller_init(&snes_controller,
     SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
     SNES_CLOCK_GPIO_Port, SNES_CLOCK_Pin, SNES_DATA0_GPIO_Port,
@@ -182,7 +183,7 @@ void game_loop(void) {
     }
 
     // If you want to test a feature, uncomment the following line
-//    game.state = GAME_STATE_TEST_FEATURE;
+    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     for (;;) {
@@ -241,6 +242,65 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
+        	ui_main_menu_selection();
+        	char *main_menu_list[4] = {"Play game", "High Score", "Settings", "Credits"};
+        	int sizeXYarray = 4;
+        	int *select_arrow_x_locations = {};
+        	int *select_arrow_y_locations = {};
+        	int position = 0;
+        	while(1)
+        	{
+        		if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+					if (controller_current_buttons & SNES_BUTTON_DOWN) {
+						if(position < 1)
+						{
+							position = 1;
+						}
+						else
+						{
+							position++;
+						}
+
+						if(sizeXYarray > 4)
+						{
+							sizeXYarray++;
+						}
+						else
+						{
+							sizeXYarray = 4;
+						}
+					}
+					if (controller_current_buttons & SNES_BUTTON_DOWN) {
+						if(position > 0)
+						{
+							position = 0;
+						}
+						else
+						{
+							position--;
+						}
+
+						if(sizeXYarray > 0)
+						{
+							sizeXYarray--;
+						}
+						else{
+							sizeXYarray = 0;
+						}
+					}
+        		}
+        		ssd1306_SetCursor(32, 14);
+        		ssd1306_WriteString(main_menu_list[position], Font_7x10, White);
+
+        		ssd1306_SetCursor(32, 30);
+        		ssd1306_WriteString(main_menu_list[position+1], Font_7x10, White);
+
+        		ssd1306_SetCursor(32, 48);
+        		ssd1306_WriteString(main_menu_list[position+2], Font_7x10, White);
+
+
+        		ssd1306_UpdateScreen();
+        	}
             break;
 
             /* ------------------------ PLAYING MENU ------------------------ */
@@ -409,12 +469,13 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-            rendering_status = renderer_test_render(&renderer);
-#if DEBUG_OUTPUT
-            if (rendering_status == RENDERER_UPDATED) {
-                render_count++;
-            }
-#endif
+//            rendering_status = renderer_test_render(&renderer);
+//#if DEBUG_OUTPUT
+//            if (rendering_status == RENDERER_UPDATED) {
+//                render_count++;
+//            }
+//#endif
+        	ui_main_menu_selection();
             /* Developer test code END */
             break;
 
