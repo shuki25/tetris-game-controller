@@ -39,6 +39,9 @@
 #include "ui.h"
 #include "eeprom.h"
 
+// Extern Variables
+extern I2C_HandleTypeDef hi2c1;
+
 // Debugger Expression Variables
 uint32_t game_loop_counter = 0;
 uint32_t render_count = 0;
@@ -61,7 +64,7 @@ snes_controller_t snes_controller;
 game_t game;
 //tetrimino_t tetrimino;
 //tetrimino_t tetrimino_pending;
-game_high_score_t high_scores[5];
+game_high_score_t high_scores[EEPROM_NUM_HIGH_SCORES];
 saved_settings_t settings;
 
 // TIM Variables
@@ -92,27 +95,6 @@ void splash() {
  */
 game_status_t game_init(void) {
 //    splash();
-    eeprom_init(eeprom, I2C1, GPIOB, GPIO_PIN_4);
-
-    if(eeprom_get_signature(eeprom, signature) != EEPROM_OK){
-#if DEBUG_OUTPUT
-        printf("Failed to retrieve EEPROM signature\n");
-#endif
-    }
-
-    //TODO: what is second arg
-    eeprom_status_t = eeprom_verify_signature(signature, 256);
-    if(eeprom_status_t == EEPROM_SIGNATURE_MISMATCH) {
-#if DEBUG_OUTPUT
-        printf("EEPROM signature mismatch found\n");
-#endif
-        //TODO: write zeroed out settings
-        eeprom_write_signature(eeprom, signature);
-    } else {
-#if DEBUG_OUTPUT
-        printf("EEPROM signature matched\n");
-#endif
-    }
 
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));
@@ -150,11 +132,37 @@ void game_loop(void) {
         Error_Handler();
     }
 
+    // Init EEPROM
+    eeprom_init(&eeprom, &hi2c1, EEPROM_GPIO_Port, EEPROM_Pin);
+
+    // Verify EEPROM signature
+    if(eeprom_get_signature(&eeprom, &signature) != EEPROM_OK){
+#if DEBUG_OUTPUT
+        printf("Failed to retrieve EEPROM signature\n");
+#endif
+    }
+    eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
+    if(status == EEPROM_SIGNATURE_MISMATCH) {
+#if DEBUG_OUTPUT
+        printf("EEPROM signature mismatch found\n");
+#endif
+        eeprom_generate_signature(&signature, EEPROM_NUM_USED_PAGES);
+        eeprom_write_signature(&eeprom, &signature);
+    } else {
+#if DEBUG_OUTPUT
+        printf("EEPROM signature matched\n");
+#endif
+    }
+
     // TODO: Load settings from EEPROM
-    eeprom_get_settings(eeprom, saved_settings);
+    memset(&settings, 0, sizeof(saved_settings_t));
+    eeprom_get_settings(&eeprom, &settings);
 
     // TODO: Load high scores from EEPROM
-    eeprom_get_high_scores(eeeprom, high_scores);
+    for(int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++ ) {
+        memset(&high_scores[i], 0, sizeof(game_high_score_t));
+    }
+    eeprom_get_high_scores(&eeprom, &high_scores);
 
     // TODO: Initialize game variables
 
