@@ -25,12 +25,11 @@
 #include <stdint.h>
 #include "main.h"
 
-// TODO: Typedef for game status in enum (e.g. GAME_OK, GAME_ERROR)
+// Game loop struct definitions
+
 typedef enum {
     GAME_OK = 0, GAME_ERROR
 } game_status_t;
-
-// TODO: Typedef for game state in enum (e.g. GAME_INIT, GAME_PLAY, GAME_OVER)
 
 typedef enum {
     GAME_STATE_SPLASH = 0,
@@ -46,7 +45,6 @@ typedef enum {
     GAME_STATE_TEST_FEATURE
 } game_state_t;
 
-// TODO: Typdef for game variables in struct
 typedef struct {
     game_state_t state;
     uint32_t score;
@@ -55,7 +53,14 @@ typedef struct {
     uint32_t game_speed;
 } game_t;
 
-// TODO: Add game_loop function prototype
+typedef struct {
+    char name[16];
+    uint32_t score;
+    uint32_t level;
+    uint32_t lines;
+} game_high_score_t;
+
+// Game loop function prototypes
 game_status_t game_init(void);
 void game_loop(void);
 

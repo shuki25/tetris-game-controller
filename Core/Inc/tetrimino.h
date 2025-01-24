@@ -24,12 +24,10 @@
 
 #include <stdint.h>
 
-// TODO: Typedef for tetrimino status in enum (e.g. TETRIMINO_OK, TETRIMINO_ERROR)
 typedef enum {
     TETRIMINO_OK = 0, TETRIMINO_ERROR, TETRIMINO_REFRESH
 } tetrimino_status_t;
 
-// TODO: Constants for tetrimino pieces (e.g. TETRIMINO_I, TETRIMINO_J, TETRIMINO_L, TETRIMINO_O, TETRIMINO_S, TETRIMINO_T, TETRIMINO_Z
 typedef enum {
     TETRIMINO_T = 0,
     TETRIMINO_J,
@@ -41,7 +39,6 @@ typedef enum {
     TETRIMINO_COUNT
 } tetrimino_piece_t;
 
-// TODO: Constants for tetrimino rotations (e.g. TETRIMINO_ROTATION_0, TETRIMINO_ROTATION_90, TETRIMINO_ROTATION_180, TETRIMINO_ROTATION_270)
 typedef enum {
     TETRIMINO_ROTATION_UP = 0,
     TETRIMINO_ROTATION_RIGHT,
@@ -50,7 +47,6 @@ typedef enum {
     TETRIMINO_ROTATION_COUNT
 } tetrimino_rotation_t;
 
-// TODO: Constants for rotation directions (e.g. ROTATE_CCW, ROTATE_CW)
 typedef enum {
     ROTATE_CCW = 0, ROTATE_CW
 } rotation_direction_t;
@@ -60,7 +56,6 @@ typedef enum {
     MOVE_RIGHT, MOVE_LEFT, MOVE_DOWN
 } tetrimino_move_direction_t;
 
-// TODO: Typedef for tetrimino struct (e.g. tetrimino_t)
 typedef struct {
     tetrimino_piece_t piece;  // Current piece
     tetrimino_rotation_t rotation;  // Current rotation position
@@ -70,7 +65,12 @@ typedef struct {
     uint8_t shape_offset; // offset pointer to the tetrimino_shape array of the current piece
 } tetrimino_t;
 
-// TODO: Function prototypes for tetrimino functions (e.g. tetrimino_init, tetrimino_rotate, tetrimino_move)
+// Function prototypes for tetrimino functions
+
+tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino);
+tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction);
+tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src);
+void tetrimino_debug_print(tetrimino_t *tetrimino);
 
 tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino);
 tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t direction);

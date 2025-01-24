@@ -73,3 +73,6 @@ VisualGDB/
 
 # MacOS files
 .DS_Store
+
+# STM32IDECube Files
+*Debug.cfg
