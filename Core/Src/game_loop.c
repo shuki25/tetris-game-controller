@@ -69,6 +69,7 @@ extern TIM_HandleTypeDef htim3;
 
 // EEPROM Variables
 eeprom_t eeprom;
+eeprom_id_t signature;
 
 /**
  * @brief  Splash screen
@@ -91,7 +92,27 @@ void splash() {
  */
 game_status_t game_init(void) {
 //    splash();
-    //eeprom_init(eeprom);
+    eeprom_init(eeprom, I2C1, GPIOB, GPIO_PIN_4);
+
+    if(eeprom_get_signature(eeprom, signature) != EEPROM_OK){
+#if DEBUG_OUTPUT
+        printf("Failed to retrieve EEPROM signature\n");
+#endif
+    }
+
+    //TODO: what is second arg
+    eeprom_status_t = eeprom_verify_signature(signature, 256);
+    if(eeprom_status_t == EEPROM_SIGNATURE_MISMATCH) {
+#if DEBUG_OUTPUT
+        printf("EEPROM signature mismatch found\n");
+#endif
+        //TODO: write zeroed out settings
+        eeprom_write_signature(eeprom, signature);
+    } else {
+#if DEBUG_OUTPUT
+        printf("EEPROM signature matched\n");
+#endif
+    }
 
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));
