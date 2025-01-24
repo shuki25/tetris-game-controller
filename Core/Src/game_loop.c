@@ -38,11 +38,16 @@
 #include "ring_buffer.h"
 #include "ui.h"
 
+// External variables
+
+extern I2C_HandleTypeDef hi2c1;
+
 // Debugger Expression Variables
 uint32_t game_loop_counter = 0;
 uint32_t render_count = 0;
 uint32_t controller_count = 0;
 uint32_t redraw_screen_count = 0;
+uint16_t controller_reading = 0;
 
 // Matrix Variables
 matrix_t matrix;
@@ -190,6 +195,17 @@ void game_loop(void) {
 
         // TODO: Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
+        controller_reading = snes_controller.buttons_state;
+        if (controller_status == SNES_CONTROLLER_DISCONNECTED && snes_controller.led_state == 1) {
+            snes_controller.led_state = 0;
+            HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin, GPIO_PIN_RESET);
+#if DEBUG_OUTPUT
+            printf("Controller disconnected\n");
+#endif
+        } else if (controller_status != SNES_CONTROLLER_DISCONNECTED  && controller_status != SNES_CONTROLLER_NOT_READY && snes_controller.led_state == 0) {
+            snes_controller.led_state = 1;
+            HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin, GPIO_PIN_SET);
+        }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
             if (ring_buffer_enqueue(&controller_buffer, &snes_controller.buttons_state) == false) {
 #if DEBUG_OUTPUT
