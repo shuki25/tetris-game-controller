@@ -168,7 +168,7 @@ void game_loop(void) {
 #endif
     }
 
-	rendering_status = renderer_create_boundary(&renderer, lookup_table);
+	rendering_status = renderer_create_boundary(&renderer);
 
 	if (rendering_status == RENDERER_OK){
 #if DEBUG_OUTPUT

@@ -25,8 +25,8 @@
 #include "main.h"
 #include "itm_debug.h"
 
-uint8_t generate_lookup_table(
-        uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
+
+uint8_t generate_lookup_table() {
     uint16_t led_id = 0;
 
     for (int i = 0; i < MATRIX_HEIGHT; i++) {
@@ -90,7 +90,7 @@ renderer_status_t renderer_init(renderer_t *renderer,
     return RENDERER_OK;
 }
 
-renderer_status_t renderer_create_boundary(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]){
+renderer_status_t renderer_create_boundary(renderer_t *renderer){
 
     // NOTE: i is rows, j is columns by convention
 

@@ -29,6 +29,8 @@
 #define MAX_PLAYFIELD_HEIGHT (20)
 #define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
 
+extern uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
+
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
 	RENDERER_OK = 0,
@@ -54,10 +56,9 @@ typedef struct {
 
 } renderer_t;
 
-uint8_t generate_lookup_table(
-		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]);
+uint8_t generate_lookup_table();
 
-renderer_status_t renderer_create_boundary(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]);
+renderer_status_t renderer_create_boundary(renderer_t *renderer);
 
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
