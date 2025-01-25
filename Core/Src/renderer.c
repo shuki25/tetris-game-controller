@@ -25,7 +25,7 @@
 #include "main.h"
 #include "itm_debug.h"
 
-uint8_t generate_lookup_table(uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH]) {
+uint8_t generate_lookup_table() {
     uint16_t led_id = 0;
 
     for (int i = 0; i < MATRIX_HEIGHT; i++) {
@@ -85,6 +85,29 @@ renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATR
     return RENDERER_OK;
 }
 
+renderer_status_t renderer_create_boundary(renderer_t *renderer){
+
+    // NOTE: i is rows, j is columns by convention
+
+    // render bottom boundary line
+    for(int j=0; j < (MAX_PLAYFIELD_WIDTH); j++){
+        uint16_t led_bottom_num = lookup_table[0][j];
+        WS2812_set_LED(renderer->led, led_bottom_num, 0, 0, 64);
+    }
+
+    // render the left and right boundary lines
+    for(int i=0; i <= MAX_PLAYFIELD_HEIGHT; i++){
+        uint16_t led_left_side_num = lookup_table[i][0];
+        uint16_t led_right_side_num = lookup_table[i][MATRIX_WIDTH-5];
+        WS2812_set_LED(renderer->led, led_left_side_num, 0, 0, 64);
+        WS2812_set_LED(renderer->led, led_right_side_num, 0, 0, 64);
+    }
+
+    WS2812_send(renderer->led);
+
+    return RENDERER_OK;
+}
+
 /**
  * @brief  Render final matrix to WS2812 LED matrix
  * @param  None
@@ -115,21 +138,22 @@ void renderer_show_next_tetrimino(void) {
     // TODO: Show next tetrimino on WS2812 LED matrix
 }
 
-renderer_status_t renderer_test_render(renderer_t *rendering_info) {
-    if (TIM2->CNT < rendering_info->next_update_time) {
+renderer_status_t renderer_test_render(renderer_t *renderer) {
+
+    if (TIM2->CNT < renderer->next_update_time) {
         return RENDERER_NOT_READY;
     }
 
-    WS2812_clear(rendering_info->led);
-    WS2812_set_LED(rendering_info->led, rendering_info->led_position, 0, 0, 64);
-    WS2812_send(rendering_info->led);
+    WS2812_clear(renderer->led);
+    WS2812_set_LED(renderer->led, renderer->led_position, 0, 0, 64);
+    WS2812_send(renderer->led);
 
-    rendering_info->led_position++;
-    if (rendering_info->led_position >= rendering_info->num_leds) {
-        rendering_info->led_position = 0;
+    renderer->led_position++;
+    if (renderer->led_position >= renderer->num_leds) {
+        renderer->led_position = 0;
     }
 
-    rendering_info->next_update_time = TIM2->CNT + rendering_info->delay_length;
+    renderer->next_update_time = TIM2->CNT + renderer->delay_length;
 
     return RENDERER_UPDATED;
 
