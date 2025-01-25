@@ -64,6 +64,14 @@ game_t game;
 // TIM Variables
 extern TIM_HandleTypeDef htim3;
 
+// UI variables
+ui_menu_t* main_menu;
+ui_menu_init(&main_menu);
+main_menu.menu_options = { "Play game", "High Score", "Settings", "Credits" };
+uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+uint8_t cursor_position = 0;
+uint8_t array_position = 0;
+
 /**
  * @brief  Splash screen
  * @param  None
@@ -131,7 +139,6 @@ void game_loop(void) {
 
     // Initialize OLED display driver
     ui_init();
-
 
     controller_status = snes_controller_init(&snes_controller,
     SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
@@ -242,65 +249,65 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-        	ui_main_menu_selection();
-        	char *main_menu_list[4] = {"Play game", "High Score", "Settings", "Credits"};
-        	int sizeXYarray = 4;
-        	int *select_arrow_x_locations = {};
-        	int *select_arrow_y_locations = {};
-        	int position = 0;
-        	while(1)
-        	{
-        		if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
-					if (controller_current_buttons & SNES_BUTTON_DOWN) {
-						if(position < 1)
-						{
-							position = 1;
-						}
-						else
-						{
-							position++;
-						}
-
-						if(sizeXYarray > 4)
-						{
-							sizeXYarray++;
-						}
-						else
-						{
-							sizeXYarray = 4;
-						}
-					}
-					if (controller_current_buttons & SNES_BUTTON_DOWN) {
-						if(position > 0)
-						{
-							position = 0;
-						}
-						else
-						{
-							position--;
-						}
-
-						if(sizeXYarray > 0)
-						{
-							sizeXYarray--;
-						}
-						else{
-							sizeXYarray = 0;
-						}
-					}
-        		}
-        		ssd1306_SetCursor(32, 14);
-        		ssd1306_WriteString(main_menu_list[position], Font_7x10, White);
-
-        		ssd1306_SetCursor(32, 30);
-        		ssd1306_WriteString(main_menu_list[position+1], Font_7x10, White);
-
-        		ssd1306_SetCursor(32, 48);
-        		ssd1306_WriteString(main_menu_list[position+2], Font_7x10, White);
-
-
-        		ssd1306_UpdateScreen();
-        	}
+//        	ui_main_menu_selection();
+//        	char *main_menu_list[4] = {"Play game", "High Score", "Settings", "Credits"};
+//        	int sizeXarray = 4;
+//        	int *select_arrow_x_locations = {};
+//        	int *select_arrow_y_locations = {};
+//        	int position = 0;
+//        	while(1)
+//        	{
+//        		if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+//					if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//						if(position < 1)
+//						{
+//							position = 1;
+//						}
+//						else
+//						{
+//							position++;
+//						}
+//
+//						if(sizeXarray > 4)
+//						{
+//							sizeXarray++;
+//						}
+//						else
+//						{
+//							sizeXarray = 4;
+//						}
+//					}
+//					if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//						if(position > 0)
+//						{
+//							position = 0;
+//						}
+//						else
+//						{
+//							position--;
+//						}
+//
+//						if(sizeXarray > 0)
+//						{
+//							sizeXarray--;
+//						}
+//						else{
+//							sizeXarray = 0;
+//						}
+//					}
+//        		}
+//        		ssd1306_SetCursor(32, 14);
+//        		ssd1306_WriteString(main_menu_list[position], Font_7x10, White);
+//
+//        		ssd1306_SetCursor(32, 30);
+//        		ssd1306_WriteString(main_menu_list[position+1], Font_7x10, White);
+//
+//        		ssd1306_SetCursor(32, 48);
+//        		ssd1306_WriteString(main_menu_list[position+2], Font_7x10, White);
+//
+//
+//        		ssd1306_UpdateScreen();
+//        	}
             break;
 
             /* ------------------------ PLAYING MENU ------------------------ */
@@ -475,7 +482,53 @@ void game_loop(void) {
 //                render_count++;
 //            }
 //#endif
-        	ui_main_menu_selection();
+//            if(main_menu == 0)
+//            {
+//                ui_main_menu_selection();
+//                main_menu = 1;
+//            }
+//            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+//                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                    if (array_position > 1) {
+//                        array_position = 1;
+//                    } else {
+//                        array_position++;
+//                    }
+//
+//                    if (cursor_position < 2) {
+//                        cursor_position++;
+//                    } else {
+//                        cursor_position = 2;
+//                    }
+//                }
+//                if (controller_current_buttons & SNES_BUTTON_UP) {
+//                    if (array_position < 0) {
+//                        array_position = 0;
+//                    } else {
+//                        array_position--;
+//                    }
+//
+//                    if (cursor_position > 0) {
+//                        cursor_position--;
+//                    } else {
+//                        cursor_position = 0;
+//                    }
+//                }
+//            ssd1306_SetCursor(32, 14);
+//            ssd1306_WriteString(main_menu_list[array_position], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 30);
+//            ssd1306_WriteString(main_menu_list[array_position + 1], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 48);
+//            ssd1306_WriteString(main_menu_list[array_position + 2], Font_7x10, White);
+//
+//
+//            ssd1306_SetCursor(10, select_arrow_locations[cursor_position]);
+//            ssd1306_WriteString(">", Font_6x8, White);
+//
+//            ssd1306_UpdateScreen();
+//            }
             /* Developer test code END */
             break;
 

@@ -27,6 +27,7 @@
 #include "cmsis_os.h" // for "sleep" function
 #include "splash_bitmap.h"
 
+
 /**
  * @brief  Initialize OLED display
  * @param  None
@@ -36,8 +37,11 @@ void ui_init() {
     ssd1306_Init();
 }
 
+void ui_menu_init(ui_menu_t *menu) {
+    memset(&menu, 0, sizeof(ui_menu_t)); // automically makes every variable default
+}
+
 void ui_splash_screen() {
-//    ssd1306_SetContrast(50); // to Dr. Butler - what does this do? i tried to change value but it seems to do nothing
     ssd1306_Fill(Black);
 
     ssd1306_SetCursor(5, 8);
@@ -153,21 +157,20 @@ void ui_splash_screen() {
  * @param  None
  * @retval Menu selection (use enum constants for each menu item)
  */
-void ui_main_menu_selection(void) {
+void ui_main_menu_selection(ui_menu_t main, int selection_id) {
     // TODO: Display main menu selection
+    ssd1306_Fill(Black);
+    frame_maker();
 
+    ssd1306_SetCursor(31, 0);
+    ssd1306_WriteString(" Main Menu ", Font_6x8, White);
 
-	ssd1306_Fill(Black);
-	frame_maker();
-	ssd1306_SetCursor(31, 0);
-	ssd1306_WriteString(" Main Menu ", Font_6x8, White);
-	ssd1306_UpdateScreen();
+    ssd1306_UpdateScreen();
 }
 
-void frame_maker(void)
-{
+void frame_maker(void) {
 
-	ssd1306_DrawBitmap(0, 0, tetrimino_allArray[5], 128, 64, White);
+    ssd1306_DrawBitmap(0, 0, tetrimino_allArray[5], 128, 64, White);
 }
 
 /**
