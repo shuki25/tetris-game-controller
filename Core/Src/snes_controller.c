@@ -49,6 +49,7 @@ snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPI
     controller->delay_length = 1000000 / read_rate;  // frequency to period in microseconds
     controller->time_last_read = TIM2->CNT;
     controller->time_expire = controller->time_last_read + controller->delay_length;
+    controller->led_state = 0;
 
     return SNES_CONTROLLER_OK;
 }
@@ -104,8 +105,13 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
         snes_controller_clock(controller, GPIO_PIN_SET);
     }
 
+
     // Invert the button state as the controller is active low
     controller->buttons_state = ~controller->buttons_state;
+
+    if (controller->buttons_state == 0xFFFF) {
+        return SNES_CONTROLLER_DISCONNECTED;
+    }
 
     if (controller->buttons_state != controller->previous_buttons_state) {
         controller->previous_buttons_state = controller->buttons_state;
