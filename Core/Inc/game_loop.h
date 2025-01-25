@@ -53,13 +53,6 @@ typedef struct {
     uint32_t game_speed;
 } game_t;
 
-typedef struct {
-    char name[16];
-    uint32_t score;
-    uint32_t level;
-    uint32_t lines;
-} game_high_score_t;
-
 // Game loop function prototypes
 game_status_t game_init(void);
 void game_loop(void);
