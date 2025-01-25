@@ -107,20 +107,20 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
  */
 tetrimino_status_t tetrimino_move(tetrimino_t *tetrimino, tetrimino_move_direction_t dir) {
     // TODO: Move tetrimino object in specified direction
-    switch (dir) {
-    case MOVE_RIGHT:
-        tetrimino->x += 1;
-        break;
-    case MOVE_LEFT:
-        tetrimino->x -= 1;
-        break;
-    case MOVE_DOWN:
-        tetrimino->y += 1;
-        break;
-    default:
-        return TETRIMINO_ERROR;
-        break;
-    }
+//    switch (dir) {
+//    case MOVE_RIGHT:
+//        tetrimino->x += 1;
+//        break;
+//    case MOVE_LEFT:
+//        tetrimino->x -= 1;
+//        break;
+//    case MOVE_DOWN:
+//        tetrimino->y += 1;
+//        break;
+//    default:
+//        return TETRIMINO_ERROR;
+//        break;
+//    }
 
     // TODO: check for collision
 

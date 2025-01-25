@@ -342,13 +342,13 @@ void game_loop(void) {
                     }
                     matrix_update_flag = 1;
                 }
-                if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_RIGHT);
-                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_LEFT);
-                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_DOWN);
-                }
+//                if (controller_current_buttons & SNES_BUTTON_RIGHT) {
+//                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_RIGHT);
+//                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
+//                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_LEFT);
+//                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_DOWN);
+//                }
 #if DEBUG_OUTPUT
                 snes_controller.buttons_state = controller_current_buttons;
                 snes_controller_print(&snes_controller);
