@@ -67,6 +67,27 @@ uint8_t util_time_expired(uint32_t start, uint32_t end) {
 }
 
 /**
+ * @brief  Get time difference in microseconds (rollover is handled)
+ * @param  start: start time
+ * @param  end: end time
+ * @retval time difference in microseconds
+ */
+uint32_t util_time_diff_us(uint32_t start, uint32_t end) {
+    uint32_t rollover = 0xFFFFFFFF;
+
+    if (start > end)
+        end = rollover - start + end; // It will rollover, so we need to adjust the end time
+
+    if (TIM2->CNT >= end && start < end) { // Normal case
+        return end - start;
+    } else if (TIM2->CNT < start && TIM2->CNT >= end) { // Rollover case
+        return (rollover - start) + end;
+    }
+
+    return 0;
+}
+
+/**
  * @brief  Delay in microseconds
  * @param  us: microseconds
  * @retval None
