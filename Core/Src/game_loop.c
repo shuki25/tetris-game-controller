@@ -70,6 +70,7 @@ game_t game;
 //tetrimino_t tetrimino;
 //tetrimino_t tetrimino_pending;
 game_high_score_t high_scores[EEPROM_NUM_HIGH_SCORES];
+game_high_score_t *high_score_ptrs[EEPROM_NUM_HIGH_SCORES];
 saved_settings_t settings;
 
 // TIM Variables
@@ -141,18 +142,19 @@ void game_loop(void) {
     eeprom_init(&eeprom, &hi2c1, EEPROM_GPIO_Port, EEPROM_Pin);
 
     // Verify EEPROM signature
-    if(eeprom_get_signature(&eeprom, &signature) != EEPROM_OK){
+    if (eeprom_get_signature(&eeprom, &signature) != EEPROM_OK) {
 #if DEBUG_OUTPUT
         printf("Failed to retrieve EEPROM signature\n");
 #endif
     }
     eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
-    if(status == EEPROM_SIGNATURE_MISMATCH) {
+    if (status == EEPROM_SIGNATURE_MISMATCH) {
 #if DEBUG_OUTPUT
         printf("EEPROM signature mismatch found\n");
 #endif
         eeprom_generate_signature(&signature, EEPROM_NUM_USED_PAGES);
         eeprom_write_signature(&eeprom, &signature);
+        // TODO: Initialize EEPROM with default values for settings and high scores
     } else {
 #if DEBUG_OUTPUT
         printf("EEPROM signature matched\n");
@@ -164,10 +166,11 @@ void game_loop(void) {
     eeprom_get_settings(&eeprom, &settings);
 
     // Load high scores from EEPROM
-    for(int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++ ) {
+    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
         memset(&high_scores[i], 0, sizeof(game_high_score_t));
+        high_score_ptrs[i] = &high_scores[i];
     }
-    eeprom_get_high_scores(&eeprom, &high_scores);
+    eeprom_get_high_scores(&eeprom, high_score_ptrs);
 
     // TODO: Initialize game variables
 
@@ -225,13 +228,13 @@ void game_loop(void) {
 #endif
     }
 
-	rendering_status = renderer_create_boundary(&renderer);
+    rendering_status = renderer_create_boundary(&renderer);
 
-	if (rendering_status == RENDERER_OK){
+    if (rendering_status == RENDERER_OK) {
 #if DEBUG_OUTPUT
-	    printf("Rendering boundary success\n");
+        printf("Rendering boundary success\n");
 #endif
-	}
+    }
     // If you want to test a feature, uncomment the following line
 //    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
@@ -248,7 +251,8 @@ void game_loop(void) {
 #if DEBUG_OUTPUT
             printf("Controller disconnected\n");
 #endif
-        } else if (controller_status != SNES_CONTROLLER_DISCONNECTED  && controller_status != SNES_CONTROLLER_NOT_READY && snes_controller.led_state == 0) {
+        } else if (controller_status != SNES_CONTROLLER_DISCONNECTED
+                && controller_status != SNES_CONTROLLER_NOT_READY && snes_controller.led_state == 0) {
             snes_controller.led_state = 1;
             HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin, GPIO_PIN_SET);
         }
