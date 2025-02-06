@@ -60,7 +60,7 @@ matrix_t matrix;
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t render_delay = (1000000 / 35); // 35 FPS
+uint32_t render_delay = (1000000 / 33); // 30 FPS
 renderer_t renderer;
 uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -131,6 +131,10 @@ void game_loop(void) {
     RingBuffer controller_buffer;
     uint32_t press_start_timer_start = 0;
     uint32_t press_start_state = 0;
+    uint32_t fps_start_count = 0;
+    uint32_t fps_end_count = 0;
+    uint32_t fps_time_last_update = 0;
+    uint32_t fps_time_diff = 0;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -517,7 +521,13 @@ void game_loop(void) {
                     render_count++;
                 }
                 // TODO: Update UI
-
+                fps_time_diff = util_time_diff_us(fps_time_last_update, TIM2->CNT);
+                if (fps_time_diff >= 500000) {
+                    fps_start_count = fps_end_count;
+                    fps_end_count = render_count;
+                    fps_time_last_update = TIM2->CNT;
+                    ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+                }
                 break;
 
                 /* ------------------------- PAUSE MENU ------------------------ */
