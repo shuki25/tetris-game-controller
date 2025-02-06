@@ -28,6 +28,8 @@
 
 #define MAX_PLAYFIELD_HEIGHT (20)
 #define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
+#define RENDERER_OFFSET_X (1)
+#define RENDERER_OFFSET_Y (1)
 
 extern uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -48,7 +50,8 @@ typedef struct {
 	uint8_t brightness;
 	uint32_t time_last_sent;
 	uint32_t next_update_time;
-	uint32_t delay_length; // in microseconds
+	uint32_t delay_length; // in microseconds (determines refresh rate)
+	uint32_t rendering_time; // in microseconds (measures actual rendering time)
 	uint16_t led_position;
 	uint16_t num_leds;
 	matrix_t *matrix;
@@ -66,5 +69,6 @@ renderer_status_t renderer_init(renderer_t *renderer,
 		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
 		led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
 		uint32_t delay_length);
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix);
 renderer_status_t renderer_test_render(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */

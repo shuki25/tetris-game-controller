@@ -53,9 +53,9 @@ typedef struct {
     uint8_t height;
     uint8_t width;
     uint32_t playfield[MATRIX_DATA_SIZE];
-    uint32_t stack[PLAYING_FIELD_HEIGHT];
-    uint32_t palette1[PLAYING_FIELD_HEIGHT];
-    uint32_t palette2[PLAYING_FIELD_HEIGHT];
+    uint32_t stack[MATRIX_DATA_SIZE];
+    uint32_t palette1[MATRIX_DATA_SIZE];
+    uint32_t palette2[MATRIX_DATA_SIZE];
 } matrix_t;
 
 // Function prototypes for matrix functions
