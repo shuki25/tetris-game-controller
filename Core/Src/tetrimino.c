@@ -113,6 +113,23 @@ void tetrimino_move(void) {
     // TODO: update bitboard matrix object
 }
 
+/**
+ * @brief  Spawn next tetrimino
+ * @param  tetrimino object
+ * @retval status
+ */
+tetrimino_status_t tetrimino_next(tetrimino_t *tetrimino) {
+    tetrimino->x = 5;
+    tetrimino->y = PLAYING_FIELD_HEIGHT;
+    tetrimino->piece = tetrimino->next_piece;
+    tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
+    tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
+//    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
+    tetrimino->next_piece = rng_next() % TETRIMINO_COUNT;
+
+    return TETRIMINO_OK;
+}
+
 tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src) {
     memcpy(dst, src, sizeof(tetrimino_t));
     return TETRIMINO_OK;

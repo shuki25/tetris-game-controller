@@ -60,7 +60,7 @@ matrix_t matrix;
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t render_delay = (1000000 / 10);
+uint32_t render_delay = (1000000 / 35); // 35 FPS
 renderer_t renderer;
 uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -105,10 +105,11 @@ game_status_t game_init(void) {
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));
     game.state = GAME_STATE_SPLASH;
-    game.score = 0;
-    game.level = 0;
-    game.lines = 0;
+    game.play_state = PLAY_STATE_NOT_STARTED;
     game.game_speed = 1000;
+    game.drop_time_delay = 1000000;
+    game.lock_time_delay = 500000; // 0.5 seconds
+    game.line_clear_time_delay = 100000; // 0.1 seconds per LED pair
 
     return GAME_OK;
 }
@@ -196,7 +197,7 @@ void game_loop(void) {
 #endif
 
     /* Generate and initialize the brightness lookup table */
-    brightness_lookup = generate_brightness_lookup_table(10);
+    brightness_lookup = generate_brightness_lookup_table(15);
 
     if (brightness_lookup != NULL) {
 #if DEBUG_OUTPUT
@@ -275,229 +276,281 @@ void game_loop(void) {
 
         switch (game.state) {
 
-            /* ---------------------- SPLASH SCREEN ---------------------- */
-            case GAME_STATE_SPLASH:
-                // TODO: Display splash screen
-                ui_splash_screen();
-                // TODO: Wait for user input to start game
-                game.state = GAME_STATE_SPLASH_WAIT;
+        /* ---------------------- SPLASH SCREEN ---------------------- */
+        case GAME_STATE_SPLASH:
+            // TODO: Display splash screen
+            ui_splash_screen();
+            // TODO: Wait for user input to start game
+            game.state = GAME_STATE_SPLASH_WAIT;
 
-                break;
+            break;
 
-                /* ------------------------- SPLASH WAIT ------------------------ */
-            case GAME_STATE_SPLASH_WAIT:
-                if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
-                    if (controller_current_buttons & SNES_BUTTON_START) {
+            /* ------------------------- SPLASH WAIT ------------------------ */
+        case GAME_STATE_SPLASH_WAIT:
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_START) {
 //                    game.state = GAME_STATE_MENU;
-                        game.state = GAME_STATE_GAME_IN_PROGRESS;
-                        ssd1306_Fill(Black);
-                        ssd1306_UpdateScreen();
-                        break;
-                    }
-                }
-                if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
-                    press_start_timer_start = TIM2->CNT;
-                    press_start_state = !press_start_state;
-                    ssd1306_SetCursor(30, 55);
-                    if (press_start_state) {
-                        ssd1306_WriteString("                ", Font_6x8, White); // erase line
-                    } else {
-                        ssd1306_WriteString("Press start", Font_6x8, White);
-                    }
+                    game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
-                    redraw_screen_count++;
+                    break;
                 }
-                break;
-
-                /* ------------------------- MAIN MENU -------------------------- */
-            case GAME_STATE_MENU:
-                // TODO: Display main menu
-                break;
-
-                /* ------------------------ PLAYING MENU ------------------------ */
-            case GAME_STATE_PLAY_MENU:
-                // TODO: Display playing menu
-                break;
-
-                /* -------------------- PREPARE GAME STATE ---------------------- */
-            case GAME_STATE_PREPARE_GAME:
-                // TODO: Initialize game variables
-                break;
-
-                /* ---------------------- GAME IN PROGRESS ---------------------- */
-            case GAME_STATE_GAME_IN_PROGRESS:
-                if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
-                    controller_status = SNES_CONTROLLER_STATE_CHANGE;
+            }
+            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+                press_start_timer_start = TIM2->CNT;
+                press_start_state = !press_start_state;
+                ssd1306_SetCursor(30, 55);
+                if (press_start_state) {
+                    ssd1306_WriteString("                ", Font_6x8, White); // erase line
                 } else {
-                    controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
+                    ssd1306_WriteString("Press start", Font_6x8, White);
                 }
+                ssd1306_UpdateScreen();
+                redraw_screen_count++;
+            }
+            break;
 
-                if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
-                    matrix_update_flag = 0;
-                    if (controller_current_buttons & SNES_BUTTON_A) {
-                        tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
-                    } else if (controller_current_buttons & SNES_BUTTON_B) {
-                        tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
-                    } else if (controller_current_buttons & SNES_BUTTON_R) {
-                        tetrimino.piece++;
-                        if (tetrimino.piece >= TETRIMINO_COUNT) {
-                            tetrimino.piece = 0;
-                        }
-                        tetrimino.shape_offset =
-                                tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
-                        tetrimino_status = TETRIMINO_REFRESH;
+            /* ------------------------- MAIN MENU -------------------------- */
+        case GAME_STATE_MENU:
+            // TODO: Display main menu
+            break;
 
-                    } else if (controller_current_buttons & SNES_BUTTON_L) {
-                        tetrimino.piece--;
-                        if (tetrimino.piece >= TETRIMINO_COUNT) {
-                            tetrimino.piece = TETRIMINO_COUNT - 1;
-                        }
-                        tetrimino.shape_offset =
-                                tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
-                        tetrimino_status = TETRIMINO_REFRESH;
-                    } else if (controller_current_buttons & SNES_BUTTON_UP) {
-                        tetrimino.y++;
-                        if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
-                            tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
-                        }
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                            tetrimino.y--;
-                        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                            tetrimino.y--;
-                        }
-                        matrix_update_flag = 1;
-                    } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                        if (tetrimino.y > 0) {
-                            tetrimino.y--;
-                        }
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                            tetrimino.y++;
-                        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                            tetrimino.y++;
-                        }
-                        matrix_update_flag = 1;
-                    } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                        tetrimino.x--;
-                        if (tetrimino.x > PLAYING_FIELD_WIDTH) {
-                            tetrimino.x = 0;
-                        }
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                            tetrimino.x++;
-                        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                            tetrimino.x++;
-                        }
-                        matrix_update_flag = 1;
-                    } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                        tetrimino.x++;
-                        if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
-                            tetrimino.x = PLAYING_FIELD_WIDTH - 1;
-                        }
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                            tetrimino.x--;
-                        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                            tetrimino.x--;
-                        }
-                        matrix_update_flag = 1;
-                    } else {
-                        tetrimino_status = TETRIMINO_OK;
+            /* ------------------------ PLAYING MENU ------------------------ */
+        case GAME_STATE_PLAY_MENU:
+            // TODO: Display playing menu
+            break;
+
+            /* -------------------- PREPARE GAME STATE ---------------------- */
+        case GAME_STATE_PREPARE_GAME:
+            // TODO: Initialize game variables
+            game.score = 0;
+            game.level = 1;
+            game.lines = 0;
+            game.drop_time_delay = 700000;
+            game.drop_time_start = TIM2->CNT;
+
+            game.state = GAME_STATE_GAME_IN_PROGRESS;
+            game.play_state = PLAY_STATE_NORMAL;
+            break;
+
+            /* ---------------------- GAME IN PROGRESS ---------------------- */
+        case GAME_STATE_GAME_IN_PROGRESS:
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                controller_status = SNES_CONTROLLER_STATE_CHANGE;
+            } else {
+                controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
+            }
+
+            if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+                matrix_update_flag = 0;
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
+                } else if (controller_current_buttons & SNES_BUTTON_B) {
+                    tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
+                } else if (controller_current_buttons & SNES_BUTTON_R) {
+                    tetrimino.piece++;
+                    if (tetrimino.piece >= TETRIMINO_COUNT) {
+                        tetrimino.piece = 0;
                     }
-                    if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
-                        // Revert tetrimino position and refresh matrix
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    } else if (tetrimino_status == TETRIMINO_REFRESH) {
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                            // TODO: Reverse tetrimino position
-                        }
-                        matrix_update_flag = 1;
+                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino_status = TETRIMINO_REFRESH;
+
+                } else if (controller_current_buttons & SNES_BUTTON_L) {
+                    tetrimino.piece--;
+                    if (tetrimino.piece >= TETRIMINO_COUNT) {
+                        tetrimino.piece = TETRIMINO_COUNT - 1;
                     }
-#if DEBUG_OUTPUT
-                    snes_controller.buttons_state = controller_current_buttons;
-                    snes_controller_print(&snes_controller);
-                    if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
-                        tetrimino_debug_print(&tetrimino);
+                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino_status = TETRIMINO_REFRESH;
+                } else if (controller_current_buttons & SNES_BUTTON_UP) {
+                    tetrimino.y++;
+                    if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+                        tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
                     }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        printf("Matrix collision detected\n");
+                        tetrimino.y--;
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        printf("Matrix out of bounds\n");
+                        tetrimino.y--;
                     }
-                    if (matrix_update_flag) {
-                        matrix_debug_print(&matrix);
-                        matrix_status = MATRIX_NO_CHANGE;
-                    } else {
-                        printf("Matrix status: %d\n", matrix_status);
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if (tetrimino.y > 0) {
+                        tetrimino.y--;
                     }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.y++;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.y++;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
+                    tetrimino.x--;
+                    if (tetrimino.x > PLAYING_FIELD_WIDTH) {
+                        tetrimino.x = 0;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.x++;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.x++;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
+                    tetrimino.x++;
+                    if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
+                        tetrimino.x = PLAYING_FIELD_WIDTH - 1;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.x--;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.x--;
+                    }
+                    matrix_update_flag = 1;
+                } else if (controller_current_buttons & SNES_BUTTON_Y) {
+                    game.drop_time_delay += 25000;
+                } else if (controller_current_buttons & SNES_BUTTON_X) {
+                    game.drop_time_delay -= 25000;
+                    if (game.drop_time_delay < 25000) {
+                        game.drop_time_delay = 25000;
+                    }
+                } else {
+                    tetrimino_status = TETRIMINO_OK;
+                }
+                if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
+                    // Revert tetrimino position and refresh matrix
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                } else if (tetrimino_status == TETRIMINO_REFRESH) {
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        // TODO: Reverse tetrimino position
+                    }
+                    matrix_update_flag = 1;
+                }
+#if DEBUG_OUTPUT
+                snes_controller.buttons_state = controller_current_buttons;
+                snes_controller_print(&snes_controller);
+                if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
+                    tetrimino_debug_print(&tetrimino);
+                }
+                if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                    printf("Matrix collision detected\n");
+                } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                    printf("Matrix out of bounds\n");
+                }
+                if (matrix_update_flag) {
+                    matrix_debug_print(&matrix);
+                    matrix_status = MATRIX_NO_CHANGE;
+                } else {
+                    printf("Matrix status: %d\n", matrix_status);
+                }
 #endif
+            } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
+
+            // TODO: Check timer for game speed
+            if (game.play_state == PLAY_STATE_NORMAL) {
+                if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
+                    if (tetrimino.y > 0) {
+                        tetrimino.y--;
+                    }
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                        tetrimino.y++;
+                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                        tetrimino.y++;
+                    } else if (matrix_status == MATRIX_REACHED_BOTTOM) {
+                        tetrimino.y++;
+                        game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
+                        game.lock_time_start = TIM2->CNT;
+                    } else {
+                        game.drop_time_start = TIM2->CNT;
+                    }
+                    matrix_update_flag = 1;
                 }
-
-                // TODO: Check timer for game speed
-
-                // TODO: Process input
-
-                // TODO: Update tetromino rotation
-
-                // TODO: Update tetromino position
-
-                // TODO: Check for collision
-
-                // TODO: Check for line clear
-
-                // TODO: Check for topout condition
-
-                // TODO: Is tetrimino locked in place?
-
-                // TODO: Get the next tetrimino from the RNG
-
-                // TODO: Render matrix and update LED grid
-                rendering_status = renderer_render(&renderer, &matrix);
-                if (rendering_status == RENDERER_UPDATED) {
-                    render_count++;
+            } else {
+                if (game.play_state == PLAY_STATE_HALF_SECOND_B4_LOCK) {
+                    if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+                        game.play_state = PLAY_STATE_LOCKED;
+                    }
                 }
-                // TODO: Update UI
+            }
 
-                break;
+            // TODO: Process input
 
-                /* ------------------------- PAUSE MENU ------------------------ */
-            case GAME_STATE_PAUSE:
-                // TODO: Display pause menu
-                break;
+            // TODO: Update tetromino rotation
 
-                /* -------------------------- GAME OVER ------------------------ */
-            case GAME_STATE_GAME_ENDED:
-                // TODO: Display game over screen
-                break;
+            // TODO: Update tetromino position
 
-                /* ------------------------ HIGH SCORES ------------------------ */
-            case GAME_STATE_HIGH_SCORE:
-                // TODO: Display high scores
-                break;
+            // TODO: Check for collision
 
-                /* ------------------------ SETTINGS MENU ---------------------- */
-            case GAME_STATE_SETTINGS:
-                // TODO: Display settings menu
-                break;
+            // TODO: Check for line clear
 
-                /* ------------------------ TEST FEATURE ------------------------ */
-            case GAME_STATE_TEST_FEATURE:
-                /* Developer test code START */
+            // TODO: Check for topout condition
+
+            // TODO: Is tetrimino locked in place?
+
+            // TODO: Get the next tetrimino from the RNG
+            if (game.play_state == PLAY_STATE_LOCKED) {
+                tetrimino_status = tetrimino_next(&tetrimino);
+                if (tetrimino_status == TETRIMINO_OK) {
+                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) { // TOPPED OUT
+                        game.state = GAME_STATE_GAME_ENDED;
+                        game.play_state = PLAY_STATE_TOP_OUT;
+                    } else {
+                        game.play_state = PLAY_STATE_NORMAL;
+                        game.drop_time_start = TIM2->CNT;
+                    }
+                }
+            }
+
+            // TODO: Render matrix and update LED grid
+            rendering_status = renderer_render(&renderer, &matrix);
+            if (rendering_status == RENDERER_UPDATED) {
+                render_count++;
+            }
+            // TODO: Update UI
+
+            break;
+
+            /* ------------------------- PAUSE MENU ------------------------ */
+        case GAME_STATE_PAUSE:
+            // TODO: Display pause menu
+            break;
+
+            /* -------------------------- GAME OVER ------------------------ */
+        case GAME_STATE_GAME_ENDED:
+            // TODO: Display game over screen
+            break;
+
+            /* ------------------------ HIGH SCORES ------------------------ */
+        case GAME_STATE_HIGH_SCORE:
+            // TODO: Display high scores
+            break;
+
+            /* ------------------------ SETTINGS MENU ---------------------- */
+        case GAME_STATE_SETTINGS:
+            // TODO: Display settings menu
+            break;
+
+            /* ------------------------ TEST FEATURE ------------------------ */
+        case GAME_STATE_TEST_FEATURE:
+            /* Developer test code START */
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
 //                render_count++;
 //            }
 //#endif
-                /* Developer test code END */
-                break;
+            /* Developer test code END */
+            break;
 
-                /* ----------------------- UNKNOWN STATES ---------------------- */
-            default:
-                // TODO: Handle unknown states (fail-safe)
-                break;
+            /* ----------------------- UNKNOWN STATES ---------------------- */
+        default:
+            // TODO: Handle unknown states (fail-safe)
+            break;
         } // end switch
 
         game_loop_count++;

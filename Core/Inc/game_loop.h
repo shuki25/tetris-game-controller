@@ -45,12 +45,28 @@ typedef enum {
     GAME_STATE_TEST_FEATURE
 } game_state_t;
 
+typedef enum {
+    PLAY_STATE_NOT_STARTED = 0,
+    PLAY_STATE_NORMAL,
+    PLAY_STATE_HALF_SECOND_B4_LOCK,
+    PLAY_STATE_LOCKED,
+    PLAY_STATE_LINE_CLEAR,
+    PLAY_STATE_TOP_OUT
+} play_state_t;
+
 typedef struct {
     game_state_t state;
+    play_state_t play_state;
     uint32_t score;
     uint32_t level;
     uint32_t lines;
     uint32_t game_speed;
+    uint32_t drop_time_delay; // in microseconds (determines drop speed)
+    uint32_t drop_time_start;
+    uint32_t lock_time_delay; // in microseconds (determines lock length)
+    uint32_t lock_time_start;
+    uint32_t line_clear_time_delay; // in microseconds (determines line clear speed)
+    uint32_t line_clear_time_start;
 } game_t;
 
 // Game loop function prototypes
