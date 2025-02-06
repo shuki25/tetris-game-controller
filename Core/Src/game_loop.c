@@ -60,7 +60,7 @@ matrix_t matrix;
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t render_delay = (1000000 / 10);
+uint32_t render_delay = (1000000 / 35); // 35 FPS
 renderer_t renderer;
 uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -105,10 +105,11 @@ game_status_t game_init(void) {
     // TODO: Initialize game state (structs, bitboards, etc.)
     memset(&game, 0, sizeof(game_t));
     game.state = GAME_STATE_SPLASH;
-    game.score = 0;
-    game.level = 0;
-    game.lines = 0;
+    game.play_state = PLAY_STATE_NOT_STARTED;
     game.game_speed = 1000;
+    game.drop_time_delay = 1000000;
+    game.lock_time_delay = 500000; // 0.5 seconds
+    game.line_clear_time_delay = 100000; // 0.1 seconds per LED pair
 
     return GAME_OK;
 }
@@ -196,7 +197,7 @@ void game_loop(void) {
 #endif
 
     /* Generate and initialize the brightness lookup table */
-    brightness_lookup = generate_brightness_lookup_table(10);
+    brightness_lookup = generate_brightness_lookup_table(15);
 
     if (brightness_lookup != NULL) {
 #if DEBUG_OUTPUT
@@ -289,7 +290,7 @@ void game_loop(void) {
                 if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                     if (controller_current_buttons & SNES_BUTTON_START) {
 //                    game.state = GAME_STATE_MENU;
-                        game.state = GAME_STATE_GAME_IN_PROGRESS;
+                        game.state = GAME_STATE_PREPARE_GAME;
                         ssd1306_Fill(Black);
                         ssd1306_UpdateScreen();
                         break;
@@ -322,6 +323,14 @@ void game_loop(void) {
                 /* -------------------- PREPARE GAME STATE ---------------------- */
             case GAME_STATE_PREPARE_GAME:
                 // TODO: Initialize game variables
+                game.score = 0;
+                game.level = 1;
+                game.lines = 0;
+                game.drop_time_delay = 700000;
+                game.drop_time_start = TIM2->CNT;
+
+                game.state = GAME_STATE_GAME_IN_PROGRESS;
+                game.play_state = PLAY_STATE_NORMAL;
                 break;
 
                 /* ---------------------- GAME IN PROGRESS ---------------------- */
@@ -402,6 +411,13 @@ void game_loop(void) {
                             tetrimino.x--;
                         }
                         matrix_update_flag = 1;
+                    } else if (controller_current_buttons & SNES_BUTTON_Y) {
+                        game.drop_time_delay += 25000;
+                    } else if (controller_current_buttons & SNES_BUTTON_X) {
+                        game.drop_time_delay -= 25000;
+                        if (game.drop_time_delay < 25000) {
+                            game.drop_time_delay = 25000;
+                        }
                     } else {
                         tetrimino_status = TETRIMINO_OK;
                     }
@@ -433,9 +449,40 @@ void game_loop(void) {
                         printf("Matrix status: %d\n", matrix_status);
                     }
 #endif
-                }
+                } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
 
                 // TODO: Check timer for game speed
+                if (game.play_state == PLAY_STATE_NORMAL) {
+                    if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
+                        if (tetrimino.y > 0) {
+                            tetrimino.y--;
+                        }
+                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                        if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                            tetrimino.y++;
+                        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+                            tetrimino.y++;
+                        } else if (matrix_status == MATRIX_REACHED_BOTTOM) {
+                            tetrimino.y++;
+                            matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                            game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
+                            game.lock_time_start = TIM2->CNT;
+                        } else {
+                            if (tetrimino.y == 0) { // Long bar reached to bottom of matrix, transition to lock state
+                                game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
+                                game.lock_time_start = TIM2->CNT;
+                            }
+                            game.drop_time_start = TIM2->CNT;
+                        }
+                        matrix_update_flag = 1;
+                    }
+                } else {
+                    if (game.play_state == PLAY_STATE_HALF_SECOND_B4_LOCK) {
+                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+                            game.play_state = PLAY_STATE_LOCKED;
+                        }
+                    }
+                }
 
                 // TODO: Process input
 
@@ -452,6 +499,19 @@ void game_loop(void) {
                 // TODO: Is tetrimino locked in place?
 
                 // TODO: Get the next tetrimino from the RNG
+                if (game.play_state == PLAY_STATE_LOCKED) {
+                    tetrimino_status = tetrimino_next(&tetrimino);
+                    if (tetrimino_status == TETRIMINO_OK) {
+                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                        if (matrix_status == MATRIX_COLLISION_DETECTED) { // TOPPED OUT
+                            game.state = GAME_STATE_GAME_ENDED;
+                            game.play_state = PLAY_STATE_TOP_OUT;
+                        } else {
+                            game.play_state = PLAY_STATE_NORMAL;
+                            game.drop_time_start = TIM2->CNT;
+                        }
+                    }
+                }
 
                 // TODO: Render matrix and update LED grid
                 rendering_status = renderer_render(&renderer, &matrix);

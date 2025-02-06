@@ -68,7 +68,7 @@ renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATR
     renderer->matrix = matrix;
     renderer->led = led;
     renderer->num_leds = (matrix->height * matrix->width);
-    renderer->delay_length = delay_length ? delay_length : 1000000 / 10; // default to 10 Hz
+    renderer->delay_length = delay_length ? delay_length : 1000000 / 24; // default to 24 Hz
 
     led_error = WS2812_init(renderer->led, htim, channel, htim->Init.Period, renderer->num_leds, 0);
     if (led_error != WS2812_OK) {
