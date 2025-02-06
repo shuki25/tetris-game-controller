@@ -248,7 +248,7 @@ void game_loop(void) {
     for (;;) {
         // TODO: Respond to scoreboard requests
 
-        // TODO: Poll SNES controller before any other processing in the state machine
+        // Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
         controller_reading = snes_controller.buttons_state;
         if (controller_status == SNES_CONTROLLER_DISCONNECTED && snes_controller.led_state == 1) {
@@ -278,9 +278,7 @@ void game_loop(void) {
 
             /* ---------------------- SPLASH SCREEN ---------------------- */
             case GAME_STATE_SPLASH:
-                // TODO: Display splash screen
                 ui_splash_screen();
-                // TODO: Wait for user input to start game
                 game.state = GAME_STATE_SPLASH_WAIT;
 
                 break;

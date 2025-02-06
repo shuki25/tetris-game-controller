@@ -127,8 +127,6 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
     uint16_t led_num = 0;
     uint8_t y = 0;
 
-    // TODO: Send final matrix to WS2812 LED matrix
-
     // Check if it's time to update the LED matrix
     if (TIM2->CNT < renderer->next_update_time) {
         return RENDERER_NOT_READY;
@@ -153,7 +151,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y][x];
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, 0, 32, 0);
+                WS2812_set_LED(renderer->led, led_num, 0, 32, 0); // TODO: Set color based on palette lookup table
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
                     WS2812_set_LED(renderer->led, led_num, 64, 0, 0);
