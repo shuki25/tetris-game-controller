@@ -38,7 +38,10 @@ void ui_init() {
 }
 
 void ui_menu_init(ui_menu_t *menu) {
-    memset(&menu, 0, sizeof(ui_menu_t)); // automically makes every variable default
+    menu->menu_id = 0;
+    menu->is_cursor_on = 0;
+    menu->cursor_timeout = 0;
+    menu->current_selection_id = 0;
 }
 
 void ui_splash_screen() {

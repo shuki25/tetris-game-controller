@@ -65,9 +65,9 @@ game_t game;
 extern TIM_HandleTypeDef htim3;
 
 // UI variables
-ui_menu_t* main_menu;
-ui_menu_init(&main_menu);
-main_menu.menu_options = { "Play game", "High Score", "Settings", "Credits" };
+ui_menu_t menu;
+
+//main_menu->menu_options = { "Play game", "High Score", "Settings", "Credits" };
 uint8_t select_arrow_locations[3] = { 14, 30, 46 };
 uint8_t cursor_position = 0;
 uint8_t array_position = 0;
@@ -188,6 +188,9 @@ void game_loop(void) {
         printf("Rendering initialization success\n");
 #endif
     }
+
+    // Initialize menu system
+    ui_menu_init(&menu);
 
     // If you want to test a feature, uncomment the following line
     game.state = GAME_STATE_TEST_FEATURE;

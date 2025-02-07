@@ -28,14 +28,14 @@ typedef struct {
     uint8_t is_cursor_on;
     uint8_t cursor_timeout;
     uint8_t current_selection_id;
-    char *menu_options[]; // need to put this below all otherwise, it wont work!
+    char* menu_options; // need to put this below all otherwise, it wont work!
 } ui_menu_t;
 
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
 
 // TODO: Function prototypes for UI functions (e.g. ui_init, ui_main_menu_selection, ui_game_progress, ui_game_over_screen)
 void ui_init();
-void ui_menu_init();
+void ui_menu_init(ui_menu_t* menu);
 void ui_splash_screen();
 void ui_main_menu_selection();
 void ui_test();
