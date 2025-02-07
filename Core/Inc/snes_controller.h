@@ -29,7 +29,8 @@ typedef enum {
 	SNES_CONTROLLER_ERROR,
 	SNES_CONTROLLER_STATE_CHANGE,
 	SNES_CONTROLLER_NO_STATE_CHANGE,
-	SNES_CONTROLLER_NOT_READY
+	SNES_CONTROLLER_NOT_READY,
+	SNES_CONTROLLER_DISCONNECTED
 } snes_controller_status_t;
 
 // Defines for shift register bit order and button mapping (B, Y, Select, Start, Up, Down, Left, Right, A, X, L, R)
@@ -59,6 +60,7 @@ typedef struct {
 	uint32_t time_last_read;
 	uint32_t delay_length;
 	uint32_t time_expire;
+	uint8_t led_state;
 } snes_controller_t;
 
 snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPIO_TypeDef *latch_port, uint16_t latch_pin,

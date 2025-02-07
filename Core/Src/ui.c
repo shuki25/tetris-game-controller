@@ -211,8 +211,15 @@ void ui_settings_menu() {
  * @param  None
  * @retval None
  */
-void ui_display_fps() {
+void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us) {
     // TODO: Calculate and display frames per second
+    uint32_t fps = ((end_count - start_count) * 10000000) / time_us;
+    ssd1306_SetCursor(0, 55);
+    char fps_str[32];
+    memset(fps_str, 0, sizeof(fps_str));
+    sprintf(fps_str, "fps:%d.%d   ", (int) (fps / 10), (int) (fps % 10));
+    ssd1306_WriteString(fps_str, Font_6x8, White);
+    ssd1306_UpdateScreen();
 }
 
 void ui_test() {

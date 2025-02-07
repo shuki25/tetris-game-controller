@@ -41,4 +41,5 @@ void ui_main_menu_selection();
 void ui_test();
 void frame_maker();
 
+void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 #endif /* INC_UI_H_ */

@@ -79,6 +79,17 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     shape_offset = tetrimino->shape_offset;
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
 
+    // Check if tetrimino has reached beyond the bottom of the matrix
+    for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
+        // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
+        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT) {
+            return MATRIX_REACHED_BOTTOM;
+        }
+        row_index--;
+    }
+
+    // Superimpose tetrimino on playfield
+    row_index = tetrimino->y + TETRIMINO_CENTER_Y;
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         if (row_index >= PLAYING_FIELD_HEIGHT) { // Check if row is within visible bounds
             row_index--;
@@ -121,7 +132,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
 
     return MATRIX_REFRESH;
 
-	// TODO: Update palette bitboards
+    // TODO: Update palette bitboards
 }
 
 /**
@@ -130,7 +141,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
  * @retval None
  */
 void matrix_flatten(void) {
-	// TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
+    // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
 }
 
 /**
@@ -139,7 +150,7 @@ void matrix_flatten(void) {
  * @retval None
  */
 void matrix_clear(void) {
-	// TODO: Clear fallen blocks from matrix
+    // TODO: Clear fallen blocks from matrix
 }
 
 /**
@@ -148,7 +159,7 @@ void matrix_clear(void) {
  * @retval True if collision, false otherwise
  */
 void matrix_check_collision(void) {
-	// TODO: Check for collision between tetrimino, boundaries, and fallen blocks
+    // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
 }
 
 /**
@@ -157,7 +168,7 @@ void matrix_check_collision(void) {
  * @retval True if line clear, false otherwise
  */
 void matrix_check_line_clear(void) {
-	// TODO: Check for line clear (full rows)
+    // TODO: Check for line clear (full rows)
 }
 
 /**
@@ -166,9 +177,9 @@ void matrix_check_line_clear(void) {
  * @retval Number of rows cleared
  */
 void matrix_line_clear(void) {
-	// TODO: Clear full rows
+    // TODO: Clear full rows
 
-	// TODO: Reposition fallen blocks
+    // TODO: Reposition fallen blocks
 }
 
 void matrix_debug_print(matrix_t *matrix) {
