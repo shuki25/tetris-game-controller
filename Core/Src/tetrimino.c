@@ -105,22 +105,50 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
  * @param  tetrimino object, matrix object, direction
  * @retval status
  */
+
+extern matrix_t matrix;  // Declare the game matrix
+
 tetrimino_status_t tetrimino_move(tetrimino_t *tetrimino, tetrimino_move_direction_t dir) {
     // TODO: Move tetrimino object in specified direction
-//    switch (dir) {
-//    case MOVE_RIGHT:
-//        tetrimino->x += 1;
-//        break;
-//    case MOVE_LEFT:
-//        tetrimino->x -= 1;
-//        break;
-//    case MOVE_DOWN:
-//        tetrimino->y += 1;
-//        break;
-//    default:
-//        return TETRIMINO_ERROR;
-//        break;
-//    }
+    int new_x = tetrimino->x;
+    int new_y = tetrimino->y;
+    matrix_status_t matrix_status;
+
+    // Determine new position based on movement direction
+    switch (dir) {
+        case MOVE_RIGHT:
+            new_x++;
+            break;
+        case MOVE_LEFT:
+            new_x--;
+            break;
+        case MOVE_DOWN:
+            new_y--;
+            break;
+        default:
+            return TETRIMINO_ERROR;
+    }
+
+    // Check for collisions
+    if (new_x < 0 || new_x >= PLAYING_FIELD_WIDTH || new_y < 0) {
+        return TETRIMINO_ERROR;  // Out of bounds
+    }
+
+    // Test if the new position is valid in the matrix
+    tetrimino_t temp_tetrimino = *tetrimino;
+    temp_tetrimino.x = new_x;
+    temp_tetrimino.y = new_y;
+    matrix_status = matrix_add_tetrimino(&matrix, &temp_tetrimino);
+
+    if (matrix_status == MATRIX_COLLISION_DETECTED || matrix_status == MATRIX_OUT_OF_BOUNDS) {
+        return TETRIMINO_ERROR;  // Collision detected, movement not allowed
+    }
+
+    // Apply the movement
+    tetrimino->x = new_x;
+    tetrimino->y = new_y;
+
+    return TETRIMINO_OK;
 
     // TODO: check for collision
 

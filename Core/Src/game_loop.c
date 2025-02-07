@@ -283,65 +283,69 @@ void game_loop(void) {
                     tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
                 } else if (controller_current_buttons & SNES_BUTTON_UP) {
-                    tetrimino.y++;
-                    if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
-                        tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_UP);
+//                    tetrimino.y++;
+//                    if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+//                        tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y--;
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y--;
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//                        tetrimino.y--;
+//                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//                        tetrimino.y--;
+//                    }
+//                    matrix_update_flag = 1;
+                else if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_DOWN);
+//                    if (tetrimino.y > 0) {
+//                        tetrimino.y--;
                     }
-                    matrix_update_flag = 1;
-                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    if (tetrimino.y > 0) {
-                        tetrimino.y--;
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//                        tetrimino.y++;
+//                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//                        tetrimino.y++;
+//                    }
+//                    matrix_update_flag = 1;
+                else if (controller_current_buttons & SNES_BUTTON_LEFT) {
+                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_LEFT);
+//                    tetrimino.x--;
+//                    if (tetrimino.x > PLAYING_FIELD_WIDTH) {
+//                        tetrimino.x = 0;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y++;
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y++;
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//                        tetrimino.x++;
+//                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//                        tetrimino.x++;
+//                    }
+//                    matrix_update_flag = 1;
+                 else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
+                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_RIGHT);
+//                    tetrimino.x++;
+//                    if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
+//                        tetrimino.x = PLAYING_FIELD_WIDTH - 1;
                     }
-                    matrix_update_flag = 1;
-                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                    tetrimino.x--;
-                    if (tetrimino.x > PLAYING_FIELD_WIDTH) {
-                        tetrimino.x = 0;
-                    }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.x++;
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.x++;
-                    }
-                    matrix_update_flag = 1;
-                } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                    tetrimino.x++;
-                    if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
-                        tetrimino.x = PLAYING_FIELD_WIDTH - 1;
-                    }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.x--;
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.x--;
-                    }
-                    matrix_update_flag = 1;
-                } else {
-                    tetrimino_status = TETRIMINO_OK;
-                }
-                if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
-                    // Revert tetrimino position and refresh matrix
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                } else if (tetrimino_status == TETRIMINO_REFRESH) {
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        // TODO: Reverse tetrimino position
-                    }
-                    matrix_update_flag = 1;
-                }
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//                        tetrimino.x--;
+//                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//                        tetrimino.x--;
+//                    }
+//                    matrix_update_flag = 1;
+//                } else {
+//                    tetrimino_status = TETRIMINO_OK;
+//                }
+//                if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
+//                    // Revert tetrimino position and refresh matrix
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                } else if (tetrimino_status == TETRIMINO_REFRESH) {
+//                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//                        // TODO: Reverse tetrimino position
+//                    }
+//                    matrix_update_flag = 1;
+//                }
 //                if (controller_current_buttons & SNES_BUTTON_RIGHT) {
 //                    tetrimino_status = tetrimino_move(&tetrimino, MOVE_RIGHT);
 //                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {

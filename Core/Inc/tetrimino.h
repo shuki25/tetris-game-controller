@@ -53,7 +53,7 @@ typedef enum {
 
 // For the tetrimino direction movement
 typedef enum {
-    MOVE_RIGHT, MOVE_LEFT, MOVE_DOWN
+    MOVE_RIGHT, MOVE_LEFT, MOVE_DOWN, MOVE_UP
 } tetrimino_move_direction_t;
 
 typedef struct {
