@@ -152,6 +152,14 @@ void game_loop(void) {
         printf("Failed to retrieve EEPROM signature\n");
 #endif
     }
+
+    // Init arr pointers to high scores
+    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
+        memset(&high_scores[i], 0, sizeof(game_high_score_t));
+        high_score_ptrs[i] = &high_scores[i];
+    }
+
+    signature.version = 2;
     eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
     if (status == EEPROM_SIGNATURE_MISMATCH) {
 #if DEBUG_OUTPUT
@@ -159,23 +167,20 @@ void game_loop(void) {
 #endif
         eeprom_generate_signature(&signature, EEPROM_NUM_USED_PAGES);
         eeprom_write_signature(&eeprom, &signature);
-        // TODO: Initialize EEPROM with default values for settings and high scores
+        // Initialize EEPROM with default values for settings and high scores
+        eeprom_get_default_high_scores(high_score_ptrs);
+        eeprom_get_default_settings(&settings);
     } else {
 #if DEBUG_OUTPUT
         printf("EEPROM signature matched\n");
 #endif
-    }
+        // Load settings from EEPROM
+        memset(&settings, 0, sizeof(saved_settings_t));
+        eeprom_get_settings(&eeprom, &settings);
 
-    // Load settings from EEPROM
-    memset(&settings, 0, sizeof(saved_settings_t));
-    eeprom_get_settings(&eeprom, &settings);
-
-    // Load high scores from EEPROM
-    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
-        memset(&high_scores[i], 0, sizeof(game_high_score_t));
-        high_score_ptrs[i] = &high_scores[i];
+        // Load high scores from EEPROM
+        eeprom_get_high_scores(&eeprom, high_score_ptrs);
     }
-    eeprom_get_high_scores(&eeprom, high_score_ptrs);
 
     // TODO: Initialize game variables
 
@@ -538,6 +543,11 @@ void game_loop(void) {
                 /* -------------------------- GAME OVER ------------------------ */
             case GAME_STATE_GAME_ENDED:
                 // TODO: Display game over screen
+
+                // Persist settings and high scores by writing them to EEPROM
+                eeprom_write_settings(&eeprom, &settings);
+                eeprom_write_high_scores(&eeprom, high_score_ptrs);
+
                 break;
 
                 /* ------------------------ HIGH SCORES ------------------------ */
@@ -553,6 +563,7 @@ void game_loop(void) {
                 /* ------------------------ TEST FEATURE ------------------------ */
             case GAME_STATE_TEST_FEATURE:
                 /* Developer test code START */
+
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {

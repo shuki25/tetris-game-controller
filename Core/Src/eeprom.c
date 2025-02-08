@@ -219,6 +219,12 @@ eeprom_status_t eeprom_write_settings(eeprom_t *eeprom, saved_settings_t *settin
     return EEPROM_OK;
 }
 
+void get_default_settings(saved_settings_t *settings) {
+    // Initialize settings
+    settings->grid_size = 16;
+    settings->brightness = 50;
+}
+
 eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]) {
     eeprom_status_t status;
 
@@ -264,5 +270,14 @@ eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *hi
     }
 
     return EEPROM_OK;
+}
+
+void get_default_high_scores(game_high_score_t *high_scores[]) {
+    // Initialize high scores
+    *high_scores[0] = (game_high_score_t) { {'e', 'O', 'e', '\0'}, 3, 34, 65 };
+    *high_scores[1] = (game_high_score_t) { {'D', 'i', 'f', '\0'}, 24, 1, 0 };
+    *high_scores[2] = (game_high_score_t) { {'D', 'e', 'e', '\0'}, 23, 56, 12 };
+    *high_scores[3] = (game_high_score_t) { {'D', 'e', 'e', '\0'}, 23, 56, 12 };
+    *high_scores[4] = (game_high_score_t) { {'D', 'e', 'e', '\0'}, 23, 56, 12 };
 }
 

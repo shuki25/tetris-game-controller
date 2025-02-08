@@ -82,6 +82,9 @@ eeprom_status_t eeprom_write_settings(eeprom_t *eeprom, saved_settings_t *settin
 eeprom_status_t eeprom_get_settings(eeprom_t *eeprom, saved_settings_t *settings);
 eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]);
 eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]);
+void eeprom_get_default_high_scores(game_high_score_t *high_scores[]);
+void eeprom_get_default_settings(saved_settings_t *settings);
+
 
 #ifdef __cplusplus
 }
