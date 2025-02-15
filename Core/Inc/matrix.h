@@ -30,7 +30,8 @@ typedef enum {
     MATRIX_OUT_OF_BOUNDS,
     MATRIX_REFRESH,
     MATRIX_NO_CHANGE,
-    MATRIX_COLLISION_DETECTED
+    MATRIX_COLLISION_DETECTED,
+    MATRIX_REACHED_BOTTOM
 } matrix_status_t;
 
 #define MATRIX_HEIGHT (32)
@@ -53,9 +54,9 @@ typedef struct {
     uint8_t height;
     uint8_t width;
     uint32_t playfield[MATRIX_DATA_SIZE];
-    uint32_t stack[PLAYING_FIELD_HEIGHT];
-    uint32_t palette1[PLAYING_FIELD_HEIGHT];
-    uint32_t palette2[PLAYING_FIELD_HEIGHT];
+    uint32_t stack[MATRIX_DATA_SIZE];
+    uint32_t palette1[MATRIX_DATA_SIZE];
+    uint32_t palette2[MATRIX_DATA_SIZE];
 } matrix_t;
 
 // Function prototypes for matrix functions

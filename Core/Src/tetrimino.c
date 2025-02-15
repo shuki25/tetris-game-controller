@@ -55,45 +55,25 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
     tetrimino_t temp;
 
     tetrimino_copy(&temp, tetrimino);
-    // TODO: Rotate tetrimino object
+
     switch (direction) {
-    case ROTATE_CW:
-        temp.rotation = (tetrimino->rotation + 1);
-        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-            temp.rotation = 0;
-        }
-        break;
-    case ROTATE_CCW:
-        temp.rotation = tetrimino->rotation - 1;
-        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-            temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
-        }
-        break;
-    default:
-        return TETRIMINO_ERROR;
-        break;
+        case ROTATE_CW:
+            temp.rotation = (tetrimino->rotation + 1);
+            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+                temp.rotation = 0;
+            }
+            break;
+        case ROTATE_CCW:
+            temp.rotation = tetrimino->rotation - 1;
+            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+                temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
+            }
+            break;
+        default:
+            return TETRIMINO_ERROR;
+            break;
     }
 
-    // TODO: Rotate tetrimino object
-    switch (direction) {
-    case ROTATE_CW:
-        temp.rotation = (tetrimino->rotation - 1);
-        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-            temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
-        }
-        break;
-    case ROTATE_CCW:
-        temp.rotation = tetrimino->rotation + 1;
-        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-            temp.rotation = 0;
-        }
-        break;
-    default:
-        return TETRIMINO_ERROR;
-        break;
-    }
-
-    // TODO: update bitboard matrix object
     temp.shape_offset = tetrimino_shape_offset_lut[temp.piece][temp.rotation];
     tetrimino_copy(tetrimino, &temp);
 
@@ -153,6 +133,23 @@ tetrimino_status_t tetrimino_move(tetrimino_t *tetrimino, tetrimino_move_directi
     // TODO: check for collision
 
     // TODO: update bitboard matrix object
+}
+
+/**
+ * @brief  Spawn next tetrimino
+ * @param  tetrimino object
+ * @retval status
+ */
+tetrimino_status_t tetrimino_next(tetrimino_t *tetrimino) {
+    tetrimino->x = 5;
+    tetrimino->y = PLAYING_FIELD_HEIGHT;
+    tetrimino->piece = tetrimino->next_piece;
+    tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
+    tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
+//    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
+    tetrimino->next_piece = rng_next() % TETRIMINO_COUNT;
+
+    return TETRIMINO_OK;
 }
 
 tetrimino_status_t tetrimino_copy(tetrimino_t *dst, tetrimino_t *src) {
