@@ -78,11 +78,10 @@ extern TIM_HandleTypeDef htim3;
 
 // UI variables
 ui_menu_t menu;
-
 //main_menu->menu_options = { "Play game", "High Score", "Settings", "Credits" };
-uint8_t select_arrow_locations[3] = { 14, 30, 46 };
-uint8_t cursor_position = 0;
-uint8_t array_position = 0;
+//uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+//uint8_t cursor_position = 0;
+//uint8_t array_position = 0;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -326,65 +325,50 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-//        	ui_main_menu_selection();
-//        	char *main_menu_list[4] = {"Play game", "High Score", "Settings", "Credits"};
-//        	int sizeXarray = 4;
-//        	int *select_arrow_x_locations = {};
-//        	int *select_arrow_y_locations = {};
-//        	int position = 0;
-//        	while(1)
-//        	{
-//        		if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
-//					if (controller_current_buttons & SNES_BUTTON_DOWN) {
-//						if(position < 1)
-//						{
-//							position = 1;
-//						}
-//						else
-//						{
-//							position++;
-//						}
+            ui_menu_id_set(menu, 0);
+        	ui_main_menu_selection(menu);
+
+//            while(1)
+//            {
+//              if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+//                  if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                      if(position < 1)
+//                      {
+//                          position = 1;
+//                      }
+//                      else
+//                      {
+//                          position++;
+//                      }
 //
-//						if(sizeXarray > 4)
-//						{
-//							sizeXarray++;
-//						}
-//						else
-//						{
-//							sizeXarray = 4;
-//						}
-//					}
-//					if (controller_current_buttons & SNES_BUTTON_DOWN) {
-//						if(position > 0)
-//						{
-//							position = 0;
-//						}
-//						else
-//						{
-//							position--;
-//						}
+//                      if(sizeXarray > 4)
+//                      {
+//                          sizeXarray++;
+//                      }
+//                      else
+//                      {
+//                          sizeXarray = 4;
+//                      }
+//                  }
+//                  if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                      if(position > 0)
+//                      {
+//                          position = 0;
+//                      }
+//                      else
+//                      {
+//                          position--;
+//                      }
 //
-//						if(sizeXarray > 0)
-//						{
-//							sizeXarray--;
-//						}
-//						else{
-//							sizeXarray = 0;
-//						}
-//					}
-//        		}
-//        		ssd1306_SetCursor(32, 14);
-//        		ssd1306_WriteString(main_menu_list[position], Font_7x10, White);
-//
-//        		ssd1306_SetCursor(32, 30);
-//        		ssd1306_WriteString(main_menu_list[position+1], Font_7x10, White);
-//
-//        		ssd1306_SetCursor(32, 48);
-//        		ssd1306_WriteString(main_menu_list[position+2], Font_7x10, White);
-//
-//
-//        		ssd1306_UpdateScreen();
-//        	}
+//                      if(sizeXarray > 0)
+//                      {
+//                          sizeXarray--;
+//                      }
+//                      else{
+//                          sizeXarray = 0;
+//                      }
+//                  }
+//              }
             break;
 
                 /* ------------------------ PLAYING MENU ------------------------ */

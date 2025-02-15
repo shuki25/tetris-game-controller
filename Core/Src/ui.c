@@ -27,6 +27,14 @@
 #include "cmsis_os.h" // for "sleep" function
 #include "splash_bitmap.h"
 
+//uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+
+char *menu_list[4][4] = {
+    {"Play game", "High Score", "Settings", "Credits"}, // Start Menu
+    {"Classic", "Placeholder", "placeholder"}, // Game mode menu
+    {"Continue", "Restart", "Quit"}, // Pause menu
+    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID"} // Settings menu
+};
 
 /**
  * @brief  Initialize OLED display
@@ -39,9 +47,13 @@ void ui_init() {
 
 void ui_menu_init(ui_menu_t *menu) {
     menu->menu_id = 0;
+    menu->current_selection_id = 0;
     menu->is_cursor_on = 0;
     menu->cursor_timeout = 0;
-    menu->current_selection_id = 0;
+}
+void ui_menu_id_set(ui_menu_t *menu, int menuID)
+{
+    menu->menu_options = menu_list[menuID];
 }
 
 void ui_splash_screen() {
@@ -160,13 +172,18 @@ void ui_splash_screen() {
  * @param  None
  * @retval Menu selection (use enum constants for each menu item)
  */
-void ui_main_menu_selection(ui_menu_t main, int selection_id) {
+void ui_main_menu_selection(ui_menu_t main) {
     // TODO: Display main menu selection
-    ssd1306_Fill(Black);
-    frame_maker();
+    int position = main.current_selection_id;
+    ssd1306_SetCursor(32, 14);
+    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
 
-    ssd1306_SetCursor(31, 0);
-    ssd1306_WriteString(" Main Menu ", Font_6x8, White);
+    ssd1306_SetCursor(32, 30);
+    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
+
+    ssd1306_SetCursor(32, 48);
+    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
+
 
     ssd1306_UpdateScreen();
 }

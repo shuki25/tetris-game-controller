@@ -36,6 +36,7 @@ typedef struct {
 // TODO: Function prototypes for UI functions (e.g. ui_init, ui_main_menu_selection, ui_game_progress, ui_game_over_screen)
 void ui_init();
 void ui_menu_init(ui_menu_t* menu);
+void ui_menu_id_set(ui_menu_t *menu, int menuID);
 void ui_splash_screen();
 void ui_main_menu_selection();
 void ui_test();
