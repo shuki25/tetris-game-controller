@@ -65,4 +65,6 @@ matrix_status_t matrix_reset_playfield(matrix_t *matrix);
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
 void matrix_debug_print(matrix_t *matrix);
 
+uint8_t matrix_check_line_clear(matrix_t *matrix); // TEST ONLY
+
 #endif /* INC_MATRIX_H_ */

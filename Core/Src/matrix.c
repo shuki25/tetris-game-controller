@@ -167,8 +167,26 @@ void matrix_check_collision(void) {
  * @param  bitboards
  * @retval True if line clear, false otherwise
  */
-void matrix_check_line_clear(void) {
+uint8_t matrix_check_line_clear(matrix_t *matrix) {
     // TODO: Check for line clear (full rows)
+    uint8_t stack;
+    uint8_t mask = 0xFFFF;
+    uint8_t line_clear = 0;
+
+    for (int row = 0; row < PLAYING_FIELD_HEIGHT; row++) {
+        stack = matrix->stack[row / 2]; // Get stack value for the row
+        if (row % 2 == 0) { // Even row (LSB)
+            if ((stack & mask) == mask) {
+                line_clear |= (1 << row);  // Mark row as full
+                }
+        } else { // Odd row (MSB)
+            stack = stack >> 16; // Shift to get MSB
+            if ((stack & mask) == mask) {
+                line_clear |= (1 << row); // Mark row as full
+                }
+        }
+    }
+    return line_clear; // Return which rows are full
 }
 
 /**
