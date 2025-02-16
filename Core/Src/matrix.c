@@ -163,23 +163,49 @@ void matrix_check_collision(void) {
 }
 
 /**
- * @brief  Check for line clear (full rows)
+ * @brief  Check for line clear (full row)
  * @param  bitboards
- * @retval True if line clear, false otherwise
+ * @retval Returns which rows are marked for line clear by bit position
  */
-void matrix_check_line_clear(void) {
+uint32_t matrix_check_line_clear(matrix_t *matrix) {
     // TODO: Check for line clear (full rows)
+    uint32_t stack;
+    uint32_t line_clear = 0; // Covers 20 rows in the playfield
+
+    for (int row = 0; row < PLAYING_FIELD_HEIGHT; row++) {
+        stack = matrix->stack[row / 2]; // Get stack value for the row
+        if (row % 2 == 0) { // Even row (LSB)
+            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK) == PLAYING_FIELD_FILLED_ROW_MASK) {
+                line_clear |= (1 << row);  // Mark row as full
+            }
+        } else { // Odd row (MSB)
+            stack = stack >> 16; // Shift to get MSB
+            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK) == PLAYING_FIELD_FILLED_ROW_MASK) {
+                line_clear |= (1 << row); // Mark row as full
+            }
+        }
+    }
+    return line_clear; // Return which rows are full
 }
 
 /**
  * @brief  Clear full rows
- * @param  bitboards
- * @retval Number of rows cleared
+ * @param  matrix_t, line_clear bitmap
+ * @retval Returns status of the operation, true if line clear is complete
  */
-void matrix_line_clear(void) {
+uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear) {
     // TODO: Clear full rows
+    return 1;
+}
 
+/**
+ * @brief  Reposition fallen blocks after line clear
+ * @param  matrix_t, line_clear bitmap
+ * @retval None
+ */
+void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) {
     // TODO: Reposition fallen blocks
+
 }
 
 void matrix_debug_print(matrix_t *matrix) {

@@ -48,6 +48,7 @@ typedef enum {
 #define PLAYING_FIELD_MASK_BOUNDARY (0x3FFC3FFC)  // playfield mask for rendering with boundary
 #define PLAYING_FIELD_ODD_MASK (0x1FF80000)  // playfield mask for odd rows
 #define PLAYING_FIELD_EVEN_MASK (0x00001FF8)  // playfield mask for even rows
+#define PLAYING_FIELD_FILLED_ROW_MASK (0x1FF8)  // playfield filled row mask for checking line clear
 #define MATRIX_DATA_SIZE (PLAYING_FIELD_HEIGHT >> 1)  // divide by 2 as each uint32_t holds 2 rows
 
 typedef struct {
@@ -64,5 +65,8 @@ matrix_status_t matrix_init();
 matrix_status_t matrix_reset_playfield(matrix_t *matrix);
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
 void matrix_debug_print(matrix_t *matrix);
+uint32_t matrix_check_line_clear(matrix_t *matrix);
+uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear);
+void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear);
 
 #endif /* INC_MATRIX_H_ */

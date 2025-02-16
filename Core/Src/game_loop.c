@@ -135,6 +135,7 @@ void game_loop(void) {
     uint32_t fps_end_count = 0;
     uint32_t fps_time_last_update = 0;
     uint32_t fps_time_diff = 0;
+    uint32_t lines_to_be_cleared = 0;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -254,9 +255,12 @@ void game_loop(void) {
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
-    matrix.stack[0] = 0x1F581878;
-    matrix.palette1[0] = 0x00000038;
-    matrix.palette2[0] = 0x00180000;
+    matrix.stack[0] = 0x15581FF0;
+    matrix.stack[1] = 0x1FF81FD8;
+    matrix.palette1[0] = 0x00101E10;
+    matrix.palette2[0] = 0x004001E0;
+    matrix.palette1[1] = 0x01800180;
+    matrix.palette2[1] = 0x1C000800;
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -509,6 +513,41 @@ void game_loop(void) {
 
             // TODO: Get the next tetrimino from the RNG
             if (game.play_state == PLAY_STATE_LOCKED) {
+                // TODO: Merge playfield with stack & palette
+
+                // Check for line clear
+                lines_to_be_cleared = matrix_check_line_clear(&matrix);
+#if DEBUG_OUTPUT
+                if (lines_to_be_cleared) {
+                    printf("Lines to be cleared: ");
+                    for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
+                        if (lines_to_be_cleared & (1 << i)) {
+                            printf("%d ", i);
+                        }
+                    }
+                    printf("\n");
+                }
+#endif
+                if (lines_to_be_cleared) {
+                    game.play_state = PLAY_STATE_LINE_CLEAR;
+                    game.line_clear_time_start = TIM2->CNT;
+                } else {
+                    game.play_state = PLAY_STATE_NEXT_TETRIMINO;
+                }
+            }
+
+            // TODO: Process line clear if needed
+            if (game.play_state == PLAY_STATE_LINE_CLEAR) {
+                if (util_time_expired_delay(game.line_clear_time_start, game.line_clear_time_delay)) {
+                    if (matrix_line_clear(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                        game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
+                        game.drop_time_start = TIM2->CNT;
+                        lines_to_be_cleared = 0;
+                    }
+                }
+            }
+
+            if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
