@@ -188,7 +188,7 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
     }
 
     // check for collision
-    matrix_status = matrix_check_collision(&matrix, &tetrimino);
+    matrix_status = matrix_check_collision(&temp_matrix, &temp_tetrimino);
     if (matrix_status == MATRIX_STACK_COLLISION) {
         return MATRIX_NO_CHANGE;
     }
