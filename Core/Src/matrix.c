@@ -169,12 +169,11 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
         working_stack = matrix->stack[row_index];
         working_playfield = matrix->playfield[row_index];
         if (working_stack & working_playfield) {
-            return MATRIX_BLOCK_COLLISION;
+            return MATRIX_STACK_COLLISION;
         }
 
-        return MATRIX_OK;
-
     }
+    return MATRIX_OK;
 }
 
 /**

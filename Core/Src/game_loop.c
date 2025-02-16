@@ -491,7 +491,7 @@ void game_loop(void) {
             // TODO: Check for collision
 
             matrix_status = matrix_check_collision(&matrix, &tetrimino);
-            if (matrix_status == MATRIX_BLOCK_COLLISION) {
+            if (matrix_status == MATRIX_STACK_COLLISION) {
                 game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                 game.lock_time_start = TIM2->CNT;
 //                    tetrimino_status = tetrimino_next(&tetrimino);
