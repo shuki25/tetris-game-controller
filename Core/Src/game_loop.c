@@ -297,7 +297,7 @@ void game_loop(void) {
 
         /* ---------------------- SPLASH SCREEN ---------------------- */
         case GAME_STATE_SPLASH:
-//            ui_splash_screen();
+            ui_splash_screen();
             game.state = GAME_STATE_SPLASH_WAIT;
 
             break;
@@ -413,7 +413,6 @@ void game_loop(void) {
                 } else if (tetrimino_status == TETRIMINO_REFRESH) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_WALL_COLLISION) {
-                        // TODO: Reverse tetrimino position
                         tetrimino_copy(&tetrimino, &temp_tetrimino);
                         matrix_copy(&matrix, &temp_matrix);
                     }
@@ -465,11 +464,10 @@ void game_loop(void) {
                             matrix_copy(&matrix, &temp_matrix);
                             game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                             game.lock_time_start = TIM2->CNT;
-                            //                    tetrimino_status = tetrimino_next(&tetrimino);
-                            //                    matrix_status = matrix_add_tetrimino(&matrix,&tetrimino);
 
                         }
-                        if (tetrimino.y == 0) { // Long bar reached to bottom of matrix, transition to lock state
+                        // Edge case handling: Long bar reached to bottom of matrix, transition to lock state
+                        if (tetrimino.y == 0) {
                             game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                             game.lock_time_start = TIM2->CNT;
                         }
@@ -485,21 +483,6 @@ void game_loop(void) {
                 }
             }
 
-            // TODO: Process input
-
-            // TODO: Update tetromino rotation
-
-            // TODO: Update tetromino position
-
-            // TODO: Check for collision
-
-            // TODO: Check for line clear
-
-            // TODO: Check for topout condition
-
-            // TODO: Is tetrimino locked in place?
-
-            // TODO: Get the next tetrimino from the RNG
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
 
@@ -535,21 +518,8 @@ void game_loop(void) {
                 }
             }
 
-            // TODO: Process input
-
-            // TODO: Update tetromino rotation
-
-            // TODO: Update tetromino position
-
-            // TODO: Check for collision
-
-            // TODO: Check for line clear
-
             // TODO: Check for topout condition
 
-            // TODO: Is tetrimino locked in place?
-
-            // TODO: Get the next tetrimino from the RNG
             if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
@@ -564,7 +534,6 @@ void game_loop(void) {
                 }
             }
 
-            // TODO: Render matrix and update LED grid
             rendering_status = renderer_render(&renderer, &matrix);
             if (rendering_status == RENDERER_UPDATED) {
                 render_count++;
