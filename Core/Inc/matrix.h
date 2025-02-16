@@ -31,6 +31,8 @@ typedef enum {
     MATRIX_REFRESH,
     MATRIX_NO_CHANGE,
     MATRIX_COLLISION_DETECTED,
+    MATRIX_WALL_COLLISION,
+    MATRIX_STACK_COLLISION,
     MATRIX_REACHED_BOTTOM
 } matrix_status_t;
 
@@ -64,6 +66,7 @@ typedef struct {
 matrix_status_t matrix_init();
 matrix_status_t matrix_reset_playfield(matrix_t *matrix);
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
+matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino);
 void matrix_debug_print(matrix_t *matrix);
 uint32_t matrix_check_line_clear(matrix_t *matrix);
 uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear);

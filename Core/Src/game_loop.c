@@ -547,6 +547,30 @@ void game_loop(void) {
                 }
             }
 
+            // TODO: Process input
+
+            // TODO: Update tetromino rotation
+
+            // TODO: Update tetromino position
+
+            // TODO: Check for collision
+
+            matrix_status = matrix_check_collision(&matrix, &tetrimino);
+            if (matrix_status == MATRIX_STACK_COLLISION) {
+                game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
+                game.lock_time_start = TIM2->CNT;
+//                    tetrimino_status = tetrimino_next(&tetrimino);
+//                    matrix_status = matrix_add_tetrimino(&matrix,&tetrimino);
+
+            }
+
+            // TODO: Check for line clear
+
+            // TODO: Check for topout condition
+
+            // TODO: Is tetrimino locked in place?
+
+            // TODO: Get the next tetrimino from the RNG
             if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {

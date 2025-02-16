@@ -23,6 +23,7 @@
 #include "itm_debug.h"
 #include <string.h>
 #include "tetrimino_shape.h"
+#include <stdint.h>
 
 /**
  * @brief  Initialize bitboards (tetrimino, fallen blocks, palette)
@@ -112,12 +113,12 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
         // Add the row bitmap to the playfield
         if (row_index % 2) { // If odd, store in MSB
             if (working_playfield & (row_bitmap << 16)) {
-                return MATRIX_COLLISION_DETECTED;
+                return MATRIX_WALL_COLLISION;
             }
             working_playfield |= row_bitmap << 16;
         } else { // If even, store in LSB
             if (working_playfield & row_bitmap) {
-                return MATRIX_COLLISION_DETECTED;
+                return MATRIX_WALL_COLLISION;
             }
             working_playfield |= row_bitmap;
         }
@@ -158,8 +159,21 @@ void matrix_clear(void) {
  * @param  bitboards
  * @retval True if collision, false otherwise
  */
-void matrix_check_collision(void) {
+matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino) {
     // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
+    uint8_t row_index;
+    uint32_t working_playfield = 0;
+    uint32_t working_stack = 0;
+
+    for (row_index = 0; row_index < PLAYING_FIELD_HEIGHT; row_index++) {
+        working_stack = matrix->stack[row_index];
+        working_playfield = matrix->playfield[row_index];
+        if (working_stack & working_playfield) {
+            return MATRIX_STACK_COLLISION;
+        }
+
+    }
+    return MATRIX_OK;
 }
 
 /**
