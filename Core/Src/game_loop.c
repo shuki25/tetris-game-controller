@@ -518,13 +518,15 @@ void game_loop(void) {
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
 #if DEBUG_OUTPUT
-                printf("Lines to be cleared: ");
-                for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
-                    if (lines_to_be_cleared & (1 << i)) {
-                        printf("%d ", i);
+                if (lines_to_be_cleared) {
+                    printf("Lines to be cleared: ");
+                    for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
+                        if (lines_to_be_cleared & (1 << i)) {
+                            printf("%d ", i);
+                        }
                     }
+                    printf("\n");
                 }
-                printf("\n");
 #endif
                 if (lines_to_be_cleared) {
                     game.play_state = PLAY_STATE_LINE_CLEAR;
