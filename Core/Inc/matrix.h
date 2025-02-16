@@ -66,6 +66,8 @@ typedef struct {
 matrix_status_t matrix_init();
 matrix_status_t matrix_reset_playfield(matrix_t *matrix);
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
+matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
+        tetrimino_move_direction_t direction);
 matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino);
 void matrix_debug_print(matrix_t *matrix);
 uint32_t matrix_check_line_clear(matrix_t *matrix);

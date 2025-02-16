@@ -51,6 +51,11 @@ typedef enum {
     ROTATE_CCW = 0, ROTATE_CW
 } rotation_direction_t;
 
+// For the tetrimino direction movement
+typedef enum {
+    MOVE_RIGHT, MOVE_LEFT, MOVE_DOWN, MOVE_UP
+} tetrimino_move_direction_t;
+
 typedef struct {
     tetrimino_piece_t piece;  // Current piece
     tetrimino_rotation_t rotation;  // Current rotation position

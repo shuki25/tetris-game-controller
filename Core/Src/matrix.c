@@ -137,6 +137,69 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
 }
 
 /**
+ * @brief  Move tetrimino
+ * @param  tetrimino object, matrix object, direction, palette object
+ * @retval status
+ */
+matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
+        tetrimino_move_direction_t direction) {
+    tetrimino_t temp_tetrimino;
+    matrix_t temp_matrix;
+    matrix_status_t matrix_status;
+
+    tetrimino_copy(&temp_tetrimino, tetrimino);
+    matrix_copy(&temp_matrix, matrix);
+
+    // Move tetrimino object in specified direction
+    switch (direction) {
+    case MOVE_RIGHT:
+        temp_tetrimino.x++;
+        if (temp_tetrimino.x >= PLAYING_FIELD_WIDTH) {
+            temp_tetrimino.x = PLAYING_FIELD_WIDTH - 1;
+        }
+        break;
+    case MOVE_LEFT:
+        temp_tetrimino.x--;
+        if (temp_tetrimino.x > PLAYING_FIELD_WIDTH) {
+            temp_tetrimino.x = 0;
+        }
+        break;
+    case MOVE_DOWN:
+        temp_tetrimino.y--;
+        if (temp_tetrimino.y > 0) {
+        }
+        break;
+    case MOVE_UP:
+        temp_tetrimino.y++;
+        if (temp_tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+            temp_tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+        }
+        break;
+    default:
+        return MATRIX_ERROR;
+        break;
+    }
+
+    matrix_status = matrix_add_tetrimino(&temp_matrix, &temp_tetrimino);
+    if (matrix_status == MATRIX_WALL_COLLISION) {
+        return MATRIX_NO_CHANGE;
+    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+        return MATRIX_NO_CHANGE;
+    }
+
+    // check for collision
+    matrix_status = matrix_check_collision(&matrix, &tetrimino);
+    if (matrix_status == MATRIX_STACK_COLLISION) {
+        return MATRIX_NO_CHANGE;
+    }
+    // update bitboard matrix object
+    matrix_copy(matrix, &temp_matrix);
+    tetrimino_copy(tetrimino, &temp_tetrimino);
+
+    return MATRIX_REFRESH;
+}
+
+/**
  * @brief  Flatten bitboards into final matrix
  * @param  bitboards
  * @retval None
