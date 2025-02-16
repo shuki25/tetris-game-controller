@@ -136,6 +136,7 @@ void game_loop(void) {
     uint32_t fps_time_last_update = 0;
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
+    matrix_t temp_matrix;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -466,10 +467,12 @@ void game_loop(void) {
 
             // TODO: Check timer for game speed
             if (game.play_state == PLAY_STATE_NORMAL) {
+                matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
                     if (tetrimino.y > 0) {
                         tetrimino.y--;
                     }
+
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_COLLISION_DETECTED) {
                         tetrimino.y++;
@@ -481,6 +484,17 @@ void game_loop(void) {
                         game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                         game.lock_time_start = TIM2->CNT;
                     } else {
+                        // Check for collision with the current stack
+                        matrix_status = matrix_check_collision(&matrix, &tetrimino);
+                        if (matrix_status == MATRIX_STACK_COLLISION) {
+                            // Restore previous matrix state
+                            matrix_copy(&matrix, &temp_matrix);
+                            game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
+                            game.lock_time_start = TIM2->CNT;
+                            //                    tetrimino_status = tetrimino_next(&tetrimino);
+                            //                    matrix_status = matrix_add_tetrimino(&matrix,&tetrimino);
+
+                        }
                         if (tetrimino.y == 0) { // Long bar reached to bottom of matrix, transition to lock state
                             game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                             game.lock_time_start = TIM2->CNT;
@@ -554,15 +568,6 @@ void game_loop(void) {
             // TODO: Update tetromino position
 
             // TODO: Check for collision
-
-            matrix_status = matrix_check_collision(&matrix, &tetrimino);
-            if (matrix_status == MATRIX_STACK_COLLISION) {
-                game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
-                game.lock_time_start = TIM2->CNT;
-//                    tetrimino_status = tetrimino_next(&tetrimino);
-//                    matrix_status = matrix_add_tetrimino(&matrix,&tetrimino);
-
-            }
 
             // TODO: Check for line clear
 

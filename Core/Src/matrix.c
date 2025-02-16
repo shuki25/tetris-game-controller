@@ -165,7 +165,7 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
     uint32_t working_playfield = 0;
     uint32_t working_stack = 0;
 
-    for (row_index = 0; row_index < PLAYING_FIELD_HEIGHT; row_index++) {
+    for (row_index = 0; row_index < PLAYING_FIELD_HEIGHT / 2; row_index++) {
         working_stack = matrix->stack[row_index];
         working_playfield = matrix->playfield[row_index];
         if (working_stack & working_playfield) {
@@ -220,6 +220,22 @@ uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear) {
 void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) {
     // TODO: Reposition fallen blocks
 
+}
+
+/**
+ * @brief  Copy matrix data
+ * @param  destination matrix, source matrix
+ * @retval None
+ */
+void matrix_copy(matrix_t *dest, matrix_t *src) {
+    dest->height = src->height;
+    dest->width = src->width;
+    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+        dest->playfield[i] = src->playfield[i];
+        dest->stack[i] = src->stack[i];
+        dest->palette1[i] = src->palette1[i];
+        dest->palette2[i] = src->palette2[i];
+    }
 }
 
 void matrix_debug_print(matrix_t *matrix) {
