@@ -137,6 +137,7 @@ void game_loop(void) {
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
     matrix_t temp_matrix;
+    tetrimino_t temp_tetrimino;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -256,8 +257,8 @@ void game_loop(void) {
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
-    matrix.stack[0] = 0x15581FF0;
-    matrix.stack[1] = 0x1FF81FD8;
+    matrix.stack[0] = 0x15501FF0;
+    matrix.stack[1] = 0x1FF01FD0;
     matrix.palette1[0] = 0x00101E10;
     matrix.palette2[0] = 0x004001E0;
     matrix.palette1[1] = 0x01800180;
@@ -296,7 +297,7 @@ void game_loop(void) {
 
         /* ---------------------- SPLASH SCREEN ---------------------- */
         case GAME_STATE_SPLASH:
-            ui_splash_screen();
+//            ui_splash_screen();
             game.state = GAME_STATE_SPLASH_WAIT;
 
             break;
@@ -358,6 +359,8 @@ void game_loop(void) {
             }
 
             if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
+                tetrimino_copy(&temp_tetrimino, &tetrimino);
+                matrix_copy(&temp_matrix, &matrix);
                 matrix_update_flag = 0;
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
@@ -384,10 +387,12 @@ void game_loop(void) {
                         tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
                     }
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y--;
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y--;
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     }
                     matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
@@ -395,10 +400,12 @@ void game_loop(void) {
                         tetrimino.y--;
                     }
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y++;
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y++;
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     }
                     matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
@@ -407,10 +414,12 @@ void game_loop(void) {
                         tetrimino.x = 0;
                     }
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.x++;
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.x++;
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     }
                     matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
@@ -419,10 +428,12 @@ void game_loop(void) {
                         tetrimino.x = PLAYING_FIELD_WIDTH - 1;
                     }
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.x--;
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.x--;
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     }
                     matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_Y) {
@@ -440,8 +451,10 @@ void game_loop(void) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                 } else if (tetrimino_status == TETRIMINO_REFRESH) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
                         // TODO: Reverse tetrimino position
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
                     }
                     matrix_update_flag = 1;
                 }
@@ -451,7 +464,7 @@ void game_loop(void) {
                 if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
                     tetrimino_debug_print(&tetrimino);
                 }
-                if (matrix_status == MATRIX_COLLISION_DETECTED) {
+                if (matrix_status == MATRIX_WALL_COLLISION) {
                     printf("Matrix collision detected\n");
                 } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
                     printf("Matrix out of bounds\n");
@@ -474,12 +487,12 @@ void game_loop(void) {
                     }
 
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y++;
+                    if (matrix_status == MATRIX_WALL_COLLISION) {
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y++;
+                        matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_REACHED_BOTTOM) {
-                        tetrimino.y++;
+                        matrix_copy(&matrix, &temp_matrix);
                         matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                         game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                         game.lock_time_start = TIM2->CNT;
