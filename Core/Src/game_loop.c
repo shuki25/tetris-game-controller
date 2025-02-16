@@ -382,60 +382,21 @@ void game_loop(void) {
                     tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
                 } else if (controller_current_buttons & SNES_BUTTON_UP) {
-                    tetrimino.y++;
-                    if (tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
-                        tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
+                        matrix_update_flag = 1;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_WALL_COLLISION) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    }
-                    matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    if (tetrimino.y > 0) {
-                        tetrimino.y--;
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_DOWN) == MATRIX_REFRESH) {
+                        matrix_update_flag = 1;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_WALL_COLLISION) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    }
-                    matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                    tetrimino.x--;
-                    if (tetrimino.x > PLAYING_FIELD_WIDTH) {
-                        tetrimino.x = 0;
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT) == MATRIX_REFRESH) {
+                        matrix_update_flag = 1;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_WALL_COLLISION) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    }
-                    matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                    tetrimino.x++;
-                    if (tetrimino.x >= PLAYING_FIELD_WIDTH) {
-                        tetrimino.x = PLAYING_FIELD_WIDTH - 1;
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT) == MATRIX_REFRESH) {
+                        matrix_update_flag = 1;
                     }
-                    matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_WALL_COLLISION) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino_copy(&tetrimino, &temp_tetrimino);
-                        matrix_copy(&matrix, &temp_matrix);
-                    }
-                    matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_Y) {
                     game.drop_time_delay += 25000;
                 } else if (controller_current_buttons & SNES_BUTTON_X) {

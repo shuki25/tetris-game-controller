@@ -57,40 +57,27 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
     tetrimino_copy(&temp, tetrimino);
 
     switch (direction) {
-        case ROTATE_CW:
-            temp.rotation = (tetrimino->rotation + 1);
-            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-                temp.rotation = 0;
-            }
-            break;
-        case ROTATE_CCW:
-            temp.rotation = tetrimino->rotation - 1;
-            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-                temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
-            }
-            break;
-        default:
-            return TETRIMINO_ERROR;
-            break;
+    case ROTATE_CW:
+        temp.rotation = (tetrimino->rotation + 1);
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = 0;
+        }
+        break;
+    case ROTATE_CCW:
+        temp.rotation = tetrimino->rotation - 1;
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
+        }
+        break;
+    default:
+        return TETRIMINO_ERROR;
+        break;
     }
 
     temp.shape_offset = tetrimino_shape_offset_lut[temp.piece][temp.rotation];
     tetrimino_copy(tetrimino, &temp);
 
     return TETRIMINO_REFRESH;
-}
-
-/**
- * @brief  Move tetrimino
- * @param  tetrimino object, matrix object, direction, palette object
- * @retval status
- */
-void tetrimino_move(void) {
-    // TODO: Move tetrimino object in specified direction
-
-    // TODO: check for collision
-
-    // TODO: update bitboard matrix object
 }
 
 /**
