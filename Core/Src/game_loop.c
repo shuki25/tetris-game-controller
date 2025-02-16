@@ -60,7 +60,7 @@ matrix_t matrix;
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t render_delay = (1000000 / 35); // 35 FPS
+uint32_t render_delay = (1000000 / 33); // 30 FPS
 renderer_t renderer;
 uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -131,6 +131,11 @@ void game_loop(void) {
     RingBuffer controller_buffer;
     uint32_t press_start_timer_start = 0;
     uint32_t press_start_state = 0;
+    uint32_t fps_start_count = 0;
+    uint32_t fps_end_count = 0;
+    uint32_t fps_time_last_update = 0;
+    uint32_t fps_time_diff = 0;
+    uint32_t lines_to_be_cleared = 0;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -148,6 +153,13 @@ void game_loop(void) {
         printf("Failed to retrieve EEPROM signature\n");
 #endif
     }
+
+    // Init arr pointers to high scores
+    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
+        memset(&high_scores[i], 0, sizeof(game_high_score_t));
+        high_score_ptrs[i] = &high_scores[i];
+    }
+
     eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
     if (status == EEPROM_SIGNATURE_MISMATCH) {
 #if DEBUG_OUTPUT
@@ -155,23 +167,25 @@ void game_loop(void) {
 #endif
         eeprom_generate_signature(&signature, EEPROM_NUM_USED_PAGES);
         eeprom_write_signature(&eeprom, &signature);
-        // TODO: Initialize EEPROM with default values for settings and high scores
+
+        // Initialize EEPROM with default values for settings and high scores
+        eeprom_get_default_high_scores(high_score_ptrs);
+        eeprom_get_default_settings(&settings);
+
+        // Write default high scores and settings to EEPROM
+        eeprom_write_settings(&eeprom, &settings);
+        eeprom_write_high_scores(&eeprom, high_score_ptrs);
     } else {
 #if DEBUG_OUTPUT
         printf("EEPROM signature matched\n");
 #endif
-    }
+        // Load settings from EEPROM
+        memset(&settings, 0, sizeof(saved_settings_t));
+        eeprom_get_settings(&eeprom, &settings);
 
-    // Load settings from EEPROM
-    memset(&settings, 0, sizeof(saved_settings_t));
-    eeprom_get_settings(&eeprom, &settings);
-
-    // Load high scores from EEPROM
-    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
-        memset(&high_scores[i], 0, sizeof(game_high_score_t));
-        high_score_ptrs[i] = &high_scores[i];
+        // Load high scores from EEPROM
+        eeprom_get_high_scores(&eeprom, high_score_ptrs);
     }
-    eeprom_get_high_scores(&eeprom, high_score_ptrs);
 
     // TODO: Initialize game variables
 
@@ -241,9 +255,12 @@ void game_loop(void) {
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
-    matrix.stack[0] = 0x1F581878;
-    matrix.palette1[0] = 0x00000038;
-    matrix.palette2[0] = 0x00180000;
+    matrix.stack[0] = 0x15581FF0;
+    matrix.stack[1] = 0x1FF81FD8;
+    matrix.palette1[0] = 0x00101E10;
+    matrix.palette2[0] = 0x004001E0;
+    matrix.palette1[1] = 0x01800180;
+    matrix.palette2[1] = 0x1C000800;
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -343,10 +360,8 @@ void game_loop(void) {
                 matrix_update_flag = 0;
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
-
                 } else if (controller_current_buttons & SNES_BUTTON_B) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
-
                 } else if (controller_current_buttons & SNES_BUTTON_R) {
                     tetrimino.piece++;
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
@@ -392,9 +407,9 @@ void game_loop(void) {
                     }
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_COLLISION_DETECTED) {
-                        tetrimino.y++;
+                        tetrimino.x++;
                     } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-                        tetrimino.y++;
+                        tetrimino.x++;
                     }
                     matrix_update_flag = 1;
                 } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
@@ -490,6 +505,56 @@ void game_loop(void) {
 
             // TODO: Check for collision
 
+            // TODO: Check for line clear
+
+            // TODO: Check for topout condition
+
+            // TODO: Is tetrimino locked in place?
+
+            // TODO: Get the next tetrimino from the RNG
+            if (game.play_state == PLAY_STATE_LOCKED) {
+                // TODO: Merge playfield with stack & palette
+
+                // Check for line clear
+                lines_to_be_cleared = matrix_check_line_clear(&matrix);
+#if DEBUG_OUTPUT
+                if (lines_to_be_cleared) {
+                    printf("Lines to be cleared: ");
+                    for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
+                        if (lines_to_be_cleared & (1 << i)) {
+                            printf("%d ", i);
+                        }
+                    }
+                    printf("\n");
+                }
+#endif
+                if (lines_to_be_cleared) {
+                    game.play_state = PLAY_STATE_LINE_CLEAR;
+                    game.line_clear_time_start = TIM2->CNT;
+                } else {
+                    game.play_state = PLAY_STATE_NEXT_TETRIMINO;
+                }
+            }
+
+            // TODO: Process line clear if needed
+            if (game.play_state == PLAY_STATE_LINE_CLEAR) {
+                if (util_time_expired_delay(game.line_clear_time_start, game.line_clear_time_delay)) {
+                    if (matrix_line_clear(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                        game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
+                        game.drop_time_start = TIM2->CNT;
+                        lines_to_be_cleared = 0;
+                    }
+                }
+            }
+
+            // TODO: Process input
+
+            // TODO: Update tetromino rotation
+
+            // TODO: Update tetromino position
+
+            // TODO: Check for collision
+
             matrix_status = matrix_check_collision(&matrix, &tetrimino);
             if (matrix_status == MATRIX_STACK_COLLISION) {
                 game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
@@ -506,7 +571,7 @@ void game_loop(void) {
             // TODO: Is tetrimino locked in place?
 
             // TODO: Get the next tetrimino from the RNG
-            if (game.play_state == PLAY_STATE_LOCKED) {
+            if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
@@ -526,7 +591,13 @@ void game_loop(void) {
                 render_count++;
             }
             // TODO: Update UI
-
+            fps_time_diff = util_time_diff_us(fps_time_last_update, TIM2->CNT);
+            if (fps_time_diff >= 500000) {
+                fps_start_count = fps_end_count;
+                fps_end_count = render_count;
+                fps_time_last_update = TIM2->CNT;
+                ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+            }
             break;
 
             /* ------------------------- PAUSE MENU ------------------------ */
@@ -537,6 +608,11 @@ void game_loop(void) {
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
             // TODO: Display game over screen
+
+            // Persist settings and high scores by writing them to EEPROM
+            eeprom_write_settings(&eeprom, &settings);
+            eeprom_write_high_scores(&eeprom, high_score_ptrs);
+
             break;
 
             /* ------------------------ HIGH SCORES ------------------------ */
@@ -552,6 +628,7 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
+
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {

@@ -30,5 +30,5 @@
 void ui_init();
 void ui_splash_screen();
 void ui_test();
-
+void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 #endif /* INC_UI_H_ */
