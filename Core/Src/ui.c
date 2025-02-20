@@ -203,6 +203,28 @@ void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us) 
     ssd1306_UpdateScreen();
 }
 
+void ui_display_game_info(game_t *game) {
+    uint8_t x;
+
+    char game_info_str[32];
+    memset(game_info_str, 0, sizeof(game_info_str));
+    ssd1306_SetCursor(0, 2);
+    sprintf(game_info_str, "%07ld", game->score);
+    ssd1306_WriteString(game_info_str, Font_11x18, White);
+
+    sprintf(game_info_str, "%ld", game->lines);
+    x = 128 - strlen(game_info_str) * 6;
+    ssd1306_SetCursor(x, 0);
+    ssd1306_WriteString(game_info_str, Font_6x8, White);
+
+    sprintf(game_info_str, "LVL: %ld", game->level);
+    x = 128 - strlen(game_info_str) * 6;
+    ssd1306_SetCursor(x, 10);
+    ssd1306_WriteString(game_info_str, Font_6x8, White);
+
+    ssd1306_UpdateScreen();
+}
+
 void ui_test() {
     ssd1306_Init();
     ssd1306_SetContrast(50);
