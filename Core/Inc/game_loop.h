@@ -51,6 +51,7 @@ typedef enum {
     PLAY_STATE_HALF_SECOND_B4_LOCK,
     PLAY_STATE_LOCKED,
     PLAY_STATE_LINE_CLEAR,
+    PLAY_STATE_TRANSITION_LEVEL,
     PLAY_STATE_NEXT_TETRIMINO,
     PLAY_STATE_TOP_OUT
 } play_state_t;
@@ -61,6 +62,7 @@ typedef struct {
     uint32_t score;
     uint32_t level;
     uint32_t lines;
+    int16_t lines_to_next_level; // Number of lines to clear to move to the next level
     uint32_t game_speed;
     uint32_t drop_time_delay; // in microseconds (determines drop speed)
     uint32_t drop_time_start;

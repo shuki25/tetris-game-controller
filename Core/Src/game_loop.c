@@ -257,7 +257,7 @@ void game_loop(void) {
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
-    matrix.stack[0] = 0x15501FF0;
+    matrix.stack[0] = 0x15501FF8;
     matrix.stack[1] = 0x1FF01FD0;
     matrix.palette1[0] = 0x00101E10;
     matrix.palette2[0] = 0x004001E0;
@@ -341,9 +341,10 @@ void game_loop(void) {
         case GAME_STATE_PREPARE_GAME:
             // TODO: Initialize game variables
             game.score = 0;
-            game.level = 1;
+            game.level = 0;
             game.lines = 0;
-            game.drop_time_delay = 700000;
+            game.lines_to_next_level = 10 * (game.level + 1);
+            game.drop_time_delay = tetrimino_drop_speed(game.level);
             game.drop_time_start = TIM2->CNT;
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
@@ -374,38 +375,42 @@ void game_loop(void) {
                     tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
 
-                } else if (controller_current_buttons & SNES_BUTTON_L) {
+                }
+                if (controller_current_buttons & SNES_BUTTON_L) {
                     tetrimino.piece--;
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
                         tetrimino.piece = TETRIMINO_COUNT - 1;
                     }
                     tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
-                } else if (controller_current_buttons & SNES_BUTTON_UP) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
-                        matrix_update_flag = 1;
-                    }
-                } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                }
+//                if (controller_current_buttons & SNES_BUTTON_UP) {
+//                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
+//                        matrix_update_flag = 1;
+//                    }
+//                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
                     if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_DOWN) == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_LEFT) {
+                }
+                if (controller_current_buttons & SNES_BUTTON_LEFT) {
                     if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT) == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_RIGHT) {
+                }
+                if (controller_current_buttons & SNES_BUTTON_RIGHT) {
                     if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT) == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_Y) {
+                }
+                if (controller_current_buttons & SNES_BUTTON_Y) {
                     game.drop_time_delay += 25000;
                 } else if (controller_current_buttons & SNES_BUTTON_X) {
                     game.drop_time_delay -= 25000;
                     if (game.drop_time_delay < 25000) {
                         game.drop_time_delay = 25000;
                     }
-                } else {
-                    tetrimino_status = TETRIMINO_OK;
                 }
                 if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
                     // Revert tetrimino position and refresh matrix
@@ -513,13 +518,25 @@ void game_loop(void) {
                     if (matrix_line_clear(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
                         game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                         game.drop_time_start = TIM2->CNT;
+                        game.lines += util_bit_count(lines_to_be_cleared);
                         lines_to_be_cleared = 0;
+                        if (game.lines >= game.lines_to_next_level) {
+                            game.play_state = PLAY_STATE_TRANSITION_LEVEL;
+                        }
                     }
                 }
             }
 
-            // TODO: Check for topout condition
+            // TODO: Transition to the next level if line clear count is met
+            if (game.play_state == PLAY_STATE_TRANSITION_LEVEL) {
+                game.level++;
+                game.lines_to_next_level = 10 * (game.level + 1);
+                game.drop_time_delay = tetrimino_drop_speed(game.level);
+                game.play_state = PLAY_STATE_NEXT_TETRIMINO;
+                game.drop_time_start = TIM2->CNT;
+            }
 
+            // TODO: Check for topout condition
             if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
@@ -545,6 +562,7 @@ void game_loop(void) {
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
                 ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+                ui_display_game_info(&game);
             }
             break;
 
