@@ -106,7 +106,6 @@ game_status_t game_init(void) {
     memset(&game, 0, sizeof(game_t));
     game.state = GAME_STATE_SPLASH;
     game.play_state = PLAY_STATE_NOT_STARTED;
-    game.game_speed = 1000;
     game.drop_time_delay = 1000000;
     game.lock_time_delay = 500000; // 0.5 seconds
     game.line_clear_time_delay = 100000; // 0.1 seconds per LED pair
@@ -344,7 +343,9 @@ void game_loop(void) {
             game.level = 0;
             game.lines = 0;
             game.lines_to_next_level = 10 * (game.level + 1);
-            game.drop_time_delay = tetrimino_drop_speed(game.level);
+            game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
+            game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
+            game.drop_time_delay = game.drop_time_normal_delay;
             game.drop_time_start = TIM2->CNT;
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
@@ -389,11 +390,16 @@ void game_loop(void) {
 //                        matrix_update_flag = 1;
 //                    }
 //                }
+
                 if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_DOWN) == MATRIX_REFRESH) {
-                        matrix_update_flag = 1;
-                    }
+                    game.drop_time_delay = game.drop_time_soft_drop_delay;
+                    game.soft_drop_flag = 1;
+                } else {
+                    game.drop_time_delay = game.drop_time_normal_delay;
+                    game.soft_drop_flag = 0;
+                    game.soft_drop_lines = 0;
                 }
+
                 if (controller_current_buttons & SNES_BUTTON_LEFT) {
                     if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT) == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
@@ -477,6 +483,9 @@ void game_loop(void) {
                             game.lock_time_start = TIM2->CNT;
                         }
                         game.drop_time_start = TIM2->CNT;
+                        if (game.soft_drop_flag) {
+                            game.soft_drop_lines++;
+                        }
                     }
                     matrix_update_flag = 1;
                 }
@@ -508,6 +517,10 @@ void game_loop(void) {
                     game.play_state = PLAY_STATE_LINE_CLEAR;
                     game.line_clear_time_start = TIM2->CNT;
                 } else {
+                    if (game.soft_drop_flag) {
+                        game.score += game.soft_drop_lines;
+                        game.soft_drop_lines = 0;
+                    }
                     game.play_state = PLAY_STATE_NEXT_TETRIMINO;
                 }
             }
@@ -516,6 +529,10 @@ void game_loop(void) {
             if (game.play_state == PLAY_STATE_LINE_CLEAR) {
                 if (util_time_expired_delay(game.line_clear_time_start, game.line_clear_time_delay)) {
                     if (matrix_line_clear(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                        if (game.soft_drop_flag) {
+                            game.score += game.soft_drop_lines;
+                            game.soft_drop_lines = 0;
+                        }
                         game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                         game.drop_time_start = TIM2->CNT;
                         game.lines += util_bit_count(lines_to_be_cleared);
@@ -531,7 +548,9 @@ void game_loop(void) {
             if (game.play_state == PLAY_STATE_TRANSITION_LEVEL) {
                 game.level++;
                 game.lines_to_next_level = 10 * (game.level + 1);
-                game.drop_time_delay = tetrimino_drop_speed(game.level);
+                game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
+                game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
+                game.drop_time_delay = game.drop_time_normal_delay;
                 game.play_state = PLAY_STATE_NEXT_TETRIMINO;
                 game.drop_time_start = TIM2->CNT;
             }
