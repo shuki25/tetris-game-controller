@@ -148,3 +148,17 @@ void util_to_binary8(uint8_t num, char *binary) {
     }
     binary[8] = '\0';
 }
+
+/**
+ * @brief  Count number of bits set in a number
+ * @param  num: number
+ * @retval number of bits set
+ */
+uint8_t util_bit_count(uint32_t num) {
+    uint8_t count = 0;
+    while (num) {
+        count += num & 1;
+        num >>= 1;
+    }
+    return count;
+}

@@ -169,12 +169,12 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
         if (temp_tetrimino.y > 0) {
         }
         break;
-    case MOVE_UP:
-        temp_tetrimino.y++;
-        if (temp_tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
-            temp_tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
-        }
-        break;
+//    case MOVE_UP:
+//        temp_tetrimino.y++;
+//        if (temp_tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+//            temp_tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+//        }
+//        break;
     default:
         return MATRIX_ERROR;
         break;

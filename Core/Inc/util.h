@@ -31,5 +31,6 @@ void util_delay_us(uint32_t us);
 void util_to_binary32(uint32_t num, char *binary);
 void util_to_binary16(uint16_t num, char *binary);
 void util_to_binary8(uint8_t num, char *binary);
+uint8_t util_bit_count(uint32_t num);
 
 #endif /* INC_UTIL_H_ */

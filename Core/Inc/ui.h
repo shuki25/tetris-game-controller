@@ -22,6 +22,8 @@
 #ifndef INC_UI_H_
 #define INC_UI_H_
 
+#include "game_loop.h"
+
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
@@ -31,4 +33,5 @@ void ui_init();
 void ui_splash_screen();
 void ui_test();
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
+void ui_display_game_info(game_t *game);
 #endif /* INC_UI_H_ */
