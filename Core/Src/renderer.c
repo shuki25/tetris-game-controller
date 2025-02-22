@@ -54,6 +54,10 @@ uint8_t generate_lookup_table() {
     return 0;
 }
 
+uint8_t generate_color_lookup_table(void){
+
+}
+
 WS2812_error_t led_error;
 /**
  * @brief  Initialize WS2812 LED matrix
@@ -114,7 +118,7 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer) {
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, game_t *game) {
 
     uint32_t two_rows_bitmap = 0;
     uint32_t two_rows_stack_bitmap = 0;
@@ -150,6 +154,9 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
         for (int j = 0, x = PLAYING_FIELD_WIDTH + RENDERER_OFFSET_X - 1; j < PLAYING_FIELD_WIDTH; j++, x--) {
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y][x];
+
+
+
             if (working_playfield >> j & 1) {
                 WS2812_set_LED(renderer->led, led_num, 0, 32, 0); // TODO: Set color based on palette lookup table
             } else if (working_stack >> j & 1) {

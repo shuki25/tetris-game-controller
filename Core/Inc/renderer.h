@@ -30,8 +30,28 @@
 #define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
 #define RENDERER_OFFSET_X (1)
 #define RENDERER_OFFSET_Y (1)
+#define COLOR_PALETTE_ROTATIONS (10)
+#define COLOR_PALETTES (3)
+
+struct {
+    uint8_t RED;
+    uint8_t GREEN;
+    uint8_t BLUE;
+} typedef color_t;
 
 extern uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
+color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
+        {{251, 251, 251}, {74, 173, 251}, {49, 58, 246}},  // level 0: white, blue, dark blue
+        {{251, 251, 251}, {172, 252, 21}, {50, 156, 4}},  // level 1: white, green, dark green
+        {{251, 251, 251}, {239, 88, 246}, {204, 0, 192}},  // level 2: white, magenta, dark magenta
+        {{251, 251, 251}, {76, 213, 66}, {49, 58, 246}},  // level 3: white, lime, dark lime
+        {{251, 251, 251}, {85, 252, 135}, {218, 0, 71}},  // level 4: white, cyan, dark cyan
+        {{251, 251, 251}, {86, 111, 251}, {85, 252, 135}},  // level 5: white, violet, lime
+        {{251, 251, 251}, {105, 105, 105}, {230, 32, 8}},  // level 6: white, gray, red
+        {{251, 251, 251}, {149, 0, 25}, {84, 33, 251}}, // level 7: white, red, purple
+        {{251, 251, 251}, {230, 32, 8}, {49, 58, 246}},  // level 8: white, red, dark blue
+        {{251, 251, 251}, {237, 143, 53}, {230, 32, 8}} // level 9: white, orange, red
+};
 
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
