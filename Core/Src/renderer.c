@@ -54,10 +54,6 @@ uint8_t generate_lookup_table() {
     return 0;
 }
 
-uint8_t generate_color_lookup_table(void){
-
-}
-
 WS2812_error_t led_error;
 /**
  * @brief  Initialize WS2812 LED matrix
@@ -118,7 +114,7 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer) {
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, game_t *game) {
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
 
     uint32_t two_rows_bitmap = 0;
     uint32_t two_rows_stack_bitmap = 0;
