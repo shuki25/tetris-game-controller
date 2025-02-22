@@ -25,8 +25,8 @@
  * the expected values, the content of EEPROM will be erased and replaced with
  * the correct signature block.
  *
- * The remaining pages of the EEPROM are used to store the high scores for the
- * game and global game statistics.
+ * The remaining pages of the EEPROM are used to store the high scores and settings for the
+ * game.
  *
  */
 
@@ -225,32 +225,32 @@ void eeprom_get_default_settings(saved_settings_t *settings) {
     settings->brightness = 50;
 }
 
-eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]) {
+eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_score_t *high_scores[]) {
     eeprom_status_t status;
 
-    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
+    for (int i = 0; i < NUM_HIGH_SCORES; i++) {
         uint8_t buffer[EEPROM_PAGE_SIZE];
         memset(buffer, 0, EEPROM_PAGE_SIZE);
 
         status = eeprom_read(eeprom, EEPROM_HIGH_SCORE_START_PAGE + i, EEPROM_HIGH_SCORE_OFFSET, buffer,
-                sizeof(game_high_score_t));
+                sizeof(game_score_t));
         if (status != EEPROM_OK) {
             return status;
         }
-        memcpy(high_scores[i], buffer, sizeof(game_high_score_t));
+        memcpy(high_scores[i], buffer, sizeof(game_score_t));
     }
 
     return EEPROM_OK;
 }
 
-eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]) {
+eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_score_t *high_scores[]) {
     eeprom_status_t status;
 
-    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
+    for (int i = 0; i < NUM_HIGH_SCORES; i++) {
         uint8_t buffer[EEPROM_PAGE_SIZE];
         memset(buffer, 0, EEPROM_PAGE_SIZE);
 
-        memcpy(buffer, high_scores[i], sizeof(game_high_score_t));
+        memcpy(buffer, high_scores[i], sizeof(game_score_t));
         if (eeprom->write_protected == 1) {
             status = eeprom_write_protect(eeprom, 0);
             if (status != EEPROM_OK) {
@@ -258,7 +258,7 @@ eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *hi
             }
         }
         status = eeprom_write(eeprom, EEPROM_HIGH_SCORE_START_PAGE + i, EEPROM_HIGH_SCORE_OFFSET, buffer,
-                sizeof(game_high_score_t));
+                sizeof(game_score_t));
 
         if (status != EEPROM_OK) {
             return status;
@@ -272,12 +272,12 @@ eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *hi
     return EEPROM_OK;
 }
 
-void eeprom_get_default_high_scores(game_high_score_t *high_scores[]) {
+void eeprom_get_default_high_scores(game_score_t *high_scores[]) {
     // Initialize high scores
-    *high_scores[0] = (game_high_score_t ) { { 'J', 'O', 'E', '\0' }, 3800, 4, 31 };
-    *high_scores[1] = (game_high_score_t ) { { 'B', 'O', 'B', '\0' }, 2500, 3, 22 };
-    *high_scores[2] = (game_high_score_t ) { { 'D', 'A', 'N', '\0' }, 1000, 2, 10 };
-    *high_scores[3] = (game_high_score_t ) { { 'M', 'A', 'Y', '\0' }, 300, 1, 3 };
-    *high_scores[4] = (game_high_score_t ) { { 'T', 'O', 'M', '\0' }, 100, 1, 1 };
+    *high_scores[0] = (game_score_t ) { { 'J', 'O', 'E', '\0' }, 3800, 4, 31 };
+    *high_scores[1] = (game_score_t ) { { 'B', 'O', 'B', '\0' }, 2500, 3, 22 };
+    *high_scores[2] = (game_score_t ) { { 'D', 'A', 'N', '\0' }, 1000, 2, 10 };
+    *high_scores[3] = (game_score_t ) { { 'M', 'A', 'Y', '\0' }, 300, 1, 3 };
+    *high_scores[4] = (game_score_t ) { { 'T', 'O', 'M', '\0' }, 100, 1, 1 };
 }
 

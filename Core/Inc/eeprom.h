@@ -16,6 +16,7 @@ extern "C" {
 #include "main.h"
 #include "stm32f4xx_hal_gpio.h"
 #include <stdint.h>
+#include "game_stats.h"
 
 #define EEPROM_ADDRESS 0xA0
 #define EEPROM_IDENTIFICATION 0xB0
@@ -31,7 +32,6 @@ extern "C" {
 #define EEPROM_SETTINGS_PAGE 1
 #define EEPROM_SETTINGS_OFFSET 0
 #define EEPROM_HIGH_SCORE_START_PAGE 2
-#define EEPROM_NUM_HIGH_SCORES 5
 #define EEPROM_HIGH_SCORE_OFFSET 0
 
 typedef enum {
@@ -58,18 +58,6 @@ typedef struct {
     uint8_t num_pages;
 } eeprom_id_t;
 
-typedef struct {
-    uint8_t grid_size;
-    uint8_t brightness;
-} saved_settings_t;
-
-typedef struct {
-    char name[16];
-    uint32_t score;
-    uint32_t level;
-    uint32_t lines;
-} game_high_score_t;
-
 eeprom_status_t eeprom_init(eeprom_t *eeprom, I2C_HandleTypeDef *hi2c, GPIO_TypeDef *wc_port, uint16_t wc_pin);
 eeprom_status_t eeprom_write_protect(eeprom_t *eeprom, uint8_t state);
 eeprom_status_t eeprom_write(eeprom_t *eeprom, uint16_t page, uint16_t offset, uint8_t *data, uint16_t size);
@@ -80,9 +68,9 @@ eeprom_status_t eeprom_write_signature(eeprom_t *eeprom, eeprom_id_t *signature)
 eeprom_status_t eeprom_verify_signature(eeprom_id_t *signature, uint8_t num_pages);
 eeprom_status_t eeprom_write_settings(eeprom_t *eeprom, saved_settings_t *settings);
 eeprom_status_t eeprom_get_settings(eeprom_t *eeprom, saved_settings_t *settings);
-eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]);
-eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_high_score_t *high_scores[]);
-void eeprom_get_default_high_scores(game_high_score_t *high_scores[]);
+eeprom_status_t eeprom_write_high_scores(eeprom_t *eeprom, game_score_t *high_scores[]);
+eeprom_status_t eeprom_get_high_scores(eeprom_t *eeprom, game_score_t *high_scores[]);
+void eeprom_get_default_high_scores(game_score_t *high_scores[]);
 void eeprom_get_default_settings(saved_settings_t *settings);
 
 #ifdef __cplusplus

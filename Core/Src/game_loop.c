@@ -37,6 +37,8 @@
 #include "ring_buffer.h"
 #include "ui.h"
 #include "eeprom.h"
+#include "i2c_slave.h"
+#include "game_stats.h"
 #include "led_indicator.h"
 
 // Extern Variables
@@ -66,8 +68,11 @@ snes_controller_t snes_controller;
 game_t game;
 //tetrimino_t tetrimino;
 //tetrimino_t tetrimino_pending;
-game_high_score_t high_scores[EEPROM_NUM_HIGH_SCORES];
-game_high_score_t *high_score_ptrs[EEPROM_NUM_HIGH_SCORES];
+
+// Game Statistics
+game_score_t current_score;
+game_score_t high_scores[NUM_HIGH_SCORES];
+game_score_t *high_score_ptrs[NUM_HIGH_SCORES];
 saved_settings_t settings;
 
 // TIM Variables
@@ -157,8 +162,8 @@ void game_loop(void) {
     }
 
     // Init arr pointers to high scores
-    for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
-        memset(&high_scores[i], 0, sizeof(game_high_score_t));
+    for (int i = 0; i < NUM_HIGH_SCORES; i++) {
+        memset(&high_scores[i], 0, sizeof(game_score_t));
         high_score_ptrs[i] = &high_scores[i];
     }
 
@@ -280,6 +285,7 @@ void game_loop(void) {
 
     for (;;) {
         // TODO: Respond to scoreboard requests
+        //update_register(high_score_ptrs, &current_score, game_elapsed_time, 0);
 
         // Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
