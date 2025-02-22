@@ -585,7 +585,7 @@ void game_loop(void) {
                 }
             }
 
-            rendering_status = renderer_render(&renderer, &matrix);
+            rendering_status = renderer_render(&renderer, &matrix, &tetrimino);
             if (rendering_status == RENDERER_UPDATED) {
                 render_count++;
             }
