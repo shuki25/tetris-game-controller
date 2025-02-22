@@ -10,7 +10,6 @@
 #include "ws2812.h"
 #include <math.h>
 #include <stdlib.h>
-#include "FreeRTOS.h"
 
 const uint8_t color_groups[8][3] = { { 128, 0, 0 }, // red
         { 0, 48, 0 }, // green
@@ -23,7 +22,7 @@ const uint8_t color_groups[8][3] = { { 128, 0, 0 }, // red
 };
 
 uint8_t* generate_brightness_lookup_table(uint8_t brightness) {
-    uint8_t *table = pvPortMalloc(256 * sizeof(uint8_t));
+    uint8_t *table = malloc(256 * sizeof(uint8_t));
     if (table == NULL) {
         return NULL;
     }
@@ -38,7 +37,9 @@ uint8_t* generate_brightness_lookup_table(uint8_t brightness) {
 }
 
 void destroy_brightness_lookup_table(uint8_t *table) {
-    vPortFree(table);
+    if (table != NULL) {
+        free(table);
+    }
 }
 
 WS2812_error_t WS2812_init(led_t *led_obj, TIM_HandleTypeDef *htim, const uint32_t channel,
@@ -56,12 +57,12 @@ WS2812_error_t WS2812_init(led_t *led_obj, TIM_HandleTypeDef *htim, const uint32
 
     uint16_t adj_num_leds = num_leds + (sacrificial_led_flag * NUM_SACRIFICIAL_LED);
 
-    led_obj->data = (uint8_t**) pvPortMalloc(adj_num_leds * sizeof(uint8_t*));
+    led_obj->data = (uint8_t**) malloc(adj_num_leds * sizeof(uint8_t*));
     if (led_obj->data == NULL) {
         return WS2812_MALLOC_FAILED;
     }
     for (int i = 0; i < adj_num_leds; i++) {
-        led_obj->data[i] = (uint8_t*) pvPortMalloc(4 * sizeof(uint8_t));
+        led_obj->data[i] = (uint8_t*) malloc(4 * sizeof(uint8_t));
         if (led_obj->data[i] == NULL) {
             return WS2812_MALLOC_FAILED;
         }
@@ -72,17 +73,17 @@ WS2812_error_t WS2812_init(led_t *led_obj, TIM_HandleTypeDef *htim, const uint32
         led_obj->data[i][2] = 0;
         led_obj->data[i][3] = 0;
     }
-//    led_obj->mod = (uint8_t**) pvPortMalloc(adj_num_leds * sizeof(uint8_t*));
+//    led_obj->mod = (uint8_t**) malloc(adj_num_leds * sizeof(uint8_t*));
 //    if (led_obj->mod == NULL) {
 //        return WS2812_MALLOC_FAILED;
 //    }
 //    for (int i = 0; i < adj_num_leds; i++) {
-//        led_obj->mod[i] = (uint8_t*) pvPortMalloc(4 * sizeof(uint8_t));
+//        led_obj->mod[i] = (uint8_t*) malloc(4 * sizeof(uint8_t));
 //        if (led_obj->mod[i] == NULL) {
 //            return WS2812_MALLOC_FAILED;
 //        }
 //    }
-    led_obj->pwm_data = (uint16_t*) pvPortMalloc((sizeof(uint16_t) * ((adj_num_leds * 24) + 60)));
+    led_obj->pwm_data = (uint16_t*) malloc((sizeof(uint16_t) * ((adj_num_leds * 24) + 60)));
     if (led_obj->pwm_data == NULL) {
         return WS2812_MALLOC_FAILED;
     }
@@ -92,10 +93,10 @@ WS2812_error_t WS2812_init(led_t *led_obj, TIM_HandleTypeDef *htim, const uint32
 WS2812_error_t WS2812_destroy(led_t *led_obj) {
     uint16_t adj_num_leds = led_obj->num_leds + (led_obj->sacrificial_led_flag * NUM_SACRIFICIAL_LED);
     for (int i = 0; i < adj_num_leds; i++) {
-        vPortFree(led_obj->data[i]);
+        free(led_obj->data[i]);
     }
-    vPortFree(led_obj->data);
-    vPortFree(led_obj->pwm_data);
+    free(led_obj->data);
+    free(led_obj->pwm_data);
     return WS2812_OK;
 }
 

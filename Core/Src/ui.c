@@ -24,7 +24,6 @@
 #include <stdint.h>
 #include "ssd1306.h" // for OLED screen
 #include "ui.h"
-#include "cmsis_os.h" // for "sleep" function
 #include "splash_bitmap.h"
 
 /**
@@ -57,7 +56,7 @@ void ui_splash_screen() {
         ssd1306_WriteString("    ", Font_16x24, White);
         ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     bitmap_number++;
@@ -68,7 +67,7 @@ void ui_splash_screen() {
         ssd1306_UpdateScreen();
         ssd1306_SetCursor((i - 5), 0); // to clean up after displaying
         ssd1306_WriteString("     ", Font_16x26, White);
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     bitmap_number++;
@@ -78,7 +77,7 @@ void ui_splash_screen() {
         ssd1306_SetCursor(i, 0);
         ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     for (int i = 0; i < 30; i += 10) { // Moves down
@@ -89,7 +88,7 @@ void ui_splash_screen() {
         ssd1306_SetCursor(66, i);
         ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     for (int i = 0; i < 8; i++) { // Light flashing
@@ -108,7 +107,7 @@ void ui_splash_screen() {
             ssd1306_WriteString("presents...", Font_6x8, Black);
 
             ssd1306_UpdateScreen();
-            osDelay(50);
+            HAL_Delay(40);
         }
         ssd1306_Fill(Black);
 
@@ -124,7 +123,8 @@ void ui_splash_screen() {
         ssd1306_WriteString("presents...", Font_6x8, White);
 
         ssd1306_UpdateScreen();
-        osDelay(50);
+        HAL_Delay(40);
+//        HAL_Delay(50);
     }
 
     ssd1306_Fill(Black);
@@ -139,11 +139,11 @@ void ui_splash_screen() {
 //        ssd1306_SetCursor(30, 55);
 //        ssd1306_WriteString("Press start", Font_6x8, White);
 //        ssd1306_UpdateScreen();
-//        osDelay(600);
+//        HAL_Delay(600);
 //        ssd1306_SetCursor(30, 55);
 //        ssd1306_WriteString("                ", Font_6x8, White); // erasing
 //        ssd1306_UpdateScreen();
-//        osDelay(600);
+//        HAL_Delay(600);
 //    }
 
 }

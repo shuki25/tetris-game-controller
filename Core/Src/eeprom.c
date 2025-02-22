@@ -30,8 +30,8 @@
  *
  */
 
-#include "cmsis_os.h"
 #include "eeprom.h"
+#include <stdlib.h>
 #include <string.h>
 
 eeprom_status_t eeprom_init(eeprom_t *eeprom, I2C_HandleTypeDef *hi2c, GPIO_TypeDef *wc_port, uint16_t wc_pin) {
@@ -68,7 +68,7 @@ eeprom_status_t eeprom_write(eeprom_t *eeprom, uint16_t page, uint16_t offset, u
     HAL_StatusTypeDef status;
     uint16_t address = page * EEPROM_PAGE_SIZE + offset;
 
-    uint8_t *buffer = (uint8_t*) pvPortMalloc(size + 2);
+    uint8_t *buffer = (uint8_t*) malloc(size + 2);
     if (buffer == NULL) {
         return EEPROM_MALLOC_FAILED;
     }
@@ -83,7 +83,7 @@ eeprom_status_t eeprom_write(eeprom_t *eeprom, uint16_t page, uint16_t offset, u
     } else if (status != HAL_OK) {
         return EEPROM_ERROR;
     }
-    vPortFree(buffer);
+    free(buffer);
 
     while (HAL_I2C_Master_Transmit(eeprom->hi2c, EEPROM_ADDRESS, 0, 0, HAL_MAX_DELAY) != HAL_OK)
         ;
