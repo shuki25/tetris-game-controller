@@ -34,16 +34,13 @@
 #include "matrix.h"
 #include "itm_debug.h"
 #include "util.h"
-#include "cmsis_os.h"
 #include "ring_buffer.h"
 #include "ui.h"
 #include "eeprom.h"
+#include "led_indicator.h"
 
 // Extern Variables
-extern I2C_HandleTypeDef hi2c1;
-
-// External variables
-
+extern TIM_HandleTypeDef htim2;
 extern I2C_HandleTypeDef hi2c1;
 
 // Debugger Expression Variables
@@ -60,7 +57,7 @@ matrix_t matrix;
 uint8_t update_screen_flag;
 led_t led;
 uint8_t *brightness_lookup = NULL;
-uint32_t render_delay = (1000000 / 33); // 30 FPS
+uint32_t render_delay = (1000000 / 35); // 30 FPS
 renderer_t renderer;
 uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
@@ -79,6 +76,10 @@ extern TIM_HandleTypeDef htim3;
 // EEPROM Variables
 eeprom_t eeprom;
 eeprom_id_t signature;
+
+// LED Indicators
+led_indicator_t hb_led;
+led_indicator_t rj45_led;
 
 /**
  * @brief  Splash screen
@@ -251,6 +252,20 @@ void game_loop(void) {
         printf("Rendering boundary success\n");
 #endif
     }
+
+    // Initialize LED Indicators
+    led_init(&hb_led, LED_HB_GPIO_Port, LED_HB_Pin, &htim2);
+    led_init(&rj45_led, I2C_LED_GPIO_Port, I2C_LED_Pin, &htim2);
+    led_set_mode(&hb_led, LED_BLINK_CONTINUOUS);
+    led_set_blink_delay(&hb_led, 500, 500);
+    led_set_mode(&rj45_led, LED_N_BLINK);
+    led_set_blink_delay(&rj45_led, 20, 20);
+    led_set_n_blinks(&rj45_led, 10);
+    hb_led.uses_pull_up = 0;
+    rj45_led.uses_pull_up = 1;
+    hb_led.active = 1;
+    rj45_led.active = 1;
+
     // If you want to test a feature, uncomment the following line
 //    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
@@ -630,7 +645,7 @@ void game_loop(void) {
         } // end switch
 
         game_loop_count++;
-        osThreadYield();
-
+        led_indicator(&hb_led);
+        led_indicator(&rj45_led);
     } // end for loop
 } // end game_loop
