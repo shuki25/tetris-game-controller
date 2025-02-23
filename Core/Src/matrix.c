@@ -89,7 +89,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
 //        row_index--;
 //    }
 
-    // Superimpose tetrimino on playfield
+// Superimpose tetrimino on playfield
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         if (row_index >= PLAYING_FIELD_HEIGHT) { // Check if row is within visible bounds
@@ -280,20 +280,19 @@ uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear) {
  * @retval None
  */
 
-matrix_status_t merge_with_stack(matrix_t *matrix){
+matrix_status_t merge_with_stack(matrix_t *matrix) {
     uint32_t working_stack_row;
     uint32_t working_playfield_row;
     matrix_t temp;
-    matrix_copy(&temp,matrix);
-    for(int i = 0; i < PLAYING_FIELD_HEIGHT/2;i++){
+    matrix_copy(&temp, matrix);
+    for (int i = 0; i < PLAYING_FIELD_HEIGHT / 2; i++) {
         working_stack_row = matrix->stack[i];
         working_playfield_row = matrix->playfield[i];
         temp.stack[i] = working_stack_row | (working_playfield_row & PLAYING_FIELD_MASK);
     }
-    matrix_copy(matrix,&temp);
+    matrix_copy(matrix, &temp);
     return MATRIX_OK;
 }
-
 
 /**
  * @brief  Reposition fallen blocks after line clear
