@@ -1,12 +1,27 @@
-/*
- * color_palette.c
+/**
+ ******************************************************************************
+ * @file           : color_palette.c
+ * @author         : Yoel Buzgalo, Dr. Joshua Butler
+ * @date           : Feb 22, 2025
+ * @brief          : Color palette for Tetris shapes
+ ******************************************************************************
+ * @attention
  *
- *  Created on: Feb 22, 2025
- *      Author: yoel
+ * 2025 Imagine RIT Project: Classic Tetris on LED Grid
+ *
+ * Copyright (c) 2024-25 Rochester Institute of Technology.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
  */
 
 #include "color_palette.h"
 
+//@formatter:off
 color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
         {{251, 251, 251}, {74, 173, 251}, {49, 58, 246}},  // level 0: white, blue, dark blue
         {{251, 251, 251}, {172, 252, 21}, {50, 156, 4}},  // level 1: white, green, dark green
@@ -19,8 +34,8 @@ color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
         {{251, 251, 251}, {230, 32, 8}, {49, 58, 246}},  // level 8: white, red, dark blue
         {{251, 251, 251}, {237, 143, 53}, {230, 32, 8}} // level 9: white, orange, red
 };
-
-color_t get_color_palette(int current_level, int shape_id){
+//@formatter:on
+color_t get_color_palette(int current_level, int shape_id) {
     int rotation_index = current_level % COLOR_PALETTE_ROTATIONS;
     int shape_id_index = shape_id % COLOR_PALETTES;
 

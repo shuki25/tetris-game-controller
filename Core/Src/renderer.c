@@ -160,14 +160,14 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
 
             // current playing field (current piece)
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, current_piece_color.RED, current_piece_color.GREEN, current_piece_color.BLUE); // TODO: Set color based on palette lookup table
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green, current_piece_color.blue); // TODO: Set color based on palette lookup table
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette1_color.RED, palette1_color.GREEN, palette1_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green, palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green, palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette0_color.RED, palette0_color.GREEN, palette0_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green, palette0_color.blue);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
@@ -186,14 +186,14 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y + 1][x];
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, current_piece_color.RED, current_piece_color.GREEN, current_piece_color.BLUE);
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green, current_piece_color.blue);
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette1_color.RED, palette1_color.GREEN, palette1_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green, palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green, palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette0_color.RED, palette0_color.GREEN, palette0_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green, palette0_color.blue);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
@@ -215,7 +215,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
         preview_x = 15;
         for (int j = 0; j < TETRIMINO_BLOCK_SIZE - 1; j++) {
             if (bitmap & (1 << (j + 1))) {
-                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], next_color.RED, next_color.GREEN, next_color.BLUE);
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], next_color.red, next_color.green, next_color.blue);
             } else {
                 WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], 0, 0, 0);
             }
