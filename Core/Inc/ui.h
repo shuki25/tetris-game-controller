@@ -1,23 +1,23 @@
 /**
-  ******************************************************************************
-  * @file           : ui.h
-  * @author         : josh
-  * @date           : Dec 9, 2024
-  * @brief          : 
-  ******************************************************************************
-  * @attention
-  *
-  * 2025 Imagine RIT Project: Classic Tetris on LED Grid
-  *
-  * Copyright (c) 2024-25 Rochester Institute of Technology.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : ui.h
+ * @author         : josh
+ * @date           : Dec 9, 2024
+ * @brief          :
+ ******************************************************************************
+ * @attention
+ *
+ * 2025 Imagine RIT Project: Classic Tetris on LED Grid
+ *
+ * Copyright (c) 2024-25 Rochester Institute of Technology.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 
 #ifndef INC_UI_H_
 #define INC_UI_H_
@@ -34,4 +34,5 @@ void ui_splash_screen();
 void ui_test();
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_info(game_t *game);
+void ui_display_top_out();
 #endif /* INC_UI_H_ */

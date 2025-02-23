@@ -40,6 +40,21 @@ matrix_status_t matrix_init(matrix_t *matrix) {
 }
 
 /**
+ * @brief  Reset matrix object
+ * @param  matrix object
+ * @retval None
+ */
+matrix_status_t matrix_clear(matrix_t *matrix) {
+    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+        matrix->playfield[i] = 0;
+        matrix->stack[i] = 0;
+        matrix->palette1[i] = 0;
+        matrix->palette2[i] = 0;
+    }
+    return MATRIX_OK;
+}
+
+/**
  * @brief  Reset playfield to boundary bitmap
  * @param  matrix
  * @retval matrix status
@@ -83,7 +98,7 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     // Check if tetrimino has reached beyond the bottom of the matrix
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
-        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT) {
+        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT + 10) {
             return MATRIX_REACHED_BOTTOM;
         }
         row_index--;
@@ -206,15 +221,6 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
  */
 void matrix_flatten(void) {
     // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
-}
-
-/**
- * @brief  Clear fallen blocks from matrix
- * @param  None
- * @retval None
- */
-void matrix_clear(void) {
-    // TODO: Clear fallen blocks from matrix
 }
 
 /**

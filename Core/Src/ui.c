@@ -225,6 +225,16 @@ void ui_display_game_info(game_t *game) {
     ssd1306_UpdateScreen();
 }
 
+void ui_display_top_out() {
+    ssd1306_SetCursor(25, 24);
+    ssd1306_WriteString("TOP OUT", Font_11x18, White);
+    ssd1306_SetCursor(0, 55);
+    ssd1306_WriteString("        ", Font_6x8, White);
+    ssd1306_SetCursor(37, 44);
+    ssd1306_WriteString("Game Over", Font_6x8, White);
+    ssd1306_UpdateScreen();
+}
+
 void ui_test() {
     ssd1306_Init();
     ssd1306_SetContrast(50);

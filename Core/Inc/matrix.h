@@ -64,6 +64,7 @@ typedef struct {
 
 // Function prototypes for matrix functions
 matrix_status_t matrix_init();
+matrix_status_t matrix_clear(matrix_t *matrix);
 matrix_status_t matrix_reset_playfield(matrix_t *matrix);
 matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino);
 matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,

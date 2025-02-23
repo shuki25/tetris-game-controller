@@ -213,7 +213,7 @@ void game_loop(void) {
 #endif
 
     /* Generate and initialize the brightness lookup table */
-    brightness_lookup = generate_brightness_lookup_table(15);
+    brightness_lookup = generate_brightness_lookup_table(10);
 
     if (brightness_lookup != NULL) {
 #if DEBUG_OUTPUT
@@ -354,6 +354,8 @@ void game_loop(void) {
             /* -------------------- PREPARE GAME STATE ---------------------- */
         case GAME_STATE_PREPARE_GAME:
             // TODO: Initialize game variables
+
+            matrix_clear(&matrix);
             game.score = 0;
             game.level = 0;
             game.lines = 0;
@@ -479,7 +481,7 @@ void game_loop(void) {
                         matrix_copy(&matrix, &temp_matrix);
                     } else if (matrix_status == MATRIX_REACHED_BOTTOM) {
                         matrix_copy(&matrix, &temp_matrix);
-                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//                        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                         game.play_state = PLAY_STATE_HALF_SECOND_B4_LOCK;
                         game.lock_time_start = TIM2->CNT;
                     } else {
@@ -573,15 +575,23 @@ void game_loop(void) {
 
             // TODO: Check for topout condition
             if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
+                matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_COLLISION_DETECTED) { // TOPPED OUT
-                        game.state = GAME_STATE_GAME_ENDED;
                         game.play_state = PLAY_STATE_TOP_OUT;
+
                     } else {
-                        game.play_state = PLAY_STATE_NORMAL;
-                        game.drop_time_start = TIM2->CNT;
+                        matrix_status = matrix_check_collision(&matrix, &tetrimino);
+                        if (matrix_status == MATRIX_STACK_COLLISION) {
+                            // Restore previous matrix state
+                            matrix_copy(&matrix, &temp_matrix);
+                            game.play_state = PLAY_STATE_TOP_OUT;
+                        } else {
+                            game.play_state = PLAY_STATE_NORMAL;
+                            game.drop_time_start = TIM2->CNT;
+                        }
                     }
                 }
             }
@@ -590,9 +600,15 @@ void game_loop(void) {
             if (rendering_status == RENDERER_UPDATED) {
                 render_count++;
             }
+
+            if (game.play_state == PLAY_STATE_TOP_OUT) {
+                ui_display_top_out();
+                renderer_top_out_start(&renderer);
+                game.state = GAME_STATE_GAME_ENDED;
+            }
             // TODO: Update UI
             fps_time_diff = util_time_diff_us(fps_time_last_update, TIM2->CNT);
-            if (fps_time_diff >= 500000) {
+            if (fps_time_diff >= 500000 && game.play_state != PLAY_STATE_TOP_OUT) {
                 fps_start_count = fps_end_count;
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
@@ -609,11 +625,40 @@ void game_loop(void) {
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
             // TODO: Display game over screen
+            if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
+                game.state = GAME_STATE_GAME_OVER_WAIT;
+                // Persist settings and high scores by writing them to EEPROM
+                eeprom_write_settings(&eeprom, &settings);
+                eeprom_write_high_scores(&eeprom, high_score_ptrs);
+            } else {
+//                ui_display_game_over();
+            }
+            break;
 
-            // Persist settings and high scores by writing them to EEPROM
-            eeprom_write_settings(&eeprom, &settings);
-            eeprom_write_high_scores(&eeprom, high_score_ptrs);
+            /* ---------------------- GAME OVER WAIT ---------------------- */
+        case GAME_STATE_GAME_OVER_WAIT:
 
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_START) {
+                    //                    game.state = GAME_STATE_MENU;
+                    game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            }
+            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+                press_start_timer_start = TIM2->CNT;
+                press_start_state = !press_start_state;
+                ssd1306_SetCursor(30, 55);
+                if (press_start_state) {
+                    ssd1306_WriteString("                ", Font_6x8, White); // erase line
+                } else {
+                    ssd1306_WriteString("Press start", Font_6x8, White);
+                }
+                ssd1306_UpdateScreen();
+                redraw_screen_count++;
+            }
             break;
 
             /* ------------------------ HIGH SCORES ------------------------ */
