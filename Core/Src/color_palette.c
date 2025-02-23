@@ -22,7 +22,7 @@
 #include "color_palette.h"
 
 //@formatter:off
-color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
+const color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
         {{251, 251, 251}, {74, 173, 251}, {49, 58, 246}},  // level 0: white, blue, dark blue
         {{251, 251, 251}, {172, 252, 21}, {50, 156, 4}},  // level 1: white, green, dark green
         {{251, 251, 251}, {239, 88, 246}, {204, 0, 192}},  // level 2: white, magenta, dark magenta
