@@ -137,6 +137,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
     render_start_time = TIM2->CNT;
 
     color_t current_piece_color = get_color_palette(game->level, tetrimino->piece);
+    color_t palette0_color = get_color_palette(game->level, 0);
     color_t palette1_color = get_color_palette(game->level, 1);
     color_t palette2_color = get_color_palette(game->level, 2);
 
@@ -166,7 +167,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
                 } else if (working_palette2 >> j & 1) {
                     WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.RED, palette0_color.GREEN, palette0_color.BLUE);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
@@ -192,7 +193,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
                 } else if (working_palette2 >> j & 1) {
                     WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.RED, palette2_color.GREEN, palette2_color.BLUE);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.RED, palette0_color.GREEN, palette0_color.BLUE);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
