@@ -161,7 +161,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
             // current playing field (current piece)
             if (working_playfield >> j & 1) {
                 WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green,
-                        current_piece_color.blue); // TODO: Set color based on palette lookup table
+                        current_piece_color.blue); // Set color based on palette lookup table
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
                     WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green,

@@ -147,8 +147,6 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     }
 
     return MATRIX_REFRESH;
-
-    // TODO: Update palette bitboards
 }
 
 /**
@@ -215,21 +213,11 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
 }
 
 /**
- * @brief  Flatten bitboards into final matrix
- * @param  bitboards
- * @retval None
- */
-void matrix_flatten(void) {
-    // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
-}
-
-/**
  * @brief  Check for collision between tetrimino, boundaries, and fallen blocks
  * @param  bitboards
  * @retval True if collision, false otherwise
  */
 matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino) {
-    // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
     uint8_t row_index;
     uint32_t working_playfield = 0;
     uint32_t working_stack = 0;
@@ -250,7 +238,6 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
  * @retval Returns which rows are marked for line clear by bit position
  */
 uint32_t matrix_check_line_clear(matrix_t *matrix) {
-    // TODO: Check for line clear (full rows)
     uint32_t stack;
     uint32_t line_clear = 0; // Covers 20 rows in the playfield
 

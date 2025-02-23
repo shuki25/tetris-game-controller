@@ -193,7 +193,6 @@ void ui_settings_menu() {
  * @retval None
  */
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us) {
-    // TODO: Calculate and display frames per second
     uint32_t fps = ((end_count - start_count) * 10000000) / time_us;
     ssd1306_SetCursor(0, 55);
     char fps_str[32];

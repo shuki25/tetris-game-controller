@@ -466,7 +466,6 @@ void game_loop(void) {
 #endif
             } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
 
-            // TODO: Check timer for game speed
             if (game.play_state == PLAY_STATE_NORMAL) {
                 matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
@@ -562,7 +561,7 @@ void game_loop(void) {
                 }
             }
 
-            // TODO: Transition to the next level if line clear count is met
+            // Transition to the next level if line clear count is met
             if (game.play_state == PLAY_STATE_TRANSITION_LEVEL) {
                 game.level++;
                 game.lines_to_next_level = 10 * (game.level + 1);
@@ -573,18 +572,17 @@ void game_loop(void) {
                 game.drop_time_start = TIM2->CNT;
             }
 
-            // TODO: Check for topout condition
             if (game.play_state == PLAY_STATE_NEXT_TETRIMINO) {
                 matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_COLLISION_DETECTED) { // TOPPED OUT
+                    if (matrix_status == MATRIX_COLLISION_DETECTED) { // Collision detected on boundary
                         game.play_state = PLAY_STATE_TOP_OUT;
 
                     } else {
                         matrix_status = matrix_check_collision(&matrix, &tetrimino);
-                        if (matrix_status == MATRIX_STACK_COLLISION) {
+                        if (matrix_status == MATRIX_STACK_COLLISION) { // Topped out
                             // Restore previous matrix state
                             matrix_copy(&matrix, &temp_matrix);
                             game.play_state = PLAY_STATE_TOP_OUT;
