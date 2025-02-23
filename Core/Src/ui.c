@@ -19,6 +19,12 @@
  ******************************************************************************
  */
 
+//TO DO FOR TOMORROW
+// - Add state machines for ui, (FIRST_TIME_DRAW, WAITING_STATE, CONTROLLER_DETECTED)
+// - Add state in UI struct in header! Also add emun for states in ui header
+// - For controller_detected, look at Prof. Butler code for game state with play state especially matrix movement and try to write code like him in controller modify
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -28,13 +34,22 @@
 #include "splash_bitmap.h"
 
 //uint8_t select_arrow_locations[3] = { 14, 30, 46 };
-
-char *menu_list[4][4] = {
-    {"Play game", "High Score", "Settings", "Credits"}, // Start Menu
-    {"Classic", "Placeholder", "placeholder"}, // Game mode menu
-    {"Continue", "Restart", "Quit"}, // Pause menu
-    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID"} // Settings menu
+const char *menu_title_list[] = {
+    "Main Menu", // Start Menu
+    "Game Modes", // Game mode menu
+    "Paused", // Pause menu
+    "Settings" // Settings menu
 };
+
+const char *menu_list[][5] = {
+    {"Play game", "High Score", "Settings", "Credits", NULL}, // Start Menu
+    {"Classic", "Placeholder", "placeholder", NULL}, // Game mode menu
+    {"Continue", "Restart", "Quit", NULL}, // Pause menu
+    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID", NULL} // Settings menu
+};
+
+const uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+
 
 /**
  * @brief  Initialize OLED display
@@ -45,15 +60,17 @@ void ui_init() {
     ssd1306_Init();
 }
 
-void ui_menu_init(ui_menu_t *menu) {
+void ui_menu_init(ui_menu_t * menu) {
+    memset(menu, 0, sizeof(*menu));
     menu->menu_id = 0;
     menu->current_selection_id = 0;
     menu->is_cursor_on = 0;
     menu->cursor_timeout = 0;
+    menu->ui_status = UI_MENU_DRAW;
 }
-void ui_menu_id_set(ui_menu_t *menu, int menuID)
+void ui_menu_id_set(ui_menu_t * menu, int menuID)
 {
-    menu->menu_options = menu_list[menuID];
+    menu->menu_id = menuID;
 }
 
 void ui_splash_screen() {
@@ -172,20 +189,41 @@ void ui_splash_screen() {
  * @param  None
  * @retval Menu selection (use enum constants for each menu item)
  */
-void ui_main_menu_selection(ui_menu_t main) {
+void ui_main_menu_selection(ui_menu_t * menu) {
     // TODO: Display main menu selection
-    int position = main.current_selection_id;
-    ssd1306_SetCursor(32, 14);
-    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
+    if(menu->ui_status == UI_MENU_DRAW)
+    {
+        ssd1306_Fill(Black);
+        frame_maker();
+        ssd1306_SetCursor(34, 0);
+        ssd1306_WriteString(" ", Font_6x8, White);
+        ssd1306_SetCursor(36, 0);
+        ssd1306_WriteString(menu_title_list[menu->menu_id], Font_6x8, White);
 
-    ssd1306_SetCursor(32, 30);
-    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
+        ssd1306_SetCursor(32, 14);
+        ssd1306_WriteString(menu_list[menu->menu_id][0], Font_7x10, White);
 
-    ssd1306_SetCursor(32, 48);
-    ssd1306_WriteString(main.menu_options[position], Font_7x10, White);
+        ssd1306_SetCursor(32, 30);
+        ssd1306_WriteString(menu_list[menu->menu_id][1], Font_7x10, White);
+
+        ssd1306_SetCursor(32, 46);
+        ssd1306_WriteString(menu_list[menu->menu_id][2], Font_7x10, White);
+
+        ssd1306_SetCursor(23, select_arrow_locations[menu->current_selection_id]);
+        ssd1306_WriteString(">", Font_6x8, White);
 
 
-    ssd1306_UpdateScreen();
+        ssd1306_UpdateScreen();
+        menu->ui_status = UI_WAITING_STATE;
+    }
+
+    if(menu->ui_status == UI_CONTROLLER_DETECTED)
+    {
+        ssd1306_SetCursor(23, select_arrow_locations[menu->current_selection_id]);
+        ssd1306_WriteString(">", Font_6x8, White);
+        ssd1306_UpdateScreen();
+    }
+
 }
 
 void frame_maker(void) {

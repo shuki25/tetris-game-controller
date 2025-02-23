@@ -77,11 +77,7 @@ saved_settings_t settings;
 extern TIM_HandleTypeDef htim3;
 
 // UI variables
-ui_menu_t menu;
-//main_menu->menu_options = { "Play game", "High Score", "Settings", "Credits" };
-//uint8_t select_arrow_locations[3] = { 14, 30, 46 };
-//uint8_t cursor_position = 0;
-//uint8_t array_position = 0;
+ui_menu_t * menu;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -325,8 +321,8 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-            ui_menu_id_set(menu, 0);
-        	ui_main_menu_selection(menu);
+//            ui_menu_id_set(menu, 0);
+//        	ui_main_menu_selection(menu);
 
 //            while(1)
 //            {
@@ -607,6 +603,31 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
+
+            ui_menu_id_set(&menu, 0);
+            ui_main_menu_selection(&menu);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    if(menu->current_selection_id == 0)
+                    {
+                        menu->ui_status=UI_WAITING_STATE;
+                    }
+                    menu->ui_status=UI_CONTROLLER_DETECTED;
+                    menu->current_selection_id = menu->current_selection_id - 1;
+                    ui_main_menu_selection(&menu);
+                    menu->ui_status=UI_WAITING_STATE;
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if(menu->current_selection_id == 2)
+                    {
+                        menu->ui_status=UI_WAITING_STATE;
+                    }
+                    menu->ui_status=UI_CONTROLLER_DETECTED;
+                    menu->current_selection_id = menu->current_selection_id + 1;
+                    ui_main_menu_selection(&menu);
+                    menu->ui_status=UI_WAITING_STATE;
+                }
+            }
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
