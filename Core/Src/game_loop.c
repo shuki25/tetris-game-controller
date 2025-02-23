@@ -514,6 +514,7 @@ void game_loop(void) {
 
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
+                matrix_status = merge_with_stack(&matrix);
 
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
@@ -585,7 +586,7 @@ void game_loop(void) {
                 }
             }
 
-            rendering_status = renderer_render(&renderer, &matrix);
+            rendering_status = renderer_render(&renderer, &matrix, &tetrimino);
             if (rendering_status == RENDERER_UPDATED) {
                 render_count++;
             }

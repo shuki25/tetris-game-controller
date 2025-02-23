@@ -25,6 +25,8 @@
 #include "main.h"
 #include "itm_debug.h"
 #include "util.h"
+#include "tetrimino_shape.h"
+
 
 uint8_t generate_lookup_table() {
     uint16_t led_id = 0;
@@ -114,7 +116,7 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer) {
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino) {
 
     uint32_t two_rows_bitmap = 0;
     uint32_t two_rows_stack_bitmap = 0;
@@ -195,6 +197,28 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
         }
     }
 
+    tetrimino_piece_t next_piece = tetrimino->next_piece;
+
+    uint8_t shape_offset = tetrimino_shape_offset_lut[next_piece][tetrimino_preview[next_piece]];
+    uint8_t bitmap = 0;
+    uint8_t preview_x = 12;
+    uint8_t preview_y = 14;
+
+    for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
+        bitmap = tetrimino_shape[shape_offset + i];
+        preview_x = 15;
+        for (int j = 0; j < TETRIMINO_BLOCK_SIZE - 1; j++) {
+            if (bitmap & (1 << (j + 1))) {
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], 0, 0, 64);
+            } else {
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], 0, 0, 0);
+            }
+            preview_x--;
+        }
+        preview_y--;
+    }
+    // Render next tetrimino
+
     WS2812_send(renderer->led);
 
     render_end_time = TIM2->CNT;
@@ -214,7 +238,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
  * @brief  Clear WS2812 LED matrix
  * @param  None
  * @retval None
- */
+*/
 void renderer_clear(void) {
     // TODO: Clear WS2812 LED matrix
 }

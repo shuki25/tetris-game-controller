@@ -27,7 +27,7 @@
 #include "matrix.h"
 #include "color_palette.h"
 #include "game_loop.h"
-
+#include "tetrimino.h"
 #define MAX_PLAYFIELD_HEIGHT (20)
 #define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
 #define RENDERER_OFFSET_X (1)
@@ -71,6 +71,6 @@ renderer_status_t renderer_init(renderer_t *renderer,
 		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
 		led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
 		uint32_t delay_length);
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix);
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino);
 renderer_status_t renderer_test_render(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */
