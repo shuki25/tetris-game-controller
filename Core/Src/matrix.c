@@ -81,13 +81,13 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
 
     // Check if tetrimino has reached beyond the bottom of the matrix
-//    for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
-//        // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
-//        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT) {
-//            return MATRIX_REACHED_BOTTOM;
-//        }
-//        row_index--;
-//    }
+    for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
+        // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
+        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT) {
+            return MATRIX_REACHED_BOTTOM;
+        }
+        row_index--;
+    }
 
 // Superimpose tetrimino on playfield
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
