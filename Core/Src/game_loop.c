@@ -515,7 +515,6 @@ void game_loop(void) {
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
                 matrix_status = merge_with_stack(&matrix);
-                renderer_render(&renderer, &matrix);
 
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
