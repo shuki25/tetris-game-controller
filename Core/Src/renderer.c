@@ -27,7 +27,6 @@
 #include "util.h"
 #include "tetrimino_shape.h"
 
-
 uint8_t generate_lookup_table() {
     uint16_t led_id = 0;
 
@@ -116,7 +115,8 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer) {
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino, game_t *game) {
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino,
+        game_t *game) {
 
     uint32_t two_rows_bitmap = 0;
     uint32_t two_rows_stack_bitmap = 0;
@@ -160,14 +160,18 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
 
             // current playing field (current piece)
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green, current_piece_color.blue); // TODO: Set color based on palette lookup table
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green,
+                        current_piece_color.blue); // Set color based on palette lookup table
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green, palette1_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green,
+                            palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green, palette2_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green,
+                            palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green, palette0_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green,
+                            palette0_color.blue);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
@@ -186,14 +190,18 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y + 1][x];
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green, current_piece_color.blue);
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green,
+                        current_piece_color.blue);
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green, palette1_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green,
+                            palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green, palette2_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green,
+                            palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green, palette0_color.blue);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green,
+                            palette0_color.blue);
                 }
             } else {
                 WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
@@ -215,7 +223,8 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
         preview_x = 15;
         for (int j = 0; j < TETRIMINO_BLOCK_SIZE - 1; j++) {
             if (bitmap & (1 << (j + 1))) {
-                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], next_color.red, next_color.green, next_color.blue);
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], next_color.red,
+                        next_color.green, next_color.blue);
             } else {
                 WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], 0, 0, 0);
             }
@@ -244,18 +253,48 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
  * @brief  Clear WS2812 LED matrix
  * @param  None
  * @retval None
-*/
+ */
 void renderer_clear(void) {
     // TODO: Clear WS2812 LED matrix
 }
 
+renderer_status_t renderer_top_out_start(renderer_t *renderer) {
+    renderer->top_out_flag = 1;
+    renderer->top_out_frame = 0;
+    renderer->top_out_timer = TIM2->CNT;
+
+    return RENDERER_OK;
+}
+
 /**
- * @brief  Show next tetrimino on WS2812 LED matrix
- * @param  tetrimino identifier
+ * @brief  Animate top out sequence
+ * @param  rendere
  * @retval None
  */
-void renderer_show_next_tetrimino(void) {
-    // TODO: Show next tetrimino on WS2812 LED matrix
+renderer_status_t renderer_top_out_animate(renderer_t *renderer) {
+    uint32_t top_out_time = TIM2->CNT;
+    uint32_t top_out_diff = util_time_diff_us(renderer->top_out_timer, top_out_time);
+    uint8_t row = renderer->top_out_frame + 1;
+
+    if (renderer->top_out_frame >= PLAYING_FIELD_HEIGHT) {
+        renderer->top_out_flag = 0;
+        return RENDERER_ANIMATION_DONE;
+    }
+
+    if (top_out_diff >= 100000 && renderer->top_out_flag) {
+        renderer->top_out_frame++;
+        renderer->top_out_timer = TIM2->CNT;
+
+        for (int i = 0; i < PLAYING_FIELD_WIDTH; i++) {
+            if (renderer->top_out_frame % 2 == 0) {
+                WS2812_set_LED(renderer->led, lookup_table[row][i + 1], 64, 0, 0);
+            } else {
+                WS2812_set_LED(renderer->led, lookup_table[row][i + 1], 0, 64, 0);
+            }
+        }
+    }
+    WS2812_send(renderer->led);
+    return RENDERER_OK;
 }
 
 renderer_status_t renderer_test_render(renderer_t *renderer) {

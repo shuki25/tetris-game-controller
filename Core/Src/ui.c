@@ -193,7 +193,6 @@ void ui_settings_menu() {
  * @retval None
  */
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us) {
-    // TODO: Calculate and display frames per second
     uint32_t fps = ((end_count - start_count) * 10000000) / time_us;
     ssd1306_SetCursor(0, 55);
     char fps_str[32];
@@ -222,6 +221,16 @@ void ui_display_game_info(game_t *game) {
     ssd1306_SetCursor(x, 10);
     ssd1306_WriteString(game_info_str, Font_6x8, White);
 
+    ssd1306_UpdateScreen();
+}
+
+void ui_display_top_out() {
+    ssd1306_SetCursor(25, 24);
+    ssd1306_WriteString("TOP OUT", Font_11x18, White);
+    ssd1306_SetCursor(0, 55);
+    ssd1306_WriteString("        ", Font_6x8, White);
+    ssd1306_SetCursor(37, 44);
+    ssd1306_WriteString("Game Over", Font_6x8, White);
     ssd1306_UpdateScreen();
 }
 
