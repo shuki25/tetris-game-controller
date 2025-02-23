@@ -72,6 +72,7 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
 void matrix_debug_print(matrix_t *matrix);
 uint32_t matrix_check_line_clear(matrix_t *matrix);
 uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear);
+matrix_status_t merge_with_stack(matrix_t *matrix);
 void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear);
 void matrix_copy(matrix_t *dest, matrix_t *src);
 
