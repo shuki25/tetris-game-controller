@@ -52,6 +52,14 @@ typedef enum {
 #define PLAYING_FIELD_EVEN_MASK (0x00001FF8)  // playfield mask for even rows
 #define PLAYING_FIELD_FILLED_ROW_MASK (0x1FF8)  // playfield filled row mask for checking line clear
 #define MATRIX_DATA_SIZE (PLAYING_FIELD_HEIGHT >> 1)  // divide by 2 as each uint32_t holds 2 rows
+#define CLEAR_LINE_NUM_FRAMES (5)   // number of frames for line clear animation
+#define CLEAR_LINE_DELAY (100000)   // delay between line clear frames in microseconds
+
+typedef struct {
+    uint8_t frame_nbr;
+    uint32_t animation_timer_start;
+    uint32_t animation_timer_delay; // in microseonds
+} matrix_animation_t;
 
 typedef struct {
     uint8_t height;
@@ -60,6 +68,11 @@ typedef struct {
     uint32_t stack[MATRIX_DATA_SIZE];
     uint32_t palette1[MATRIX_DATA_SIZE];
     uint32_t palette2[MATRIX_DATA_SIZE];
+    matrix_animation_t animation;
+    uint8_t tetris_flag;
+    uint8_t flash_counter;
+    uint8_t flash_flag;
+    uint32_t line_clear_bitmap;
 } matrix_t;
 
 // Function prototypes for matrix functions
@@ -72,7 +85,8 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
 matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino);
 void matrix_debug_print(matrix_t *matrix);
 uint32_t matrix_check_line_clear(matrix_t *matrix);
-uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear);
+void matrix_line_clear_start(matrix_t *matrix, uint32_t delay);
+uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear);
 matrix_status_t merge_with_stack(matrix_t *matrix);
 void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear);
 void matrix_copy(matrix_t *dest, matrix_t *src);

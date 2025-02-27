@@ -127,6 +127,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
     uint32_t render_start_time = 0;
     uint32_t render_end_time = 0;
     uint16_t led_num = 0;
+    uint8_t row_index = 0;
     uint8_t y = 0;
 
     // Check if it's time to update the LED matrix
@@ -174,9 +175,16 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
                             palette0_color.blue);
                 }
             } else {
-                WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                if (renderer->matrix->tetris_flag && renderer->matrix->flash_flag
+                        && !(renderer->matrix->line_clear_bitmap & (1 << row_index))) {
+                    WS2812_set_LED(renderer->led, led_num, 64, 64, 64);
+                } else {
+                    WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                }
             }
         }
+        row_index++;
+
         // render odd row
         working_playfield = two_rows_bitmap & PLAYING_FIELD_ODD_MASK;
         working_stack = two_rows_stack_bitmap & PLAYING_FIELD_ODD_MASK;
@@ -204,9 +212,15 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
                             palette0_color.blue);
                 }
             } else {
-                WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                if (renderer->matrix->tetris_flag && renderer->matrix->flash_flag
+                        && !(renderer->matrix->line_clear_bitmap & (1 << row_index))) {
+                    WS2812_set_LED(renderer->led, led_num, 64, 64, 64);
+                } else {
+                    WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                }
             }
         }
+        row_index++;
     }
 
     tetrimino_piece_t next_piece = tetrimino->next_piece;
@@ -235,6 +249,14 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
     // Render next tetrimino
 
     WS2812_send(renderer->led);
+
+    // Update the tetris flash effect
+    if (renderer->matrix->tetris_flag) {
+        renderer->matrix->flash_counter++;
+        if (renderer->matrix->flash_counter & 0x02) {
+            renderer->matrix->flash_flag = !renderer->matrix->flash_flag;
+        }
+    }
 
     render_end_time = TIM2->CNT;
     renderer->rendering_time = util_time_diff_us(render_start_time, render_end_time);

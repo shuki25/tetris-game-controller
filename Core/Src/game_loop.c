@@ -109,7 +109,6 @@ game_status_t game_init(void) {
     game.play_state = PLAY_STATE_NOT_STARTED;
     game.drop_time_delay = 1000000;
     game.lock_time_delay = 500000; // 0.5 seconds
-    game.line_clear_time_delay = 100000; // 0.1 seconds per LED pair
 
     return GAME_OK;
 }
@@ -516,7 +515,7 @@ void game_loop(void) {
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
                 matrix_status = merge_with_stack(&matrix);
-
+                matrix_reset_playfield(&matrix);
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
 #if DEBUG_OUTPUT
@@ -532,7 +531,11 @@ void game_loop(void) {
 #endif
                 if (lines_to_be_cleared) {
                     game.play_state = PLAY_STATE_LINE_CLEAR;
-                    game.line_clear_time_start = TIM2->CNT;
+                    matrix.line_clear_bitmap = lines_to_be_cleared;
+                    matrix_line_clear_start(&matrix, CLEAR_LINE_DELAY);
+                    if (util_bit_count(lines_to_be_cleared) == 4) {
+                        matrix.tetris_flag = 1;
+                    }
                 } else {
                     if (game.soft_drop_flag) {
                         game.score += game.soft_drop_lines;
@@ -544,19 +547,18 @@ void game_loop(void) {
 
             // TODO: Process line clear if needed
             if (game.play_state == PLAY_STATE_LINE_CLEAR) {
-                if (util_time_expired_delay(game.line_clear_time_start, game.line_clear_time_delay)) {
-                    if (matrix_line_clear(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
-                        if (game.soft_drop_flag) {
-                            game.score += game.soft_drop_lines;
-                            game.soft_drop_lines = 0;
-                        }
-                        game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
-                        game.drop_time_start = TIM2->CNT;
-                        game.lines += util_bit_count(lines_to_be_cleared);
-                        lines_to_be_cleared = 0;
-                        if (game.lines >= game.lines_to_next_level) {
-                            game.play_state = PLAY_STATE_TRANSITION_LEVEL;
-                        }
+                if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                    if (game.soft_drop_flag) {
+                        game.score += game.soft_drop_lines;
+                        game.soft_drop_lines = 0;
+                    }
+                    game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
+                    game.drop_time_start = TIM2->CNT;
+                    game.lines += util_bit_count(lines_to_be_cleared);
+                    lines_to_be_cleared = 0;
+                    matrix.tetris_flag = 0;
+                    if (game.lines >= game.lines_to_next_level) {
+                        game.play_state = PLAY_STATE_TRANSITION_LEVEL;
                     }
                 }
             }

@@ -85,8 +85,6 @@ typedef struct {
     uint32_t drop_time_start;
     uint32_t lock_time_delay; // in microseconds (determines lock length)
     uint32_t lock_time_start;
-    uint32_t line_clear_time_delay; // in microseconds (determines line clear speed)
-    uint32_t line_clear_time_start;
 } game_t;
 
 // Game loop function prototypes

@@ -19,11 +19,23 @@
  ******************************************************************************
  */
 
+#include "main.h"
 #include "matrix.h"
 #include "itm_debug.h"
 #include <string.h>
 #include "tetrimino_shape.h"
+#include "util.h"
 #include <stdint.h>
+
+//@formatter:off
+const uint16_t line_clear_mask[] = {
+    0b0000000000000000,  // 0x0000
+    0b0001000000001000, // 0x1008
+    0b0001100000011000, // 0x1818
+    0b0001110000111000, // 0x1C38
+    0b0001111001111000 // 0x1E78
+};
+//@formatter:on
 
 /**
  * @brief  Initialize bitboards (tetrimino, fallen blocks, palette)
@@ -51,6 +63,7 @@ matrix_status_t matrix_clear(matrix_t *matrix) {
         matrix->palette1[i] = 0;
         matrix->palette2[i] = 0;
     }
+    matrix->tetris_flag = 0;
     return MATRIX_OK;
 }
 
@@ -258,13 +271,57 @@ uint32_t matrix_check_line_clear(matrix_t *matrix) {
 }
 
 /**
- * @brief  Clear full rows
+ * @brief  Start line clear animation
+ * @param  matrix animation object, delay
+ * @retval None
+ */
+void matrix_line_clear_start(matrix_t *matrix, uint32_t delay) {
+    memset(&matrix->animation, 0, sizeof(matrix_animation_t));
+    matrix->animation.frame_nbr = CLEAR_LINE_NUM_FRAMES - 1;
+    matrix->animation.animation_timer_delay = delay;
+    matrix->animation.animation_timer_start = TIM2->CNT;
+}
+
+/**
+ * @brief  Animate line clear
  * @param  matrix_t, line_clear bitmap
  * @retval Returns status of the operation, true if line clear is complete
  */
-uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear) {
+uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
+
+    uint32_t working_stack_row;
+    uint32_t working_stack_mask;
+
     // TODO: Clear full rows
-    return 1;
+    // Check if line clear is complete and return true
+    if (!line_clear) {
+        return 1;
+    }
+
+    if (util_time_expired_delay(matrix->animation.animation_timer_start,
+            matrix->animation.animation_timer_delay)) {
+        for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
+            working_stack_row = matrix->stack[i / 2];
+            if (line_clear & (1 << i)) {
+                if (i % 2 == 0) { // Even row (LSB)
+                    working_stack_mask = 0xFFFF0000 | line_clear_mask[matrix->animation.frame_nbr]; // mask for even row and retain MSB
+                    working_stack_row &= working_stack_mask;
+                } else { // Odd row (MSB)
+                    working_stack_mask = line_clear_mask[matrix->animation.frame_nbr] << 16 | 0xFFFF; // mask for odd row and retain LSB
+                    working_stack_row &= working_stack_mask;
+                }
+                matrix->stack[i / 2] = working_stack_row;
+            }
+        }
+
+        if (matrix->animation.frame_nbr == 0) { // Final frame, line clear animation is complete
+            return 1;
+        }
+
+        matrix->animation.frame_nbr--;
+        matrix->animation.animation_timer_start = TIM2->CNT;
+    }
+    return 0;
 }
 
 /**
