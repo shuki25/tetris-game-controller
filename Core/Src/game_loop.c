@@ -87,11 +87,11 @@ int calculate_score(uint8_t lines_cleared, uint8_t level) {
         case 1:
             return (level * 40) + 40;
         case 2:
-            return (game.level * 100) + 100;
+            return (level * 100) + 100;
         case 3:
-            return (game.level * 300) + 300;
+            return (level * 300) + 300;
         case 4:
-            return (game.level * 1200) + 1200;
+            return (level * 1200) + 1200;
         default:
             return 0;
     }
@@ -567,9 +567,8 @@ void game_loop(void) {
                         game.score += game.soft_drop_lines;
                         game.soft_drop_lines = 0;
                     }
-                    // Update the score based on the number of lines cleared
-                    uint8_t lines_cleared = util_bit_count(lines_to_be_cleared);
-                    game.score += calculate_score(lines_cleared, game.level);
+                    // Update the score based on the number of lines cleared and game level
+                    game.score += calculate_score(util_bit_count(lines_to_be_cleared), game.level);
                     game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                     game.drop_time_start = TIM2->CNT;
                     game.lines += util_bit_count(lines_to_be_cleared);
