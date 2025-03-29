@@ -81,6 +81,21 @@ eeprom_id_t signature;
 led_indicator_t hb_led;
 led_indicator_t rj45_led;
 
+// Function to update the score based on the number of lines cleared
+int calculate_score(uint8_t lines_cleared, uint8_t level) {
+    switch (lines_cleared) {
+        case 1:
+            return (level * 40) + 40;
+        case 2:
+            return (level * 100) + 100;
+        case 3:
+            return (level * 300) + 300;
+        case 4:
+            return (level * 1200) + 1200;
+        default:
+            return 0;
+    }
+}
 /**
  * @brief  Splash screen
  * @param  None
@@ -552,6 +567,8 @@ void game_loop(void) {
                         game.score += game.soft_drop_lines;
                         game.soft_drop_lines = 0;
                     }
+                    // Update the score based on the number of lines cleared and game level
+                    game.score += calculate_score(util_bit_count(lines_to_be_cleared), game.level);
                     game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                     game.drop_time_start = TIM2->CNT;
                     game.lines += util_bit_count(lines_to_be_cleared);
