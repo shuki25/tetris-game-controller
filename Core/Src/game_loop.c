@@ -152,6 +152,7 @@ void game_loop(void) {
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
     matrix_t temp_matrix;
+    matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
@@ -395,11 +396,22 @@ void game_loop(void) {
             if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
                 tetrimino_copy(&temp_tetrimino, &tetrimino);
                 matrix_copy(&temp_matrix, &matrix);
+                matrix_copy(&rotate_check_matrix, &matrix);
                 matrix_update_flag = 0;
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
+                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
+                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
+                        tetrimino_status = TETRIMINO_REFRESH;
+                    }
                 } else if (controller_current_buttons & SNES_BUTTON_B) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
+                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
+                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
+                        tetrimino_status = TETRIMINO_REFRESH;
+                    }
                 } else if (controller_current_buttons & SNES_BUTTON_R) {
                     tetrimino.piece++;
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
@@ -579,7 +591,6 @@ void game_loop(void) {
                 }
             }
 
-            // TODO: Process line clear if needed
             if (game.play_state == PLAY_STATE_LINE_CLEAR) {
                 if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
                     if (game.soft_drop_flag) {
