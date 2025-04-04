@@ -550,8 +550,22 @@ void game_loop(void) {
                 }
             } else {
                 if (game.play_state == PLAY_STATE_HALF_SECOND_B4_LOCK) {
-                    if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
-                        game.play_state = PLAY_STATE_LOCKED;
+                    // Check if tetrimino still can fall down unobstructed, if so, revert to normal play state
+                    tetrimino_copy(&temp_tetrimino, &tetrimino);
+                    matrix_copy(&temp_matrix, &matrix);
+                    if (temp_tetrimino.y > 0) {
+                        temp_tetrimino.y--;
+                    }
+                    matrix_status = matrix_add_tetrimino(&temp_matrix, &temp_tetrimino);
+                    if (matrix_status != MATRIX_REACHED_BOTTOM && temp_tetrimino.y > 0
+                            && matrix_check_collision(&temp_matrix, &temp_tetrimino) == MATRIX_OK) {
+                        // No collision detected, revert to normal play state
+                        game.play_state = PLAY_STATE_NORMAL;
+                        game.drop_time_start = TIM2->CNT;
+                    } else {
+                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+                            game.play_state = PLAY_STATE_LOCKED;
+                        }
                     }
                 }
             }
