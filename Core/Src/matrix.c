@@ -19,11 +19,23 @@
  ******************************************************************************
  */
 
+#include "main.h"
 #include "matrix.h"
 #include "itm_debug.h"
 #include <string.h>
 #include "tetrimino_shape.h"
+#include "util.h"
 #include <stdint.h>
+
+//@formatter:off
+const uint16_t line_clear_mask[] = {
+    0b0000000000000000,  // 0x0000
+    0b0001000000001000, // 0x1008
+    0b0001100000011000, // 0x1818
+    0b0001110000111000, // 0x1C38
+    0b0001111001111000 // 0x1E78
+};
+//@formatter:on
 
 /**
  * @brief  Initialize bitboards (tetrimino, fallen blocks, palette)
@@ -36,6 +48,22 @@ matrix_status_t matrix_init(matrix_t *matrix) {
     matrix->width = MATRIX_WIDTH;
     matrix_reset_playfield(matrix);
 
+    return MATRIX_OK;
+}
+
+/**
+ * @brief  Reset matrix object
+ * @param  matrix object
+ * @retval None
+ */
+matrix_status_t matrix_clear(matrix_t *matrix) {
+    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+        matrix->playfield[i] = 0;
+        matrix->stack[i] = 0;
+        matrix->palette1[i] = 0;
+        matrix->palette2[i] = 0;
+    }
+    matrix->tetris_flag = 0;
     return MATRIX_OK;
 }
 
@@ -83,13 +111,13 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     // Check if tetrimino has reached beyond the bottom of the matrix
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
-        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT) {
+        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT + 10) {
             return MATRIX_REACHED_BOTTOM;
         }
         row_index--;
     }
 
-    // Superimpose tetrimino on playfield
+// Superimpose tetrimino on playfield
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         if (row_index >= PLAYING_FIELD_HEIGHT) { // Check if row is within visible bounds
@@ -132,8 +160,6 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     }
 
     return MATRIX_REFRESH;
-
-    // TODO: Update palette bitboards
 }
 
 /**
@@ -169,12 +195,12 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
         if (temp_tetrimino.y > 0) {
         }
         break;
-//    case MOVE_UP:
-//        temp_tetrimino.y++;
-//        if (temp_tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
-//            temp_tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
-//        }
-//        break;
+    case MOVE_UP:
+        temp_tetrimino.y++;
+        if (temp_tetrimino.y >= PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y) {
+            temp_tetrimino.y = PLAYING_FIELD_HEIGHT + TETRIMINO_CENTER_Y - 1;
+        }
+        break;
     default:
         return MATRIX_ERROR;
         break;
@@ -200,30 +226,11 @@ matrix_status_t matrix_move_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino,
 }
 
 /**
- * @brief  Flatten bitboards into final matrix
- * @param  bitboards
- * @retval None
- */
-void matrix_flatten(void) {
-    // TODO: Flatten bitboards (tetrimino, fallen blocks, palette) into final matrix
-}
-
-/**
- * @brief  Clear fallen blocks from matrix
- * @param  None
- * @retval None
- */
-void matrix_clear(void) {
-    // TODO: Clear fallen blocks from matrix
-}
-
-/**
  * @brief  Check for collision between tetrimino, boundaries, and fallen blocks
  * @param  bitboards
  * @retval True if collision, false otherwise
  */
 matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino) {
-    // TODO: Check for collision between tetrimino, boundaries, and fallen blocks
     uint8_t row_index;
     uint32_t working_playfield = 0;
     uint32_t working_stack = 0;
@@ -234,7 +241,6 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
         if (working_stack & working_playfield) {
             return MATRIX_STACK_COLLISION;
         }
-
     }
     return MATRIX_OK;
 }
@@ -245,7 +251,6 @@ matrix_status_t matrix_check_collision(matrix_t *matrix, tetrimino_t *tetrimino)
  * @retval Returns which rows are marked for line clear by bit position
  */
 uint32_t matrix_check_line_clear(matrix_t *matrix) {
-    // TODO: Check for line clear (full rows)
     uint32_t stack;
     uint32_t line_clear = 0; // Covers 20 rows in the playfield
 
@@ -266,13 +271,77 @@ uint32_t matrix_check_line_clear(matrix_t *matrix) {
 }
 
 /**
- * @brief  Clear full rows
+ * @brief  Start line clear animation
+ * @param  matrix animation object, delay
+ * @retval None
+ */
+void matrix_line_clear_start(matrix_t *matrix, uint32_t delay) {
+    memset(&matrix->animation, 0, sizeof(matrix_animation_t));
+    matrix->animation.frame_nbr = CLEAR_LINE_NUM_FRAMES - 1;
+    matrix->animation.animation_timer_delay = delay;
+    matrix->animation.animation_timer_start = TIM2->CNT;
+}
+
+/**
+ * @brief  Animate line clear
  * @param  matrix_t, line_clear bitmap
  * @retval Returns status of the operation, true if line clear is complete
  */
-uint8_t matrix_line_clear(matrix_t *matrix, uint32_t line_clear) {
+uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
+
+    uint32_t working_stack_row;
+    uint32_t working_stack_mask;
+
     // TODO: Clear full rows
-    return 1;
+    // Check if line clear is complete and return true
+    if (!line_clear) {
+        return 1;
+    }
+
+    if (util_time_expired_delay(matrix->animation.animation_timer_start,
+            matrix->animation.animation_timer_delay)) {
+        for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
+            working_stack_row = matrix->stack[i / 2];
+            if (line_clear & (1 << i)) {
+                if (i % 2 == 0) { // Even row (LSB)
+                    working_stack_mask = 0xFFFF0000 | line_clear_mask[matrix->animation.frame_nbr]; // mask for even row and retain MSB
+                    working_stack_row &= working_stack_mask;
+                } else { // Odd row (MSB)
+                    working_stack_mask = line_clear_mask[matrix->animation.frame_nbr] << 16 | 0xFFFF; // mask for odd row and retain LSB
+                    working_stack_row &= working_stack_mask;
+                }
+                matrix->stack[i / 2] = working_stack_row;
+            }
+        }
+
+        if (matrix->animation.frame_nbr == 0) { // Final frame, line clear animation is complete
+            return 1;
+        }
+
+        matrix->animation.frame_nbr--;
+        matrix->animation.animation_timer_start = TIM2->CNT;
+    }
+    return 0;
+}
+
+/**
+ * @brief  merge tetrimino to stack
+ * @param  matrix_t
+ * @retval None
+ */
+
+matrix_status_t merge_with_stack(matrix_t *matrix) {
+    uint32_t working_stack_row;
+    uint32_t working_playfield_row;
+    matrix_t temp;
+    matrix_copy(&temp, matrix);
+    for (int i = 0; i < PLAYING_FIELD_HEIGHT / 2; i++) {
+        working_stack_row = matrix->stack[i];
+        working_playfield_row = matrix->playfield[i];
+        temp.stack[i] = working_stack_row | (working_playfield_row & PLAYING_FIELD_MASK);
+    }
+    matrix_copy(matrix, &temp);
+    return MATRIX_OK;
 }
 
 /**
