@@ -613,6 +613,9 @@ void game_loop(void) {
                     }
                     // Update the score based on the number of lines cleared and game level
                     game.score += calculate_score(util_bit_count(lines_to_be_cleared), game.level);
+
+                    // Reposition blocks after clearing lines
+                    matrix_reposition_blocks(&matrix, lines_to_be_cleared);
                     game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                     game.drop_time_start = TIM2->CNT;
                     game.lines += util_bit_count(lines_to_be_cleared);
