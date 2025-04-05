@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
- * @file           : util.h
- * @author         : josh
- * @date           : Jan 7, 2025
- * @brief          :
+ * @file           : color_palette.c
+ * @author         : Yoel Buzgalo, Dr. Joshua Butler
+ * @date           : Feb 22, 2025
+ * @brief          : Color palette for Tetris shapes
  ******************************************************************************
  * @attention
  *
@@ -19,18 +19,21 @@
  ******************************************************************************
  */
 
-#ifndef INC_UTIL_H_
-#define INC_UTIL_H_
+#ifndef INC_COLOR_PALETTE_H_
+#define INC_COLOR_PALETTE_H_
 
 #include <stdint.h>
+#define COLOR_PALETTE_ROTATIONS (10)
+#define COLOR_PALETTES (3)
 
-uint8_t util_time_expired_delay(uint32_t start, uint32_t delay);
-uint8_t util_time_expired(uint32_t start, uint32_t end);
-uint32_t util_time_diff_us(uint32_t start, uint32_t end);
-void util_delay_us(uint32_t us);
-void util_to_binary32(uint32_t num, char *binary);
-void util_to_binary16(uint16_t num, char *binary);
-void util_to_binary8(uint8_t num, char *binary);
-uint8_t util_bit_count(uint32_t num);
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} color_t;
 
-#endif /* INC_UTIL_H_ */
+extern const color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES];  // Declare but don't define
+
+color_t get_color_palette(int current_level, int shape_id);
+
+#endif /* INC_COLOR_PALETTE_H_ */

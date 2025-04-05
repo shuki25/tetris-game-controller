@@ -25,6 +25,7 @@
 #include "main.h"
 #include "itm_debug.h"
 #include "util.h"
+#include "tetrimino_shape.h"
 
 uint8_t generate_lookup_table() {
     uint16_t led_id = 0;
@@ -114,7 +115,8 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer) {
  * @param  None
  * @retval None
  */
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino,
+        game_t *game) {
 
     uint32_t two_rows_bitmap = 0;
     uint32_t two_rows_stack_bitmap = 0;
@@ -125,6 +127,7 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
     uint32_t render_start_time = 0;
     uint32_t render_end_time = 0;
     uint16_t led_num = 0;
+    uint8_t row_index = 0;
     uint8_t y = 0;
 
     // Check if it's time to update the LED matrix
@@ -133,6 +136,11 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
     }
 
     render_start_time = TIM2->CNT;
+
+    color_t current_piece_color = get_color_palette(game->level, tetrimino->piece);
+    color_t palette0_color = get_color_palette(game->level, 0);
+    color_t palette1_color = get_color_palette(game->level, 1);
+    color_t palette2_color = get_color_palette(game->level, 2);
 
     // Render tetrimino in the playfield attribute
     for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
@@ -150,20 +158,33 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
         for (int j = 0, x = PLAYING_FIELD_WIDTH + RENDERER_OFFSET_X - 1; j < PLAYING_FIELD_WIDTH; j++, x--) {
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y][x];
+
+            // current playing field (current piece)
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, 0, 32, 0); // TODO: Set color based on palette lookup table
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green,
+                        current_piece_color.blue); // Set color based on palette lookup table
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, 64, 0, 0);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green,
+                            palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, 0, 0, 32);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green,
+                            palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, 0, 32, 64);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green,
+                            palette0_color.blue);
                 }
             } else {
-                WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                if (renderer->matrix->tetris_flag && renderer->matrix->flash_flag
+                        && !(renderer->matrix->line_clear_bitmap & (1 << row_index))) {
+                    WS2812_set_LED(renderer->led, led_num, 64, 64, 64);
+                } else {
+                    WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                }
             }
         }
+        row_index++;
+
         // render odd row
         working_playfield = two_rows_bitmap & PLAYING_FIELD_ODD_MASK;
         working_stack = two_rows_stack_bitmap & PLAYING_FIELD_ODD_MASK;
@@ -177,22 +198,65 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix) {
             y = (i * 2) + RENDERER_OFFSET_Y;
             led_num = lookup_table[y + 1][x];
             if (working_playfield >> j & 1) {
-                WS2812_set_LED(renderer->led, led_num, 0, 32, 0);
+                WS2812_set_LED(renderer->led, led_num, current_piece_color.red, current_piece_color.green,
+                        current_piece_color.blue);
             } else if (working_stack >> j & 1) {
                 if (working_palette1 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, 64, 0, 0);
+                    WS2812_set_LED(renderer->led, led_num, palette1_color.red, palette1_color.green,
+                            palette1_color.blue);
                 } else if (working_palette2 >> j & 1) {
-                    WS2812_set_LED(renderer->led, led_num, 0, 0, 32);
+                    WS2812_set_LED(renderer->led, led_num, palette2_color.red, palette2_color.green,
+                            palette2_color.blue);
                 } else {
-                    WS2812_set_LED(renderer->led, led_num, 0, 32, 64);
+                    WS2812_set_LED(renderer->led, led_num, palette0_color.red, palette0_color.green,
+                            palette0_color.blue);
                 }
             } else {
-                WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                if (renderer->matrix->tetris_flag && renderer->matrix->flash_flag
+                        && !(renderer->matrix->line_clear_bitmap & (1 << row_index))) {
+                    WS2812_set_LED(renderer->led, led_num, 64, 64, 64);
+                } else {
+                    WS2812_set_LED(renderer->led, led_num, 0, 0, 0);
+                }
             }
         }
+        row_index++;
     }
 
+    tetrimino_piece_t next_piece = tetrimino->next_piece;
+
+    color_t next_color = get_color_palette(game->level, next_piece);
+
+    uint8_t shape_offset = tetrimino_shape_offset_lut[next_piece][tetrimino_preview[next_piece]];
+    uint8_t bitmap = 0;
+    uint8_t preview_x = 12;
+    uint8_t preview_y = 14;
+
+    for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
+        bitmap = tetrimino_shape[shape_offset + i];
+        preview_x = 15;
+        for (int j = 0; j < TETRIMINO_BLOCK_SIZE - 1; j++) {
+            if (bitmap & (1 << (j + 1))) {
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], next_color.red,
+                        next_color.green, next_color.blue);
+            } else {
+                WS2812_set_LED(renderer->led, lookup_table[preview_y][preview_x], 0, 0, 0);
+            }
+            preview_x--;
+        }
+        preview_y--;
+    }
+    // Render next tetrimino
+
     WS2812_send(renderer->led);
+
+    // Update the tetris flash effect
+    if (renderer->matrix->tetris_flag) {
+        renderer->matrix->flash_counter++;
+        if (renderer->matrix->flash_counter & 0x02) {
+            renderer->matrix->flash_flag = !renderer->matrix->flash_flag;
+        }
+    }
 
     render_end_time = TIM2->CNT;
     renderer->rendering_time = util_time_diff_us(render_start_time, render_end_time);
@@ -216,13 +280,43 @@ void renderer_clear(void) {
     // TODO: Clear WS2812 LED matrix
 }
 
+renderer_status_t renderer_top_out_start(renderer_t *renderer) {
+    renderer->top_out_flag = 1;
+    renderer->top_out_frame = 0;
+    renderer->top_out_timer = TIM2->CNT;
+
+    return RENDERER_OK;
+}
+
 /**
- * @brief  Show next tetrimino on WS2812 LED matrix
- * @param  tetrimino identifier
+ * @brief  Animate top out sequence
+ * @param  rendere
  * @retval None
  */
-void renderer_show_next_tetrimino(void) {
-    // TODO: Show next tetrimino on WS2812 LED matrix
+renderer_status_t renderer_top_out_animate(renderer_t *renderer) {
+    uint32_t top_out_time = TIM2->CNT;
+    uint32_t top_out_diff = util_time_diff_us(renderer->top_out_timer, top_out_time);
+    uint8_t row = renderer->top_out_frame + 1;
+
+    if (renderer->top_out_frame >= PLAYING_FIELD_HEIGHT) {
+        renderer->top_out_flag = 0;
+        return RENDERER_ANIMATION_DONE;
+    }
+
+    if (top_out_diff >= 100000 && renderer->top_out_flag) {
+        renderer->top_out_frame++;
+        renderer->top_out_timer = TIM2->CNT;
+
+        for (int i = 0; i < PLAYING_FIELD_WIDTH; i++) {
+            if (renderer->top_out_frame % 2 == 0) {
+                WS2812_set_LED(renderer->led, lookup_table[row][i + 1], 64, 0, 0);
+            } else {
+                WS2812_set_LED(renderer->led, lookup_table[row][i + 1], 0, 64, 0);
+            }
+        }
+    }
+    WS2812_send(renderer->led);
+    return RENDERER_OK;
 }
 
 renderer_status_t renderer_test_render(renderer_t *renderer) {

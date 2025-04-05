@@ -25,7 +25,9 @@
 #include <stdint.h>
 #include "ws2812.h"
 #include "matrix.h"
-
+#include "color_palette.h"
+#include "game_loop.h"
+#include "tetrimino.h"
 #define MAX_PLAYFIELD_HEIGHT (20)
 #define MAX_PLAYFIELD_WIDTH (MATRIX_WIDTH - 5)
 #define RENDERER_OFFSET_X (1)
@@ -35,27 +37,31 @@ extern uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
 // TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
 typedef enum {
-	RENDERER_OK = 0,
-	RENDERER_ERROR,
-	RENDERER_WS2812_ERROR,
-	RENDERER_NOT_READY,
-	RENDERER_UPDATED
+    RENDERER_OK = 0,
+    RENDERER_ERROR,
+    RENDERER_WS2812_ERROR,
+    RENDERER_NOT_READY,
+    RENDERER_UPDATED,
+    RENDERER_ANIMATION_DONE
 } renderer_status_t;
 
 // TODO: Defines for LED matrix dimensions (e.g. LED_MATRIX_WIDTH, LED_MATRIX_HEIGHT)
 
 // TODO: Typedef for LED matrix struct (e.g. led_matrix_t)
 typedef struct {
-	uint8_t data_sent_flag;
-	uint8_t brightness;
-	uint32_t time_last_sent;
-	uint32_t next_update_time;
-	uint32_t delay_length; // in microseconds (determines refresh rate)
-	uint32_t rendering_time; // in microseconds (measures actual rendering time)
-	uint16_t led_position;
-	uint16_t num_leds;
-	matrix_t *matrix;
-	led_t *led;
+    uint8_t data_sent_flag;
+    uint8_t brightness;
+    uint32_t time_last_sent;
+    uint32_t next_update_time;
+    uint32_t delay_length; // in microseconds (determines refresh rate)
+    uint32_t rendering_time; // in microseconds (measures actual rendering time)
+    uint8_t top_out_flag;  // flag for top out animation
+    uint8_t top_out_frame; // frame for top out animation
+    uint32_t top_out_timer; // timer for top out animation
+    uint16_t led_position;
+    uint16_t num_leds;
+    matrix_t *matrix;
+    led_t *led;
 
 } renderer_t;
 
@@ -65,10 +71,12 @@ renderer_status_t renderer_create_boundary(renderer_t *renderer);
 
 // TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
-renderer_status_t renderer_init(renderer_t *renderer,
-		uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH], matrix_t *matrix,
-		led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel,
-		uint32_t delay_length);
-renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix);
+renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH],
+        matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel, uint32_t delay_length);
+renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino,
+        game_t *game);
+void renderer_clear(void);
+renderer_status_t renderer_top_out_start(renderer_t *renderer);
+renderer_status_t renderer_top_out_animate(renderer_t *renderer);
 renderer_status_t renderer_test_render(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */

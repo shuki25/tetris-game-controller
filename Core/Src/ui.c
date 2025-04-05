@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include "ssd1306.h" // for OLED screen
 #include "ui.h"
-#include "cmsis_os.h" // for "sleep" function
 #include "splash_bitmap.h"
 
 //uint8_t select_arrow_locations[3] = { 14, 30, 46 };
@@ -97,7 +96,7 @@ void ui_splash_screen() {
         ssd1306_WriteString("    ", Font_16x24, White);
         ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     bitmap_number++;
@@ -108,7 +107,7 @@ void ui_splash_screen() {
         ssd1306_UpdateScreen();
         ssd1306_SetCursor((i - 5), 0); // to clean up after displaying
         ssd1306_WriteString("     ", Font_16x26, White);
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     bitmap_number++;
@@ -118,7 +117,7 @@ void ui_splash_screen() {
         ssd1306_SetCursor(i, 0);
         ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     for (int i = 0; i < 30; i += 10) { // Moves down
@@ -129,7 +128,7 @@ void ui_splash_screen() {
         ssd1306_SetCursor(66, i);
         ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13, White);
         ssd1306_UpdateScreen();
-        osDelay(350);
+        HAL_Delay(250);
     }
 
     for (int i = 0; i < 8; i++) { // Light flashing
@@ -148,7 +147,7 @@ void ui_splash_screen() {
             ssd1306_WriteString("presents...", Font_6x8, Black);
 
             ssd1306_UpdateScreen();
-            osDelay(50);
+            HAL_Delay(40);
         }
         ssd1306_Fill(Black);
 
@@ -164,7 +163,8 @@ void ui_splash_screen() {
         ssd1306_WriteString("presents...", Font_6x8, White);
 
         ssd1306_UpdateScreen();
-        osDelay(50);
+        HAL_Delay(40);
+//        HAL_Delay(50);
     }
 
     ssd1306_Fill(Black);
@@ -179,11 +179,11 @@ void ui_splash_screen() {
 //        ssd1306_SetCursor(30, 55);
 //        ssd1306_WriteString("Press start", Font_6x8, White);
 //        ssd1306_UpdateScreen();
-//        osDelay(600);
+//        HAL_Delay(600);
 //        ssd1306_SetCursor(30, 55);
 //        ssd1306_WriteString("                ", Font_6x8, White); // erasing
 //        ssd1306_UpdateScreen();
-//        osDelay(600);
+//        HAL_Delay(600);
 //    }
 
 }
@@ -299,13 +299,44 @@ void ui_settings_menu() {
  * @retval None
  */
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us) {
-    // TODO: Calculate and display frames per second
     uint32_t fps = ((end_count - start_count) * 10000000) / time_us;
     ssd1306_SetCursor(0, 55);
     char fps_str[32];
     memset(fps_str, 0, sizeof(fps_str));
     sprintf(fps_str, "fps:%d.%d   ", (int) (fps / 10), (int) (fps % 10));
     ssd1306_WriteString(fps_str, Font_6x8, White);
+    ssd1306_UpdateScreen();
+}
+
+void ui_display_game_info(game_t *game) {
+    uint8_t x;
+
+    char game_info_str[32];
+    memset(game_info_str, 0, sizeof(game_info_str));
+    ssd1306_SetCursor(0, 2);
+    sprintf(game_info_str, "%07ld", game->score);
+    ssd1306_WriteString(game_info_str, Font_11x18, White);
+
+    sprintf(game_info_str, "%ld", game->lines);
+    x = 128 - strlen(game_info_str) * 6;
+    ssd1306_SetCursor(x, 0);
+    ssd1306_WriteString(game_info_str, Font_6x8, White);
+
+    sprintf(game_info_str, "LVL: %ld", game->level);
+    x = 128 - strlen(game_info_str) * 6;
+    ssd1306_SetCursor(x, 10);
+    ssd1306_WriteString(game_info_str, Font_6x8, White);
+
+    ssd1306_UpdateScreen();
+}
+
+void ui_display_top_out() {
+    ssd1306_SetCursor(25, 24);
+    ssd1306_WriteString("TOP OUT", Font_11x18, White);
+    ssd1306_SetCursor(0, 55);
+    ssd1306_WriteString("        ", Font_6x8, White);
+    ssd1306_SetCursor(37, 44);
+    ssd1306_WriteString("Game Over", Font_6x8, White);
     ssd1306_UpdateScreen();
 }
 

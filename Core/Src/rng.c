@@ -1,23 +1,23 @@
 /**
-  ******************************************************************************
-  * @file           : rng.c
-  * @author         : Dr. Joshua Butler
-  * @date           : Dec 9, 2024
-  * @brief          : Random number generator for selecting the next tetrimino
-  ******************************************************************************
-  * @attention
-  *
-  * 2025 Imagine RIT Project: Classic Tetris on LED Grid
-  *
-  * Copyright (c) 2024-25 Rochester Institute of Technology.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : rng.c
+ * @author         : Dr. Joshua Butler
+ * @date           : Dec 9, 2024
+ * @brief          : Random number generator for selecting the next tetrimino
+ ******************************************************************************
+ * @attention
+ *
+ * 2025 Imagine RIT Project: Classic Tetris on LED Grid
+ *
+ * Copyright (c) 2024-25 Rochester Institute of Technology.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 
 /**
  ********************************************************************************
@@ -31,7 +31,6 @@
  *
  * The algorithm gives balanced choices for the next tetrimino.
  */
-
 
 #include <stdint.h>
 #include "rng.h"
@@ -58,7 +57,7 @@ void rng_init(uint16_t seed) {
  * @retval next chosen 16-bit random number
  */
 uint16_t rng_next(void) {
-    // TODO: Compute the next random number using LFSR algorithm from the seeding value
+    // Compute the next random number using LFSR algorithm from the seeding value
     uint16_t new_seed = rng_seed;
 
     // XOR bits 1 and 9
