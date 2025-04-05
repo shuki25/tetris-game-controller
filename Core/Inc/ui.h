@@ -37,6 +37,7 @@ typedef struct {
     uint8_t current_selection_id;
     ui_state_t ui_status;
     uint8_t ui_menu_list_size;
+    uint8_t offset_num;
 } ui_menu_t;
 
 
