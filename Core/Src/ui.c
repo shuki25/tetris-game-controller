@@ -42,10 +42,10 @@ const char *menu_title_list[] = {
 };
 
 const char *menu_list[][5] = {
-    {"Play game", "High Score", "Settings", "Credits", NULL}, // Start Menu
-    {"Classic", "Placeholder", "placeholder", NULL}, // Game mode menu
-    {"Continue", "Restart", "Quit", NULL}, // Pause menu
-    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID", NULL} // Settings menu
+    {"Play game", "High Score", "Settings", "Credits"}, // Start Menu
+    {"Classic", "Placeholder", "placeholder"}, // Game mode menu
+    {"Continue", "Restart", "Quit"}, // Pause menu
+    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID"} // Settings menu
 };
 
 const uint8_t select_arrow_locations[3] = { 14, 30, 46 };
@@ -60,17 +60,20 @@ void ui_init() {
     ssd1306_Init();
 }
 
-void ui_menu_init(ui_menu_t * menu) {
-    memset(menu, 0, sizeof(*menu));
-    menu->menu_id = 0;
-    menu->current_selection_id = 0;
-    menu->is_cursor_on = 0;
-    menu->cursor_timeout = 0;
-    menu->ui_status = UI_MENU_DRAW;
+void ui_menu_init(ui_menu_t menu) {
+//    memset(menu, 0, sizeof(*menu));
+    menu.menu_id = 0;
+    menu.current_selection_id = 0;
+    menu.cursor_selection_id = 0;
+    menu.is_cursor_on = 0;
+    menu.cursor_timeout = 0;
+    menu.ui_status = UI_MENU_DRAW;
+    menu.ui_menu_list_size = 0;
 }
 void ui_menu_id_set(ui_menu_t * menu, int menuID)
 {
     menu->menu_id = menuID;
+    menu->ui_menu_list_size = (sizeof(menu_list[menu->menu_id]) / sizeof(menu_list[menu->menu_id][0])-2);
 }
 
 void ui_splash_screen() {
@@ -193,6 +196,8 @@ void ui_main_menu_selection(ui_menu_t * menu) {
     // TODO: Display main menu selection
     if(menu->ui_status == UI_MENU_DRAW)
     {
+//        if()
+
         ssd1306_Fill(Black);
         frame_maker();
         ssd1306_SetCursor(34, 0);
@@ -209,20 +214,45 @@ void ui_main_menu_selection(ui_menu_t * menu) {
         ssd1306_SetCursor(32, 46);
         ssd1306_WriteString(menu_list[menu->menu_id][2], Font_7x10, White);
 
-        ssd1306_SetCursor(23, select_arrow_locations[menu->current_selection_id]);
+
+        if(menu->cursor_selection_id > 2)
+        {
+            menu->cursor_selection_id = 2;
+            ssd1306_SetCursor(23, select_arrow_locations[2]);
+            ssd1306_WriteString(">", Font_6x8, White);
+            ssd1306_UpdateScreen();
+
+        }
+        else if(menu->cursor_selection_id < 0)
+        {
+            menu->cursor_selection_id = 0;
+            ssd1306_SetCursor(23, select_arrow_locations[0]);
+            ssd1306_WriteString(">", Font_6x8, White);
+            ssd1306_UpdateScreen();
+        }
+
+        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
         ssd1306_WriteString(">", Font_6x8, White);
+        ssd1306_UpdateScreen();
 
 
         ssd1306_UpdateScreen();
         menu->ui_status = UI_WAITING_STATE;
     }
 
-    if(menu->ui_status == UI_CONTROLLER_DETECTED)
-    {
-        ssd1306_SetCursor(23, select_arrow_locations[menu->current_selection_id]);
-        ssd1306_WriteString(">", Font_6x8, White);
-        ssd1306_UpdateScreen();
-    }
+//    if(menu.ui_status == UI_CONTROLLER_DETECTED)
+//    {
+//        if(menu.current_selection_id < menu.ui_menu_list_size)
+//        {
+//            ssd1306_SetCursor(23, select_arrow_locations[menu.ui_menu_list_size]);
+//            ssd1306_WriteString(">", Font_6x8, White);
+//            ssd1306_UpdateScreen();
+//
+//        }
+//        ssd1306_SetCursor(23, select_arrow_locations[menu.current_selection_id]);
+//        ssd1306_WriteString(">", Font_6x8, White);
+//        ssd1306_UpdateScreen();
+//    }
 
 }
 

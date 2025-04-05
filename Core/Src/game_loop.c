@@ -77,7 +77,8 @@ saved_settings_t settings;
 extern TIM_HandleTypeDef htim3;
 
 // UI variables
-ui_menu_t * menu;
+ui_menu_t menu;
+ui_menu_t * menu_pointer;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -237,7 +238,8 @@ void game_loop(void) {
     }
 
     // Initialize menu system
-    ui_menu_init(&menu);
+    ui_menu_init(menu);
+    menu_pointer = &menu;
 
     rendering_status = renderer_create_boundary(&renderer);
 
@@ -604,28 +606,44 @@ void game_loop(void) {
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
 
-            ui_menu_id_set(&menu, 0);
-            ui_main_menu_selection(&menu);
+            ui_menu_id_set(menu_pointer, 0);
+            ui_main_menu_selection(menu_pointer);
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_UP) {
-                    if(menu->current_selection_id == 0)
+                    if(menu.current_selection_id == 0)
                     {
-                        menu->ui_status=UI_WAITING_STATE;
+                        menu.ui_status=UI_WAITING_STATE;
+                        menu.current_selection_id = 0;
+                        menu.cursor_selection_id = 0;
                     }
-                    menu->ui_status=UI_CONTROLLER_DETECTED;
-                    menu->current_selection_id = menu->current_selection_id - 1;
-                    ui_main_menu_selection(&menu);
-                    menu->ui_status=UI_WAITING_STATE;
+                    else
+                    {
+                        menu.ui_status=UI_MENU_DRAW;
+                        menu.current_selection_id = menu.current_selection_id - 1;
+                        if(menu.cursor_selection_id != 0)
+                        {
+                            menu.cursor_selection_id = menu.cursor_selection_id - 1;
+                        }
+                        ui_main_menu_selection(menu_pointer);
+                        menu.ui_status=UI_WAITING_STATE;
+                    }
                 }
                 if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    if(menu->current_selection_id == 2)
+                    if(menu.current_selection_id == menu.ui_menu_list_size)
                     {
-                        menu->ui_status=UI_WAITING_STATE;
+                        menu.ui_status=UI_WAITING_STATE;
                     }
-                    menu->ui_status=UI_CONTROLLER_DETECTED;
-                    menu->current_selection_id = menu->current_selection_id + 1;
-                    ui_main_menu_selection(&menu);
-                    menu->ui_status=UI_WAITING_STATE;
+                    else{
+                        menu.ui_status=UI_MENU_DRAW;
+                        menu.current_selection_id = menu.current_selection_id + 1;
+                        if(menu.cursor_selection_id != 2)
+                        {
+                            menu.cursor_selection_id = menu.cursor_selection_id + 1;
+                        }
+                        ui_main_menu_selection(menu_pointer);
+                        menu.ui_status=UI_WAITING_STATE;
+                    }
+
                 }
             }
 //            rendering_status = renderer_test_render(&renderer);
