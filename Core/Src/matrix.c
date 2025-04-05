@@ -26,6 +26,7 @@
 #include "tetrimino_shape.h"
 #include "util.h"
 #include <stdint.h>
+#include "color_palette.h"
 
 //@formatter:off
 const uint16_t line_clear_mask[] = {
@@ -111,7 +112,8 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
     // Check if tetrimino has reached beyond the bottom of the matrix
     for (int i = 0; i < TETRIMINO_BLOCK_SIZE; i++) {
         // When row_index becomes "negative", it rolls over to 255, it will be greater than PLAYING_FIELD
-        if (tetrimino_shape[shape_offset + i] && row_index >= PLAYING_FIELD_HEIGHT + 10) {
+        if (tetrimino_shape[shape_offset + i]
+                && row_index >= PLAYING_FIELD_HEIGHT + 10) {
             return MATRIX_REACHED_BOTTOM;
         }
         row_index--;
@@ -133,9 +135,13 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
 
         // Shift the row to the correct position
         if (tetrimino->x >= PLAYING_FIELD_WIDTH - TETRIMINO_CENTER_X) {
-            row_bitmap = row_bitmap >> (tetrimino->x - PLAYING_FIELD_WIDTH + TETRIMINO_CENTER_X + 1);
+            row_bitmap = row_bitmap
+                    >> (tetrimino->x - PLAYING_FIELD_WIDTH + TETRIMINO_CENTER_X
+                            + 1);
         } else {
-            row_bitmap = row_bitmap << (PLAYING_FIELD_WIDTH - (tetrimino->x + TETRIMINO_CENTER_X) - 1);
+            row_bitmap = row_bitmap
+                    << (PLAYING_FIELD_WIDTH
+                            - (tetrimino->x + TETRIMINO_CENTER_X) - 1);
         }
 
         // Add the row bitmap to the playfield
@@ -257,12 +263,14 @@ uint32_t matrix_check_line_clear(matrix_t *matrix) {
     for (int row = 0; row < PLAYING_FIELD_HEIGHT; row++) {
         stack = matrix->stack[row / 2]; // Get stack value for the row
         if (row % 2 == 0) { // Even row (LSB)
-            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK) == PLAYING_FIELD_FILLED_ROW_MASK) {
+            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK)
+                    == PLAYING_FIELD_FILLED_ROW_MASK) {
                 line_clear |= (1 << row);  // Mark row as full
             }
         } else { // Odd row (MSB)
             stack = stack >> 16; // Shift to get MSB
-            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK) == PLAYING_FIELD_FILLED_ROW_MASK) {
+            if ((stack & PLAYING_FIELD_FILLED_ROW_MASK)
+                    == PLAYING_FIELD_FILLED_ROW_MASK) {
                 line_clear |= (1 << row); // Mark row as full
             }
         }
@@ -291,6 +299,8 @@ uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
 
     uint32_t working_stack_row;
     uint32_t working_stack_mask;
+    uint32_t working_palette1_row;
+    uint32_t working_palette2_row;
 
     // TODO: Clear full rows
     // Check if line clear is complete and return true
@@ -304,13 +314,22 @@ uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
             working_stack_row = matrix->stack[i / 2];
             if (line_clear & (1 << i)) {
                 if (i % 2 == 0) { // Even row (LSB)
-                    working_stack_mask = 0xFFFF0000 | line_clear_mask[matrix->animation.frame_nbr]; // mask for even row and retain MSB
+                    working_stack_mask = 0xFFFF0000
+                            | line_clear_mask[matrix->animation.frame_nbr]; // mask for even row and retain MSB
                     working_stack_row &= working_stack_mask;
+                    working_palette1_row &= working_stack_mask;
+                    working_palette2_row &= working_stack_mask;
                 } else { // Odd row (MSB)
-                    working_stack_mask = line_clear_mask[matrix->animation.frame_nbr] << 16 | 0xFFFF; // mask for odd row and retain LSB
+                    working_stack_mask =
+                            line_clear_mask[matrix->animation.frame_nbr] << 16
+                                    | 0xFFFF; // mask for odd row and retain LSB
                     working_stack_row &= working_stack_mask;
+                    working_palette1_row &= working_stack_mask;
+                    working_palette2_row &= working_stack_mask;
                 }
                 matrix->stack[i / 2] = working_stack_row;
+                matrix->palette1[i / 2] = working_palette1_row;
+                matrix->palette2[i / 2] = working_palette2_row;
             }
         }
 
@@ -330,15 +349,29 @@ uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
  * @retval None
  */
 
-matrix_status_t merge_with_stack(matrix_t *matrix) {
+matrix_status_t merge_with_stack(matrix_t *matrix, tetrimino_t *tetrimino) {
     uint32_t working_stack_row;
     uint32_t working_playfield_row;
+    uint32_t working_palette1_row;
+    uint32_t working_palette2_row;
     matrix_t temp;
+
+    int shape_id_index = tetrimino->piece % COLOR_PALETTES;
+
     matrix_copy(&temp, matrix);
     for (int i = 0; i < PLAYING_FIELD_HEIGHT / 2; i++) {
         working_stack_row = matrix->stack[i];
+        working_palette1_row = matrix->palette1[i];
+        working_palette2_row = matrix->palette2[i];
         working_playfield_row = matrix->playfield[i];
         temp.stack[i] = working_stack_row | (working_playfield_row & PLAYING_FIELD_MASK);
+        if (shape_id_index == 1) {
+            temp.palette1[i] = working_palette1_row | (working_playfield_row & PLAYING_FIELD_MASK);
+        }
+
+        if (shape_id_index == 2) {
+            temp.palette2[i] = working_palette2_row | (working_playfield_row & PLAYING_FIELD_MASK);
+        }
     }
     matrix_copy(matrix, &temp);
     return MATRIX_OK;

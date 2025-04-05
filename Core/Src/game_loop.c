@@ -155,7 +155,8 @@ void game_loop(void) {
     matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
 
-    if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
+    if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t))
+            != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
         printf("Failed to initialize ring buffer\n");
 #endif
@@ -178,7 +179,8 @@ void game_loop(void) {
         high_score_ptrs[i] = &high_scores[i];
     }
 
-    eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
+    eeprom_status_t status = eeprom_verify_signature(&signature,
+    EEPROM_NUM_USED_PAGES);
     if (status == EEPROM_SIGNATURE_MISMATCH) {
 #if DEBUG_OUTPUT
         printf("EEPROM signature mismatch found\n");
@@ -252,8 +254,8 @@ void game_loop(void) {
 #endif
     }
 
-    rendering_status = renderer_init(&renderer, lookup_table, &matrix, &led, &htim3, TIM_CHANNEL_1,
-            render_delay);
+    rendering_status = renderer_init(&renderer, lookup_table, &matrix, &led,
+            &htim3, TIM_CHANNEL_1, render_delay);
 
     if (rendering_status == RENDERER_OK) {
 #if DEBUG_OUTPUT
@@ -300,19 +302,23 @@ void game_loop(void) {
         // Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
         controller_reading = snes_controller.buttons_state;
-        if (controller_status == SNES_CONTROLLER_DISCONNECTED && snes_controller.led_state == 1) {
+        if (controller_status == SNES_CONTROLLER_DISCONNECTED
+                && snes_controller.led_state == 1) {
             snes_controller.led_state = 0;
-            HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin,
+                    GPIO_PIN_RESET);
 #if DEBUG_OUTPUT
             printf("Controller disconnected\n");
 #endif
         } else if (controller_status != SNES_CONTROLLER_DISCONNECTED
-                && controller_status != SNES_CONTROLLER_NOT_READY && snes_controller.led_state == 0) {
+                && controller_status != SNES_CONTROLLER_NOT_READY
+                && snes_controller.led_state == 0) {
             snes_controller.led_state = 1;
             HAL_GPIO_WritePin(LED_SNES0_GPIO_Port, LED_SNES0_Pin, GPIO_PIN_SET);
         }
         if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
-            if (ring_buffer_enqueue(&controller_buffer, &snes_controller.buttons_state) == false) {
+            if (ring_buffer_enqueue(&controller_buffer,
+                    &snes_controller.buttons_state) == false) {
 #if DEBUG_OUTPUT
                 printf("Controller buffer is full. Dropping.\n");
 #endif
@@ -334,7 +340,8 @@ void game_loop(void) {
 
             /* ------------------------- SPLASH WAIT ------------------------ */
         case GAME_STATE_SPLASH_WAIT:
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+            if (ring_buffer_dequeue(&controller_buffer,
+                    &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
 //                    game.state = GAME_STATE_MENU;
                     game.state = GAME_STATE_PREPARE_GAME;
@@ -343,7 +350,7 @@ void game_loop(void) {
                     break;
                 }
             }
-            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+            if (util_time_expired_delay(press_start_timer_start, 500000)) { // 500ms
                 press_start_timer_start = TIM2->CNT;
                 press_start_state = !press_start_state;
                 ssd1306_SetCursor(30, 55);
@@ -387,7 +394,8 @@ void game_loop(void) {
 
             /* ---------------------- GAME IN PROGRESS ---------------------- */
         case GAME_STATE_GAME_IN_PROGRESS:
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+            if (ring_buffer_dequeue(&controller_buffer,
+                    &controller_current_buttons) == true) {
                 controller_status = SNES_CONTROLLER_STATE_CHANGE;
             } else {
                 controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
@@ -400,15 +408,19 @@ void game_loop(void) {
                 matrix_update_flag = 0;
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
-                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
-                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
+                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix,
+                            &tetrimino);
+                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino)
+                            == MATRIX_STACK_COLLISION) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
                 } else if (controller_current_buttons & SNES_BUTTON_B) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
-                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
-                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
+                    matrix_status = matrix_add_tetrimino(&rotate_check_matrix,
+                            &tetrimino);
+                    if (matrix_check_collision(&rotate_check_matrix, &tetrimino)
+                            == MATRIX_STACK_COLLISION) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
@@ -417,7 +429,8 @@ void game_loop(void) {
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
                         tetrimino.piece = 0;
                     }
-                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino.shape_offset =
+                            tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
 
                 }
@@ -426,7 +439,8 @@ void game_loop(void) {
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
                         tetrimino.piece = TETRIMINO_COUNT - 1;
                     }
-                    tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
+                    tetrimino.shape_offset =
+                            tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
                 }
 //                if (controller_current_buttons & SNES_BUTTON_UP) {
@@ -459,22 +473,32 @@ void game_loop(void) {
 //                }
 
                 if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT) == MATRIX_REFRESH) {
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT)
+                            == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
                     }
                 }
                 if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT) == MATRIX_REFRESH) {
+                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT)
+                            == MATRIX_REFRESH) {
                         matrix_update_flag = 1;
                     }
                 }
                 if (controller_current_buttons & SNES_BUTTON_Y) {
-                    game.drop_time_delay += 25000;
+//                    game.drop_time_delay += 25000;
+                    game.level++;
                 } else if (controller_current_buttons & SNES_BUTTON_X) {
-                    game.drop_time_delay -= 25000;
-                    if (game.drop_time_delay < 25000) {
-                        game.drop_time_delay = 25000;
+//                    game.drop_time_delay -= 25000;
+//                    if (game.drop_time_delay < 25000) {
+//                        game.drop_time_delay = 25000;
+//                    }
+                    game.level--;
+                    if (game.level < 0) {
+                        game.level = 0;
                     }
+#if DEBUG_OUTPUT
+                    printf("Level: %d\n", game.level);
+#endif
                 }
 //                if (matrix_update_flag) {
                 if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
@@ -482,7 +506,8 @@ void game_loop(void) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                 } else if (tetrimino_status == TETRIMINO_REFRESH) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-                    if (matrix_status == MATRIX_WALL_COLLISION || matrix_status == MATRIX_REACHED_BOTTOM) {
+                    if (matrix_status == MATRIX_WALL_COLLISION
+                            || matrix_status == MATRIX_REACHED_BOTTOM) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino);
                         matrix_copy(&matrix, &temp_matrix);
                     }
@@ -511,7 +536,8 @@ void game_loop(void) {
             if (game.play_state == PLAY_STATE_NORMAL) {
                 // TODO: Check if tetrimino is clear to continue dropping down during half-second before lock period
                 matrix_copy(&temp_matrix, &matrix); // Save current matrix state
-                if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
+                if (util_time_expired_delay(game.drop_time_start,
+                        game.drop_time_delay)) {
                     if (tetrimino.y > 0) {
                         tetrimino.y--;
                     }
@@ -528,7 +554,8 @@ void game_loop(void) {
                         game.lock_time_start = TIM2->CNT;
                     } else {
                         // Check for collision with the current stack
-                        matrix_status = matrix_check_collision(&matrix, &tetrimino);
+                        matrix_status = matrix_check_collision(&matrix,
+                                &tetrimino);
                         if (matrix_status == MATRIX_STACK_COLLISION) {
                             // Restore previous matrix state
                             matrix_copy(&matrix, &temp_matrix);
@@ -556,14 +583,18 @@ void game_loop(void) {
                     if (temp_tetrimino.y > 0) {
                         temp_tetrimino.y--;
                     }
-                    matrix_status = matrix_add_tetrimino(&temp_matrix, &temp_tetrimino);
-                    if (matrix_status != MATRIX_REACHED_BOTTOM && temp_tetrimino.y > 0
-                            && matrix_check_collision(&temp_matrix, &temp_tetrimino) == MATRIX_OK) {
+                    matrix_status = matrix_add_tetrimino(&temp_matrix,
+                            &temp_tetrimino);
+                    if (matrix_status != MATRIX_REACHED_BOTTOM
+                            && temp_tetrimino.y > 0
+                            && matrix_check_collision(&temp_matrix,
+                                    &temp_tetrimino) == MATRIX_OK) {
                         // No collision detected, revert to normal play state
                         game.play_state = PLAY_STATE_NORMAL;
                         game.drop_time_start = TIM2->CNT;
                     } else {
-                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+                        if (util_time_expired_delay(game.lock_time_start,
+                                game.lock_time_delay)) {
                             game.play_state = PLAY_STATE_LOCKED;
                         }
                     }
@@ -572,7 +603,7 @@ void game_loop(void) {
 
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
-                matrix_status = merge_with_stack(&matrix);
+                matrix_status = merge_with_stack(&matrix, &tetrimino);
                 matrix_reset_playfield(&matrix);
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
@@ -606,14 +637,15 @@ void game_loop(void) {
             }
 
             if (game.play_state == PLAY_STATE_LINE_CLEAR) {
-                if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) { // Is line clear complete?
                     if (game.soft_drop_flag) {
                         game.score += game.soft_drop_lines;
                         game.soft_drop_lines = 0;
                     }
                     // Update the score based on the number of lines cleared and game level
-                    game.score += calculate_score(util_bit_count(lines_to_be_cleared), game.level);
-                    game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
+                    game.score += calculate_score(
+                            util_bit_count(lines_to_be_cleared), game.level);
+                    game.play_state = PLAY_STATE_NEXT_TETRIMINO; // Move to next tetrimino
                     game.drop_time_start = TIM2->CNT;
                     game.lines += util_bit_count(lines_to_be_cleared);
                     lines_to_be_cleared = 0;
@@ -631,7 +663,8 @@ void game_loop(void) {
                 game.level++;
                 game.lines_to_next_level = 10 * (game.level + 1);
                 game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
-                game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
+                game.drop_time_soft_drop_delay = game.drop_time_normal_delay
+                        / 20;
                 game.drop_time_delay = game.drop_time_normal_delay;
                 game.play_state = PLAY_STATE_NEXT_TETRIMINO;
                 game.drop_time_start = TIM2->CNT;
@@ -646,7 +679,8 @@ void game_loop(void) {
                         game.play_state = PLAY_STATE_TOP_OUT;
 
                     } else {
-                        matrix_status = matrix_check_collision(&matrix, &tetrimino);
+                        matrix_status = matrix_check_collision(&matrix,
+                                &tetrimino);
                         if (matrix_status == MATRIX_STACK_COLLISION) { // Topped out
                             // Restore previous matrix state
                             matrix_copy(&matrix, &temp_matrix);
@@ -659,7 +693,8 @@ void game_loop(void) {
                 }
             }
 
-            rendering_status = renderer_render(&renderer, &matrix, &tetrimino, &game);
+            rendering_status = renderer_render(&renderer, &matrix, &tetrimino,
+                    &game);
             if (rendering_status == RENDERER_UPDATED) {
                 render_count++;
             }
@@ -675,7 +710,8 @@ void game_loop(void) {
 
             // TODO: Update UI
             fps_time_diff = util_time_diff_us(fps_time_last_update, TIM2->CNT);
-            if (fps_time_diff >= 500000 && game.play_state != PLAY_STATE_TOP_OUT) {
+            if (fps_time_diff >= 500000
+                    && game.play_state != PLAY_STATE_TOP_OUT) {
                 fps_start_count = fps_end_count;
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
@@ -692,7 +728,8 @@ void game_loop(void) {
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
             // TODO: Display game over screen
-            if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
+            if (renderer_top_out_animate(&renderer)
+                    == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
                 // Persist settings and high scores by writing them to EEPROM
                 eeprom_write_settings(&eeprom, &settings);
@@ -705,7 +742,8 @@ void game_loop(void) {
             /* ---------------------- GAME OVER WAIT ---------------------- */
         case GAME_STATE_GAME_OVER_WAIT:
 
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+            if (ring_buffer_dequeue(&controller_buffer,
+                    &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
                     //                    game.state = GAME_STATE_MENU;
                     game.state = GAME_STATE_PREPARE_GAME;
@@ -714,7 +752,7 @@ void game_loop(void) {
                     break;
                 }
             }
-            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+            if (util_time_expired_delay(press_start_timer_start, 500000)) { // 500ms
                 press_start_timer_start = TIM2->CNT;
                 press_start_state = !press_start_state;
                 ssd1306_SetCursor(30, 55);
