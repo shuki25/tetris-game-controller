@@ -399,14 +399,14 @@ void game_loop(void) {
                 matrix_copy(&temp_matrix, &matrix);
                 matrix_copy(&rotate_check_matrix, &matrix);
                 matrix_update_flag = 0;
-                if (controller_current_buttons & SNES_BUTTON_A) {
+                if (controller_current_buttons & SNES_BUTTON_A && !(controller_previous_buttons & SNES_BUTTON_A)) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
                     if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_B) {
+                } else if (controller_current_buttons & SNES_BUTTON_B && !(controller_previous_buttons & SNES_BUTTON_B)) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
                     if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
