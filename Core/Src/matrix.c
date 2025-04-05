@@ -344,14 +344,62 @@ matrix_status_t merge_with_stack(matrix_t *matrix) {
     return MATRIX_OK;
 }
 
+
+uint32_t empty_row(matrix_t *matrix) {
+    uint32_t empty_bitmap = 0;
+
+    for (int row = 0; row < PLAYING_FIELD_HEIGHT; row++) {
+        uint32_t stack_row = matrix->stack[row / 2];
+        if (row % 2 == 0) { // Even row (LSB)
+            if ((stack_row & 0x0000FFFF) == 0) {
+                empty_bitmap |= (1 << row);
+            }
+        } else { // Odd row (MSB)
+            if ((stack_row & 0xFFFF0000) == 0) {
+                empty_bitmap |= (1 << row);
+            }
+        }
+    }
+
+    return empty_bitmap;
+}
+
+
 /**
  * @brief  Reposition fallen blocks after line clear
  * @param  matrix_t, line_clear bitmap
  * @retval None
  */
-void matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) {
-    // TODO: Reposition fallen blocks
+matrix_status_t matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) {
+    // TODO: Reposition the fallen blocks
+    uint32_t temp[MATRIX_DATA_SIZE] = {0}; // Temporary matrix to store shifted blocks
+    uint32_t bitmap = line_clear;
+    uint32_t carry = 0x00000000;
 
+    while (bitmap) {
+        // Check for out of bounds
+        if (matrix->stack[0] & 0x0000FFFF) {
+            return MATRIX_OUT_OF_BOUNDS;
+        }
+
+        // Shift all blocks in the temporary matrix down by one row
+        for (int i = MATRIX_DATA_SIZE - 1; i >= 0; i--) {
+            uint32_t lsb = matrix->stack[i] & 0x0000FFFF;
+            uint32_t msb = matrix->stack[i] & 0xFFFF0000;
+            temp[i] = (msb >> 16) | carry;
+            carry = lsb << 16;
+        }
+
+        // Merge the original matrix with the temporary matrix
+        for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+            matrix->stack[i] = temp[i];
+        }
+
+        // Update the bitmap for the next iteration
+        bitmap = empty_row(matrix);
+    }
+
+    return MATRIX_REFRESH;
 }
 
 /**
