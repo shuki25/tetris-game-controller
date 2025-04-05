@@ -178,7 +178,8 @@ void game_loop(void) {
         high_score_ptrs[i] = &high_scores[i];
     }
 
-    eeprom_status_t status = eeprom_verify_signature(&signature, EEPROM_NUM_USED_PAGES);
+    eeprom_status_t status = eeprom_verify_signature(&signature,
+    EEPROM_NUM_USED_PAGES);
     if (status == EEPROM_SIGNATURE_MISMATCH) {
 #if DEBUG_OUTPUT
         printf("EEPROM signature mismatch found\n");
@@ -343,7 +344,7 @@ void game_loop(void) {
                     break;
                 }
             }
-            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+            if (util_time_expired_delay(press_start_timer_start, 500000)) { // 500ms
                 press_start_timer_start = TIM2->CNT;
                 press_start_state = !press_start_state;
                 ssd1306_SetCursor(30, 55);
@@ -469,12 +470,19 @@ void game_loop(void) {
                     }
                 }
                 if (controller_current_buttons & SNES_BUTTON_Y) {
-                    game.drop_time_delay += 25000;
+//                    game.drop_time_delay += 25000;
+                    game.level++;
                 } else if (controller_current_buttons & SNES_BUTTON_X) {
-                    game.drop_time_delay -= 25000;
-                    if (game.drop_time_delay < 25000) {
-                        game.drop_time_delay = 25000;
+//                    game.drop_time_delay -= 25000;
+//                    if (game.drop_time_delay < 25000) {
+//                        game.drop_time_delay = 25000;
+//                    }
+                    if (game.level > 0) {
+                        game.level--;
                     }
+#if DEBUG_OUTPUT
+                    printf("Level: %ld\n", game.level);
+#endif
                 }
 //                if (matrix_update_flag) {
                 if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
@@ -572,7 +580,7 @@ void game_loop(void) {
 
             if (game.play_state == PLAY_STATE_LOCKED) {
                 // TODO: Merge playfield with stack & palette
-                matrix_status = merge_with_stack(&matrix);
+                matrix_status = merge_with_stack(&matrix, &tetrimino);
                 matrix_reset_playfield(&matrix);
                 // Check for line clear
                 lines_to_be_cleared = matrix_check_line_clear(&matrix);
@@ -606,7 +614,7 @@ void game_loop(void) {
             }
 
             if (game.play_state == PLAY_STATE_LINE_CLEAR) {
-                if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) {  // Is line clear complete?
+                if (matrix_line_clear_animate(&matrix, lines_to_be_cleared)) { // Is line clear complete?
                     if (game.soft_drop_flag) {
                         game.score += game.soft_drop_lines;
                         game.soft_drop_lines = 0;
@@ -717,7 +725,7 @@ void game_loop(void) {
                     break;
                 }
             }
-            if (util_time_expired_delay(press_start_timer_start, 500000)) {  // 500ms
+            if (util_time_expired_delay(press_start_timer_start, 500000)) { // 500ms
                 press_start_timer_start = TIM2->CNT;
                 press_start_state = !press_start_state;
                 ssd1306_SetCursor(30, 55);
