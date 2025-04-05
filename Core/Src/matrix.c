@@ -282,6 +282,16 @@ void matrix_line_clear_start(matrix_t *matrix, uint32_t delay) {
     matrix->animation.animation_timer_start = TIM2->CNT;
 }
 
+
+
+void matrix_block_shift_down(matrix_t *matrix, uint32_t lines_to_be_cleared){
+	uint32_t bit = 1;
+	while(bit){
+		bit = lines_to_be_cleared << 1;
+		printf(bit);
+	}
+}
+
 /**
  * @brief  Animate line clear
  * @param  matrix_t, line_clear bitmap

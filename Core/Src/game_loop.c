@@ -401,6 +401,11 @@ void game_loop(void) {
                     tetrimino.shape_offset = tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
                 }
+
+                if(controller_current_buttons & SNES_BUTTON_START && !(game.play_state == GAME_STATE_PAUSE)){
+                	game.state = GAME_STATE_PAUSE;
+                    press_start_timer_start = TIM2->CNT;
+                }
 //                if (controller_current_buttons & SNES_BUTTON_UP) {
 //                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
 //                        matrix_update_flag = 1;
@@ -462,6 +467,7 @@ void game_loop(void) {
                 } else {
                     printf("Matrix status: %d\n", matrix_status);
                 }
+
 #endif
             } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
 
@@ -552,11 +558,13 @@ void game_loop(void) {
                         game.score += game.soft_drop_lines;
                         game.soft_drop_lines = 0;
                     }
+                    matrix_block_shift_down(&matrix, lines_to_be_cleared);
                     game.play_state = PLAY_STATE_NEXT_TETRIMINO;  // Move to next tetrimino
                     game.drop_time_start = TIM2->CNT;
                     game.lines += util_bit_count(lines_to_be_cleared);
                     lines_to_be_cleared = 0;
                     matrix.tetris_flag = 0;
+
                     if (game.lines >= game.lines_to_next_level) {
                         game.play_state = PLAY_STATE_TRANSITION_LEVEL;
                     }
@@ -620,6 +628,18 @@ void game_loop(void) {
             /* ------------------------- PAUSE MENU ------------------------ */
         case GAME_STATE_PAUSE:
             // TODO: Display pause menu
+        	if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true){
+				if (controller_current_buttons & SNES_BUTTON_START ) {
+					uint32_t press_start_timer_end = TIM2->CNT;
+					uint32_t difference = press_start_timer_end - press_start_timer_start;
+					game.state = GAME_STATE_GAME_IN_PROGRESS;
+					ssd1306_Fill(Black);
+					ssd1306_UpdateScreen();
+				}
+				else{
+					continue;
+				}
+        	}
             break;
 
             /* -------------------------- GAME OVER ------------------------ */
@@ -641,7 +661,7 @@ void game_loop(void) {
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
                     //                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+//                    game.state = GAME_STATE_PREPARE_GAME;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
