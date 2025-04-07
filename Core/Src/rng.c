@@ -63,8 +63,8 @@ uint16_t rng_next(void) {
     // XOR bits 1 and 9
     uint16_t bit1 = (rng_seed >> 1) & 0x01;
     uint16_t bit9 = (rng_seed >> 9) & 0x01;
-    uint16_t bit16 = bit1 ^ bit9;
-    new_seed = (new_seed >> 1) | (bit16 << 16);
+    uint16_t leftmost_bit = bit1 ^ bit9;
+    new_seed = (new_seed >> 1) | (leftmost_bit << 15);
     if (!new_seed) {  // Eventually the seed will produce an endless sequence of zeros
         new_seed = 0x8988;
     }
