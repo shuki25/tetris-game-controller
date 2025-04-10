@@ -193,10 +193,6 @@ void game_loop(void) {
         eeprom_get_high_scores(&eeprom, high_score_ptrs);
     }
 
-    // TODO: Initialize game variables
-
-    // TODO: Initialize game components
-
     // Initialize OLED display driver
     memset(&tetris_statistics, 0, sizeof(tetris_statistics_t));
     ui_init(&tetris_statistics);
@@ -358,7 +354,7 @@ void game_loop(void) {
 
             /* -------------------- PREPARE GAME STATE ---------------------- */
         case GAME_STATE_PREPARE_GAME:
-            // TODO: Initialize game variables
+            // Initialize game variables
 
             matrix_clear(&matrix);
             game.score = 0;

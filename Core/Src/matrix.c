@@ -392,7 +392,6 @@ uint32_t matrix_find_empty_row(matrix_t *matrix) {
  * @retval None
  */
 matrix_status_t matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) {
-    // TODO: Reposition the fallen blocks
     matrix_t temp_matrix;
     uint32_t bitmap = line_clear;
     uint32_t carry, lsb, msb;

@@ -44,7 +44,7 @@ volatile static uint16_t rng_seed = 0;
  * @retval None
  */
 void rng_init(uint16_t seed) {
-    // TODO: Initialize random number generator
+    // Initialize random number generator
     if (seed == 0) {
         seed = (uint16_t) TIM2->CNT & 0xFFFF;
     }

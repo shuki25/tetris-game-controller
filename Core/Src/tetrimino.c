@@ -62,9 +62,8 @@ uint32_t tetrimino_drop_period[] = {
  * @retval status
  */
 tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
-    // TODO: Initialize tetrimino object
     memset(tetrimino, 0, sizeof(tetrimino_t));
-    rng_init((uint16_t) (TIM2->CNT & 0xFFFF));
+    rng_init(0);
     tetrimino->x = 5;
     tetrimino->y = PLAYING_FIELD_HEIGHT;
     tetrimino->piece = rng_next() % TETRIMINO_COUNT;

@@ -35,7 +35,7 @@
 
 extern uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH];
 
-// TODO: Typedef for matrix rendering status in enum (e.g. MATRIX_RENDERING_OK, MATRIX_RENDERING_ERROR)
+// rendering status
 typedef enum {
     RENDERER_OK = 0,
     RENDERER_ERROR,

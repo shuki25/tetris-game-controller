@@ -183,7 +183,7 @@ void ui_display_game_progress(game_t *game) {
     memset(buffer, 0, sizeof(buffer));
 
     ui_display_game_info(game);
-    // TODO: Display lines cleared, game score, level, tetrimino count and time elapsed
+    // Display lines cleared, game score, level, tetrimino count and time elapsed
     if (util_time_expired_delay(ui_stats.animate_start_time, ui_stats.animate_delay)) {
         ui_stats.animate_start_time = TIM2->CNT;
         ui_stats.animate_delay = UI_STATS_DELAY;
