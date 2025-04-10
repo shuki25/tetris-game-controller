@@ -53,12 +53,3 @@ void tetris_statistics_reset(tetris_statistics_t *stats) {
     memset(stats, 0, sizeof(tetris_statistics_t));
 }
 
-/**
- * @brief  Update game statistics
- * @param  current tetrimino, lines cleared, score, level
- * @retval status
- */
-void tetris_update_statistics(void) {
-    // TODO: Update game statistics (lines cleared, score, level, tetrimino frequency count, etc.)
-}
-
