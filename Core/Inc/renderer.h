@@ -45,9 +45,7 @@ typedef enum {
     RENDERER_ANIMATION_DONE
 } renderer_status_t;
 
-// TODO: Defines for LED matrix dimensions (e.g. LED_MATRIX_WIDTH, LED_MATRIX_HEIGHT)
-
-// TODO: Typedef for LED matrix struct (e.g. led_matrix_t)
+// Typedef for LED matrix struct (e.g. led_matrix_t)
 typedef struct {
     uint8_t data_sent_flag;
     uint8_t brightness;
@@ -69,7 +67,7 @@ uint8_t generate_lookup_table();
 
 renderer_status_t renderer_create_boundary(renderer_t *renderer);
 
-// TODO: Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
+// Function prototypes for matrix rendering functions (e.g. matrix_rendering_init, matrix_rendering_render)
 
 renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATRIX_HEIGHT][MATRIX_WIDTH],
         matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel, uint32_t delay_length);
