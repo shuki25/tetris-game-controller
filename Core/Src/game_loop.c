@@ -26,6 +26,7 @@
 #include "snes_controller.h"
 #include "tetrimino.h"
 #include "tetrimino_shape.h"
+#include "tetris.h"
 #include "game_loop.h"
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
@@ -81,21 +82,6 @@ eeprom_id_t signature;
 led_indicator_t hb_led;
 led_indicator_t rj45_led;
 
-// Function to update the score based on the number of lines cleared
-int calculate_score(uint8_t lines_cleared, uint8_t level) {
-    switch (lines_cleared) {
-    case 1:
-        return (level * 40) + 40;
-    case 2:
-        return (level * 100) + 100;
-    case 3:
-        return (level * 300) + 300;
-    case 4:
-        return (level * 1200) + 1200;
-    default:
-        return 0;
-    }
-}
 /**
  * @brief  Splash screen
  * @param  None
@@ -154,6 +140,7 @@ void game_loop(void) {
     matrix_t temp_matrix;
     matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
+    tetris_statistics_t tetris_statistics;
 
     if (ring_buffer_init(&controller_buffer, 16, sizeof(uint16_t)) != RING_BUFFER_OK) {
 #if DEBUG_OUTPUT
@@ -206,12 +193,9 @@ void game_loop(void) {
         eeprom_get_high_scores(&eeprom, high_score_ptrs);
     }
 
-    // TODO: Initialize game variables
-
-    // TODO: Initialize game components
-
     // Initialize OLED display driver
-    ui_init();
+    memset(&tetris_statistics, 0, sizeof(tetris_statistics_t));
+    ui_init(&tetris_statistics);
 
     controller_status = snes_controller_init(&snes_controller,
     SNES_LATCH_GPIO_Port, SNES_LATCH_Pin,
@@ -370,7 +354,7 @@ void game_loop(void) {
 
             /* -------------------- PREPARE GAME STATE ---------------------- */
         case GAME_STATE_PREPARE_GAME:
-            // TODO: Initialize game variables
+            // Initialize game variables
 
             matrix_clear(&matrix);
             game.score = 0;
@@ -384,6 +368,13 @@ void game_loop(void) {
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
             game.play_state = PLAY_STATE_NORMAL;
+
+            memset(&game.stats, 0, sizeof(game_stats_t));
+
+            // reset game statistics and timer
+            tetris_statistics_reset(&tetris_statistics);
+            ui_reset_ui_stats();
+            tetris_statistics.tetriminos_frequency[tetrimino.piece]++;
             break;
 
             /* ---------------------- GAME IN PROGRESS ---------------------- */
@@ -399,14 +390,16 @@ void game_loop(void) {
                 matrix_copy(&temp_matrix, &matrix);
                 matrix_copy(&rotate_check_matrix, &matrix);
                 matrix_update_flag = 0;
-                if (controller_current_buttons & SNES_BUTTON_A && !(controller_previous_buttons & SNES_BUTTON_A)) {
+                if (controller_current_buttons & SNES_BUTTON_A
+                        && !(controller_previous_buttons & SNES_BUTTON_A)) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
                     if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_B && !(controller_previous_buttons & SNES_BUTTON_B)) {
+                } else if (controller_current_buttons & SNES_BUTTON_B
+                        && !(controller_previous_buttons & SNES_BUTTON_B)) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix, &tetrimino);
                     if (matrix_check_collision(&rotate_check_matrix, &tetrimino) == MATRIX_STACK_COLLISION) {
@@ -517,7 +510,7 @@ void game_loop(void) {
             } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
 
             if (game.play_state == PLAY_STATE_NORMAL) {
-                // TODO: Check if tetrimino is clear to continue dropping down during half-second before lock period
+                // Check if tetrimino is clear to continue dropping down during half-second before lock period
                 matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 if (util_time_expired_delay(game.drop_time_start, game.drop_time_delay)) {
                     if (tetrimino.y > 0) {
@@ -579,7 +572,7 @@ void game_loop(void) {
             }
 
             if (game.play_state == PLAY_STATE_LOCKED) {
-                // TODO: Merge playfield with stack & palette
+                // Merge playfield with stack & palette
                 matrix_status = merge_with_stack(&matrix, &tetrimino);
                 matrix_reset_playfield(&matrix);
                 // Check for line clear
@@ -620,7 +613,18 @@ void game_loop(void) {
                         game.soft_drop_lines = 0;
                     }
                     // Update the score based on the number of lines cleared and game level
-                    game.score += calculate_score(util_bit_count(lines_to_be_cleared), game.level);
+                    game.score += tetris_calculate_score(util_bit_count(lines_to_be_cleared), game.level);
+
+                    // Update game statistics
+                    if (util_bit_count(lines_to_be_cleared) == 1) {
+                        game.stats.singles++;
+                    } else if (util_bit_count(lines_to_be_cleared) == 2) {
+                        game.stats.doubles++;
+                    } else if (util_bit_count(lines_to_be_cleared) == 3) {
+                        game.stats.triples++;
+                    } else if (util_bit_count(lines_to_be_cleared) == 4) {
+                        game.stats.tetrises++;
+                    }
 
                     // Reposition blocks after clearing lines
                     matrix_reposition_blocks(&matrix, lines_to_be_cleared);
@@ -652,6 +656,8 @@ void game_loop(void) {
                 matrix_copy(&temp_matrix, &matrix); // Save current matrix state
                 tetrimino_status = tetrimino_next(&tetrimino);
                 if (tetrimino_status == TETRIMINO_OK) {
+                    tetris_statistics.tetriminos_frequency[tetrimino.piece]++;
+                    tetris_statistics.tetriminos_spawned++;
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_COLLISION_DETECTED) { // Collision detected on boundary
                         game.play_state = PLAY_STATE_TOP_OUT;
@@ -691,7 +697,8 @@ void game_loop(void) {
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
                 ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
-                ui_display_game_info(&game);
+//                ui_display_game_info(&game);
+                ui_display_game_progress(&game);
             }
             break;
 
@@ -702,14 +709,11 @@ void game_loop(void) {
 
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
-            // TODO: Display game over screen
             if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
                 // Persist settings and high scores by writing them to EEPROM
                 eeprom_write_settings(&eeprom, &settings);
                 eeprom_write_high_scores(&eeprom, high_score_ptrs);
-            } else {
-//                ui_display_game_over();
             }
             break;
 
