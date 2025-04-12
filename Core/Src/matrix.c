@@ -304,6 +304,8 @@ uint8_t matrix_line_clear_animate(matrix_t *matrix, uint32_t line_clear) {
             matrix->animation.animation_timer_delay)) {
         for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
             working_stack_row = matrix->stack[i / 2];
+            working_palette1_row = matrix->palette1[i / 2];
+            working_palette2_row = matrix->palette2[i / 2];
             if (line_clear & (1 << i)) {
                 if (i % 2 == 0) { // Even row (LSB)
                     working_stack_mask = 0xFFFF0000 | line_clear_mask[matrix->animation.frame_nbr]; // mask for even row and retain MSB
@@ -467,7 +469,7 @@ matrix_status_t matrix_reposition_blocks(matrix_t *matrix, uint32_t line_clear) 
         occupied_bitmap = 0;
         done = 1;
 
-        for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+        for (int i = 0; i < PLAYING_FIELD_HEIGHT; i++) {
             if (bitmap & (1 << i)) {
                 occupied_bitmap = 1;
             }
