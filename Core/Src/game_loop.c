@@ -505,6 +505,10 @@ void game_loop(void) {
                 if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
                     // Revert tetrimino position and refresh matrix
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+                    if (matrix_status == MATRIX_WALL_COLLISION || matrix_status == MATRIX_REACHED_BOTTOM) {
+                        tetrimino_copy(&tetrimino, &temp_tetrimino);
+                        matrix_copy(&matrix, &temp_matrix);
+                    }
                 } else if (tetrimino_status == TETRIMINO_REFRESH) {
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_WALL_COLLISION || matrix_status == MATRIX_REACHED_BOTTOM) {
