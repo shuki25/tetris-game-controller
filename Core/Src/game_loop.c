@@ -324,7 +324,7 @@ void game_loop(void) {
 #if DEBUG_OUTPUT
                 printf("Controller buffer is full. Dropping.\n");
 #endif
-                Error_Handler();
+
             }
             if (snes_controller.buttons_state) {
                 controller_count++;
@@ -723,6 +723,9 @@ void game_loop(void) {
         case GAME_STATE_GAME_ENDED:
             if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
+
+                // Flush the buffer
+                ring_buffer_flush(&controller_buffer);
                 // Persist settings and high scores by writing them to EEPROM
                 eeprom_write_settings(&eeprom, &settings);
                 eeprom_write_high_scores(&eeprom, high_score_ptrs);
