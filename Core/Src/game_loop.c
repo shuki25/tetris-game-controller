@@ -126,7 +126,6 @@ void game_loop(void) {
 //    char output_buffer[80];
     tetrimino_t tetrimino;
     tetrimino_status_t tetrimino_status;
-    uint8_t matrix_update_flag = 0;
     uint16_t controller_current_buttons;
     uint16_t controller_previous_buttons = 0;
     RingBuffer controller_buffer;
@@ -413,7 +412,6 @@ void game_loop(void) {
                 tetrimino_copy(&temp_tetrimino, &tetrimino);
                 matrix_copy(&temp_matrix, &matrix);
                 matrix_copy(&rotate_check_matrix, &matrix);
-                matrix_update_flag = 0;
                 if (controller_current_buttons & SNES_BUTTON_A
                         && !(controller_previous_buttons & SNES_BUTTON_A)) {
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
@@ -449,7 +447,6 @@ void game_loop(void) {
                 }
 //                if (controller_current_buttons & SNES_BUTTON_UP) {
 //                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
-//                        matrix_update_flag = 1;
 //                    }
 //                }
 
@@ -461,7 +458,6 @@ void game_loop(void) {
                         game.drop_time_delay = game.drop_time_normal_delay;
                         game.soft_drop_flag = 0;
                         game.soft_drop_lines = 0;
-//                    matrix_update_flag = 1; // Force matrix update
                         tetrimino_status = TETRIMINO_REFRESH;
                     } else if (controller_current_buttons & SNES_BUTTON_DOWN) {
                         game.drop_time_delay = game.drop_time_soft_drop_delay;
@@ -477,14 +473,11 @@ void game_loop(void) {
 //                }
 
                 if (controller_current_buttons & SNES_BUTTON_LEFT) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT) == MATRIX_REFRESH) {
-                        matrix_update_flag = 1;
-                    }
+                    matrix_move_tetrimino(&matrix, &tetrimino, MOVE_LEFT);
+
                 }
                 if (controller_current_buttons & SNES_BUTTON_RIGHT) {
-                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT) == MATRIX_REFRESH) {
-                        matrix_update_flag = 1;
-                    }
+                    matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT);
                 }
                 if (controller_current_buttons & SNES_BUTTON_Y) {
 //                    game.drop_time_delay += 25000;
@@ -501,8 +494,7 @@ void game_loop(void) {
                     printf("Level: %ld\n", game.level);
 #endif
                 }
-//                if (matrix_update_flag) {
-                if (matrix_status != MATRIX_REFRESH && matrix_update_flag) {
+                if (matrix_status != MATRIX_REFRESH) {
                     // Revert tetrimino position and refresh matrix
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
                     if (matrix_status == MATRIX_WALL_COLLISION || matrix_status == MATRIX_REACHED_BOTTOM) {
@@ -515,26 +507,7 @@ void game_loop(void) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino);
                         matrix_copy(&matrix, &temp_matrix);
                     }
-                    matrix_update_flag = 1;
                 }
-//#if DEBUG_OUTPUT
-//                snes_controller.buttons_state = controller_current_buttons;
-//                snes_controller_print(&snes_controller);
-//                if (tetrimino_status == TETRIMINO_REFRESH && snes_controller.buttons_state) {
-//                    tetrimino_debug_print(&tetrimino);
-//                }
-//                if (matrix_status == MATRIX_WALL_COLLISION) {
-//                    printf("Matrix collision detected\n");
-//                } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-//                    printf("Matrix out of bounds\n");
-//                }
-//                if (matrix_update_flag) {
-//                    matrix_debug_print(&matrix);
-//                    matrix_status = MATRIX_NO_CHANGE;
-//                } else {
-//                    printf("Matrix status: %d\n", matrix_status);
-//                }
-//#endif
             } // end if controller_status == SNES_CONTROLLER_STATE_CHANGE
 
             if (game.play_state == PLAY_STATE_NORMAL) {
@@ -575,7 +548,6 @@ void game_loop(void) {
                             game.soft_drop_lines++;
                         }
                     }
-                    matrix_update_flag = 1;
                 }
             } else {
                 if (game.play_state == PLAY_STATE_HALF_SECOND_B4_LOCK) {
