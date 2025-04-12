@@ -23,6 +23,10 @@
 #define INC_UI_H_
 
 #include "game_loop.h"
+#include "tetris.h"
+
+#define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
+#define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
@@ -46,10 +50,19 @@ typedef struct {
 
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
 
+// Typedef for displaying statistics (e.g. game_t)
+typedef struct {
+    uint32_t animate_start_time;
+    uint32_t animate_delay;
+    uint8_t animate_frame;
+    tetris_statistics_t *stats;
+} ui_stats_t;
+
 // TODO: Function prototypes for UI functions (e.g. ui_init, ui_main_menu_selection, ui_game_progress, ui_game_over_screen)
 void ui_init();
 void ui_menu_init(ui_menu_t menu);
 void ui_menu_id_set(ui_menu_t * menu, int menuID);
+void ui_reset_ui_stats();
 void ui_splash_screen();
 void ui_main_menu_selection(ui_menu_t * menu);
 void ui_cursor_blink(ui_menu_t * menu);
@@ -59,6 +72,7 @@ void ui_test();
 void frame_maker();
 
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
+void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
 #endif /* INC_UI_H_ */
