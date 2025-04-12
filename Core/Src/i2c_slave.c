@@ -16,7 +16,7 @@ volatile uint8_t i2c_rx_index = 0;
 volatile uint8_t i2c_tx_index = 0;
 volatile uint8_t bytes_received = 0;
 volatile uint8_t start_position = 0;
-volatile scoreboard_t i2c_register_struct;
+volatile i2c_game_state_t i2c_register_struct;
 volatile uint8_t i2c_register[REGISTERS_SIZE] = { 0 };
 
 extern I2C_HandleTypeDef hi2c2;
@@ -73,7 +73,7 @@ void struct2register() {
     i2c_register[i++] = i2c_register_struct.console_info;
 
     // Put in current score
-    score_to_register(i2c_register_struct.current_score, i);
+    score_to_register(i2c_register_struc.current_score, i);
 
     // Put in high score
     for (int j = 0; j < NUM_HIGH_SCORES; j++) {

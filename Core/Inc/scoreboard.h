@@ -58,6 +58,6 @@ typedef struct {                                // Register Map
     uint16_t playing_time;                      // 0x49 (16 bits)
     uint32_t date_time;                         // 0x4B (32 bits)
     uint32_t command;                           // 0x4F (32 bits)
-} scoreboard_t;
+} i2c_game_state_t;
 
 #endif /* INC_SCOREBOARD_H_ */

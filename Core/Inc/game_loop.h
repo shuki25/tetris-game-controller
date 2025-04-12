@@ -45,7 +45,7 @@ typedef enum {
     GAME_STATE_HIGH_SCORE,
     GAME_STATE_SETTINGS,
     GAME_STATE_TEST_FEATURE
-} game_state_t;
+} i2c_game_state_t;
 
 typedef enum {
     PLAY_STATE_NOT_STARTED = 0,
@@ -70,7 +70,7 @@ typedef struct {
 } game_stats_t;
 
 typedef struct {
-    game_state_t state;
+    i2c_game_state_t state;
     play_state_t play_state;
     uint32_t score;
     uint32_t level;
