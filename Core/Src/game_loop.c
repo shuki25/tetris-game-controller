@@ -272,12 +272,36 @@ void game_loop(void) {
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
-    matrix.stack[0] = 0x15501FF8;
-    matrix.stack[1] = 0x1FF01FD0;
-    matrix.palette1[0] = 0x00101E10;
-    matrix.palette2[0] = 0x004001E0;
-    matrix.palette1[1] = 0x01800180;
-    matrix.palette2[1] = 0x1C000800;
+//    matrix.stack[0] = 0xff80ff8;
+//    matrix.stack[1] = 0xff80ff8;
+//    matrix.stack[2] = 0xff80ff8;
+//    matrix.stack[3] = 0xff80ff8;
+//    matrix.stack[4] = 0xff80ff8;
+//    matrix.stack[5] = 0xff80fb8;
+//    matrix.stack[6] = 0xff80df8;
+//    matrix.stack[7] = 0x0;
+//    matrix.stack[8] = 0;
+//    matrix.stack[9] = 0x0;
+//    matrix.palette1[0] = 0;
+//    matrix.palette1[1] = 23069152;
+//    matrix.palette1[2] = 33554496;
+//    matrix.palette1[3] = 251661824;
+//    matrix.palette1[4] = 33557248;
+//    matrix.palette1[5] = 100663808;
+//    matrix.palette1[6] = 1024;
+//    matrix.palette1[7] = 0;
+//    matrix.palette1[8] = 0;
+//    matrix.palette1[9] = 0;
+//    matrix.palette2[0] = 201328160;
+//    matrix.palette2[1] = 234884096;
+//    matrix.palette2[2] = 16777728;
+//    matrix.palette2[3] = 12583360;
+//    matrix.palette2[4] = 6291696;
+//    matrix.palette2[5] = 25165824;
+//    matrix.palette2[6] = 31457664;
+//    matrix.palette2[7] = 0;
+//    matrix.palette2[8] = 0;
+//    matrix.palette2[9] = 0;
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -586,6 +610,18 @@ void game_loop(void) {
                         }
                     }
                     printf("\n");
+                    printf("stack values:\n");
+                    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+                        printf("matrix.stack[%d] = \"0x%08lX\";\n", i, matrix.stack[i]);
+                    }
+                    printf("palette1 values:\n");
+                    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+                        printf("matrix.palette1[%d] = \"0x%08lX\";\n", i, matrix.palette1[i]);
+                    }
+                    printf("palette2 values:\n");
+                    for (int i = 0; i < MATRIX_DATA_SIZE; i++) {
+                        printf("matrix.palette2[%d] = \"0x%08lX\";\n", i, matrix.palette2[i]);
+                    }
                 }
 #endif
                 if (lines_to_be_cleared) {
