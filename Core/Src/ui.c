@@ -53,6 +53,7 @@ const uint8_t select_arrow_locations[3] = { 14, 30, 46 };
 
 
 ui_stats_t ui_stats;
+ui_stats_t ui_credits;
 /**
  * @brief  Initialize OLED display
  * @param  None
@@ -62,6 +63,8 @@ void ui_init(tetris_statistics_t *stats) {
     ssd1306_Init();
     memset(&ui_stats, 0, sizeof(ui_stats_t));
     ui_stats.stats = stats;
+
+    memset(&ui_credits, 0, sizeof(ui_stats_t));
 }
 
 /**
@@ -490,6 +493,42 @@ void ui_display_top_out() {
     ssd1306_SetCursor(37, 44);
     ssd1306_WriteString("Game Over", Font_6x8, White);
     ssd1306_UpdateScreen();
+}
+
+
+//if (util_time_expired_delay(ui_stats.animate_start_time, ui_stats.animate_delay)) {
+//        ui_stats.animate_start_time = TIM2->CNT;
+//        ui_stats.animate_delay = UI_STATS_DELAY;
+//        ui_stats.animate_frame++;
+//        if (ui_stats.animate_frame >= UI_STATS_NUM_FRAMES) {
+//            ui_stats.animate_frame = 0;
+//        }
+
+
+void ui_display_credits() {
+    if (util_time_expired_delay(ui_credits.animate_start_time, ui_credits.animate_delay)) {
+            ui_credits.animate_start_time = TIM2->CNT;
+            ui_credits.animate_delay = UI_CREDITS_DELAY;
+            ui_credits.animate_frame++;
+            if (ui_credits.animate_frame >= UI_CREDITS_NUM_FRAMES) {
+                ui_credits.animate_frame = 0;
+            }
+            // clear previous frame
+            ssd1306_FillRectangle(0, 24, 128, 55, Black);
+
+            // display current frame
+            ssd1306_SetCursor(0, 22);
+
+            switch (ui_stats.animate_frame) {
+            case 0:
+                ssd1306_SetCursor(25, 24);
+                ssd1306_WriteString("CREDITS", Font_11x18, White);
+            default:
+                break;
+            }
+        ssd1306_UpdateScreen();
+    }
+
 }
 
 void ui_test() {

@@ -27,6 +27,8 @@
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
 #define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
+#define UI_CREDITS_NUM_FRAMES (3) // Number of frames for credits animation
+#define UI_CREDITS_DELAY (1500000) // Delay between credit frames in microseconds
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
@@ -75,4 +77,5 @@ void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
+void ui_display_credits();
 #endif /* INC_UI_H_ */

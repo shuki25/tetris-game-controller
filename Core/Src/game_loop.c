@@ -406,8 +406,8 @@ void game_loop(void) {
                         ssd1306_Fill(Black);
                         break;
                     case 3:
-                        game.state = GAME_STATE_PREPARE_GAME;
-//                            game.state = GAME_STATE_CREDITS;
+//                        game.state = GAME_STATE_PREPARE_GAME;
+                        game.state = GAME_STATE_CREDITS;
                         ssd1306_Fill(Black);
                         break;
                     }
@@ -814,6 +814,21 @@ void game_loop(void) {
             // TODO: Display settings menu
             break;
 
+            /* ---------------------------- CReDItS ------------------------- */
+        case GAME_STATE_CREDITS:
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_START) {
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+//                    game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            } else {
+                ui_display_credits();
+            }
+            break;
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
