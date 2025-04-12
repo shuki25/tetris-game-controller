@@ -19,6 +19,7 @@
  ******************************************************************************
  */
 
+#include "main.h"
 #include "matrix.h"
 #include "string.h"
 #include "tetrimino.h"
@@ -61,12 +62,11 @@ uint32_t tetrimino_drop_period[] = {
  * @retval status
  */
 tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
-    // TODO: Initialize tetrimino object
     memset(tetrimino, 0, sizeof(tetrimino_t));
     rng_init(0);
     tetrimino->x = 5;
     tetrimino->y = PLAYING_FIELD_HEIGHT;
-    tetrimino->piece = TETRIMINO_T;
+    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
     tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
     tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
 //    tetrimino->piece = rng_next() % TETRIMINO_COUNT;
@@ -86,21 +86,21 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
     tetrimino_copy(&temp, tetrimino);
 
     switch (direction) {
-        case ROTATE_CW:
-            temp.rotation = (tetrimino->rotation + 1);
-            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-                temp.rotation = 0;
-            }
-            break;
-        case ROTATE_CCW:
-            temp.rotation = tetrimino->rotation - 1;
-            if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
-                temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
-            }
-            break;
-        default:
-            return TETRIMINO_ERROR;
-            break;
+    case ROTATE_CW:
+        temp.rotation = (tetrimino->rotation + 1);
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = 0;
+        }
+        break;
+    case ROTATE_CCW:
+        temp.rotation = tetrimino->rotation - 1;
+        if (temp.rotation >= TETRIMINO_ROTATION_COUNT) {
+            temp.rotation = TETRIMINO_ROTATION_COUNT - 1;
+        }
+        break;
+    default:
+        return TETRIMINO_ERROR;
+        break;
     }
 
     temp.shape_offset = tetrimino_shape_offset_lut[temp.piece][temp.rotation];

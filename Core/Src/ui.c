@@ -25,14 +25,30 @@
 #include "ssd1306.h" // for OLED screen
 #include "ui.h"
 #include "splash_bitmap.h"
+#include "util.h"
+#include "tetris.h"
 
+ui_stats_t ui_stats;
 /**
  * @brief  Initialize OLED display
  * @param  None
  * @retval None
  */
-void ui_init() {
+void ui_init(tetris_statistics_t *stats) {
     ssd1306_Init();
+    memset(&ui_stats, 0, sizeof(ui_stats_t));
+    ui_stats.stats = stats;
+}
+
+/**
+ * @brief  Reset UI statistics
+ * @param  None
+ * @retval None
+ */
+void ui_reset_ui_stats() {
+    ui_stats.animate_start_time = TIM2->CNT;
+    ui_stats.animate_delay = UI_STATS_DELAY;
+    ui_stats.animate_frame = 0;
 }
 
 void ui_splash_screen() {
@@ -159,11 +175,88 @@ void ui_main_menu_selection(void) {
 
 /**
  * @brief  Display game progress
- * @param  None
+ * @param  game_t: pointer to game_t struct
  * @retval None
  */
-void ui_game_progress() {
-    // TODO: Display lines cleared, game score, level, tetrimino count and time elapsed
+void ui_display_game_progress(game_t *game) {
+    char buffer[32];
+    memset(buffer, 0, sizeof(buffer));
+
+    ui_display_game_info(game);
+    // Display lines cleared, game score, level, tetrimino count and time elapsed
+    if (util_time_expired_delay(ui_stats.animate_start_time, ui_stats.animate_delay)) {
+        ui_stats.animate_start_time = TIM2->CNT;
+        ui_stats.animate_delay = UI_STATS_DELAY;
+        ui_stats.animate_frame++;
+        if (ui_stats.animate_frame >= UI_STATS_NUM_FRAMES) {
+            ui_stats.animate_frame = 0;
+        }
+        // clear previous frame
+        ssd1306_FillRectangle(0, 24, 128, 55, Black);
+
+        // display current frame
+        ssd1306_SetCursor(0, 22);
+
+        switch (ui_stats.animate_frame) {
+        case 0:
+            ssd1306_SetCursor(0, 32);
+            snprintf(buffer, 32, "T: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_T]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 32);
+            snprintf(buffer, 32, "J: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_J]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(0, 42);
+            snprintf(buffer, 32, "Z: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_Z]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 42);
+            snprintf(buffer, 32, "O: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_O]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+            break;
+
+        case 1:
+            ssd1306_SetCursor(0, 32);
+            snprintf(buffer, 32, "S: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_S]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 32);
+            snprintf(buffer, 32, "L: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_L]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(0, 42);
+            snprintf(buffer, 32, "I: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_I]);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 42);
+            snprintf(buffer, 32, "Total: %d", ui_stats.stats->tetriminos_spawned);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+            break;
+
+        case 2:
+            ssd1306_SetCursor(0, 32);
+            snprintf(buffer, 32, "Single: %d", game->stats.singles);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 32);
+            snprintf(buffer, 32, "Double: %d", game->stats.doubles);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(0, 42);
+            snprintf(buffer, 32, "Triple: %d", game->stats.triples);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            ssd1306_SetCursor(60, 42);
+            snprintf(buffer, 32, "Tetris: %d", game->stats.tetrises);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+            break;
+
+        default:
+            break;
+        }
+        ssd1306_UpdateScreen();
+    }
 }
 
 /**
@@ -171,9 +264,9 @@ void ui_game_progress() {
  * @param  None
  * @retval None
  */
-void ui_game_over_screen() {
+void ui_game_over_screen(game_t *game, ui_stats_t *ui_stats) {
     // TODO: Display game over screen with final score, level, and time
-
+    ui_display_game_info(game);
     // TODO: Display high score if applicable, and prompt for name entry
 
 }
@@ -208,10 +301,10 @@ void ui_display_game_info(game_t *game) {
     char game_info_str[32];
     memset(game_info_str, 0, sizeof(game_info_str));
     ssd1306_SetCursor(0, 2);
-    sprintf(game_info_str, "%07ld", game->score);
+    sprintf(game_info_str, "%06ld", game->score);
     ssd1306_WriteString(game_info_str, Font_11x18, White);
 
-    sprintf(game_info_str, "%ld", game->lines);
+    sprintf(game_info_str, "LIN: %ld", game->lines);
     x = 128 - strlen(game_info_str) * 6;
     ssd1306_SetCursor(x, 0);
     ssd1306_WriteString(game_info_str, Font_6x8, White);
@@ -225,6 +318,9 @@ void ui_display_game_info(game_t *game) {
 }
 
 void ui_display_top_out() {
+    // clear statistics area
+    ssd1306_FillRectangle(0, 24, 128, 55, Black);
+    // display top out message
     ssd1306_SetCursor(25, 24);
     ssd1306_WriteString("TOP OUT", Font_11x18, White);
     ssd1306_SetCursor(0, 55);

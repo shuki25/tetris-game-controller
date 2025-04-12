@@ -23,17 +23,19 @@
 
 //@formatter:off
 const color_t color_lookup_table[COLOR_PALETTE_ROTATIONS][COLOR_PALETTES] = {
-        {{251, 251, 251}, {74, 173, 251}, {49, 58, 246}},  // level 0: white, blue, dark blue
-        {{251, 251, 251}, {172, 252, 21}, {50, 156, 4}},  // level 1: white, green, dark green
-        {{251, 251, 251}, {239, 88, 246}, {204, 0, 192}},  // level 2: white, magenta, dark magenta
-        {{251, 251, 251}, {76, 213, 66}, {49, 58, 246}},  // level 3: white, lime, dark lime
-        {{251, 251, 251}, {85, 252, 135}, {218, 0, 71}},  // level 4: white, cyan, dark cyan
-        {{251, 251, 251}, {86, 111, 251}, {85, 252, 135}},  // level 5: white, violet, lime
-        {{251, 251, 251}, {105, 105, 105}, {230, 32, 8}},  // level 6: white, gray, red
-        {{251, 251, 251}, {149, 0, 25}, {84, 33, 251}}, // level 7: white, red, purple
-        {{251, 251, 251}, {230, 32, 8}, {49, 58, 246}},  // level 8: white, red, dark blue
-        {{251, 251, 251}, {237, 143, 53}, {230, 32, 8}} // level 9: white, orange, red
+    {{160, 160, 160}, {0, 160, 255}, {0, 64, 192}},        // level 0: soft white, medium blue, deep blue
+    {{160, 160, 160}, {128, 255, 0}, {32, 160, 32}},       // level 1: soft white, bright green, visible green
+    {{160, 160, 160}, {255, 64, 255}, {160, 0, 160}},      // level 2: soft white, vibrant magenta, bold magenta
+    {{160, 160, 160}, {128, 255, 128}, {48, 160, 48}},     // level 3: soft white, mint green, soft forest green
+    {{160, 160, 160}, {64, 255, 255}, {32, 160, 160}},     // level 4: soft white, bright cyan, medium cyan
+    {{160, 160, 160}, {128, 64, 255}, {0, 255, 160}},      // level 5: soft white, lavender, aqua green
+    {{160, 160, 160}, {96, 96, 96}, {255, 64, 0}},         // level 6: soft white, medium gray, vivid red-orange
+    {{160, 160, 160}, {200, 0, 50}, {128, 32, 255}},       // level 7: soft white, rich red, electric purple
+    {{160, 160, 160}, {255, 64, 64}, {64, 64, 192}},       // level 8: soft white, strong red, bright blue
+    {{160, 160, 160}, {255, 180, 64}, {220, 32, 32}}       // level 9: soft white, warm orange, strong red
 };
+
+
 //@formatter:on
 color_t get_color_palette(int current_level, int shape_id) {
     int rotation_index = current_level % COLOR_PALETTE_ROTATIONS;
