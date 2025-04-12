@@ -275,7 +275,7 @@ void game_loop(void) {
     rj45_led.active = 1;
 
     // If you want to test a feature, uncomment the following line
-    game.state = GAME_STATE_TEST_FEATURE;
+//    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
@@ -352,8 +352,7 @@ void game_loop(void) {
         case GAME_STATE_SPLASH_WAIT:
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-//                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -399,16 +398,20 @@ void game_loop(void) {
                     switch(menu.current_selection_id)
                     {
                         case 0:
-                            game.state = GAME_STATE_PLAY_MENU;
+                            game.state = GAME_STATE_PREPARE_GAME;
+                            ssd1306_Fill(Black);
                             break;
                         case 1:
                             game.state = GAME_STATE_HIGH_SCORE;
+                            ssd1306_Fill(Black);
                             break;
                         case 2:
                             game.state = GAME_STATE_SETTINGS;
+                            ssd1306_Fill(Black);
                             break;
                         case 3:
                             game.state = GAME_STATE_CREDITS;
+                            ssd1306_Fill(Black);
                             break;
                     }
                 }
