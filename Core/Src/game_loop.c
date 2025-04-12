@@ -76,7 +76,7 @@ extern TIM_HandleTypeDef htim3;
 
 // UI variables
 ui_menu_t menu;
-ui_menu_t * menu_pointer;
+ui_menu_t *menu_pointer;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -377,42 +377,39 @@ void game_loop(void) {
             // TODO: Display main menu
             ui_menu_id_set(menu_pointer, 0);
             ui_main_menu_selection(menu_pointer);
-            if (util_time_expired_delay(menu.cursor_start_time, 500000))
-            {
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
                 ui_cursor_blink(menu_pointer);
             }
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
-            {
-                if (controller_current_buttons & SNES_BUTTON_UP)
-                {
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
                     ui_controller_move_up(menu_pointer);
                 }
-                if (controller_current_buttons & SNES_BUTTON_DOWN)
-                {
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
                     ui_controller_move_down(menu_pointer);
                 }
 
-                if (controller_current_buttons & SNES_BUTTON_A)
-                {
-                    switch(menu.current_selection_id)
-                    {
-                        case 0:
-                            game.state = GAME_STATE_PREPARE_GAME;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 1:
-                            game.state = GAME_STATE_HIGH_SCORE;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 2:
-                            game.state = GAME_STATE_SETTINGS;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 3:
-                            game.state = GAME_STATE_CREDITS;
-                            ssd1306_Fill(Black);
-                            break;
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        game.state = GAME_STATE_PREPARE_GAME;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 1:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_HIGH_SCORE;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 2:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_SETTINGS;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 3:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_CREDITS;
+                        ssd1306_Fill(Black);
+                        break;
                     }
                 }
             }
@@ -782,8 +779,9 @@ void game_loop(void) {
 
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-                    //                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+//                    game.state = GAME_STATE_PREPARE_GAME;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
