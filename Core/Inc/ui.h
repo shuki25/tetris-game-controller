@@ -23,6 +23,7 @@
 #define INC_UI_H_
 
 #include "game_loop.h"
+#include "eeprom.h"
 #include "tetris.h"
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
@@ -45,6 +46,7 @@ void ui_init();
 void ui_reset_ui_stats();
 void ui_splash_screen();
 void ui_test();
+void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game);
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);

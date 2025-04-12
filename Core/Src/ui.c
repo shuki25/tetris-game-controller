@@ -27,8 +27,12 @@
 #include "splash_bitmap.h"
 #include "util.h"
 #include "tetris.h"
+#include "eeprom.h"
+
 
 ui_stats_t ui_stats;
+ui_stats_t ui_high_score;
+
 /**
  * @brief  Initialize OLED display
  * @param  None
@@ -38,6 +42,9 @@ void ui_init(tetris_statistics_t *stats) {
     ssd1306_Init();
     memset(&ui_stats, 0, sizeof(ui_stats_t));
     ui_stats.stats = stats;
+
+    // High score
+    memset(&ui_high_score, 0, sizeof(ui_stats_t));
 }
 
 /**
@@ -49,6 +56,10 @@ void ui_reset_ui_stats() {
     ui_stats.animate_start_time = TIM2->CNT;
     ui_stats.animate_delay = UI_STATS_DELAY;
     ui_stats.animate_frame = 0;
+
+    ui_high_score.animate_start_time = TIM2->CNT;
+    ui_high_score.animate_delay = UI_STATS_DELAY;
+    ui_high_score.animate_frame = 0;
 }
 
 void ui_splash_screen() {
@@ -269,6 +280,70 @@ void ui_game_over_screen(game_t *game, ui_stats_t *ui_stats) {
     ui_display_game_info(game);
     // TODO: Display high score if applicable, and prompt for name entry
 
+}
+
+/**
+ * @brief  Display highscores
+ * @param  high_scores: array of high scores to display
+ * @param  curr_score: an optional additional score to be displayed. NULL if not desired
+ * @retval None
+ */
+void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
+    // Only update screen if its time to switch
+    if (util_time_expired_delay(ui_high_score.animate_start_time, ui_high_score.animate_delay)) {
+        char buffer[32];
+        memset(buffer, 0, sizeof(buffer));
+
+        ui_high_score.animate_start_time = TIM2->CNT;
+        ui_high_score.animate_delay = UI_STATS_DELAY;
+
+        // Figure out which header to display
+        if (ui_high_score.animate_frame == 0) {
+            snprintf(buffer, 32, "  NAME   SCORE  LEVEL");
+        }
+        else {
+            snprintf(buffer, 32, "  NAME   SCORE  LINES");
+        }
+
+        // Display the header
+        ssd1306_SetCursor(1, 2);
+        ssd1306_WriteString(buffer, Font_6x8, White);
+
+        // Display high scores
+        for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
+            // Display name
+            ssd1306_SetCursor(1, 11 + i * 9);
+            snprintf(buffer, 32, "%d %s", i + 1, high_scores[i]-> name);
+            ssd1306_WriteString(buffer, Font_6x8, White);
+
+            // Display score and level/lines
+            ssd1306_SetCursor(55, 11 + i * 9);
+            if (ui_high_score.animate_frame == 0) {
+                snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->level);
+            }
+            else {
+                snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->level);
+            }
+            ssd1306_WriteString(buffer, Font_6x8, White);
+        }
+
+        // If given a current game state, display it too
+        if (game != NULL) {
+            ssd1306_SetCursor(1, 2 + 6 * 9);
+            if (ui_high_score.animate_frame == 0) {
+                snprintf(buffer, 32, "  YOU    %06ld %02ld", game->score, game->level);
+            }
+            else {
+                snprintf(buffer, 32, "  YOU    %06ld %03ld", game->score, game->lines);
+            }
+            ssd1306_WriteString(buffer, Font_6x8, White);
+        }
+
+        // switch the frame to display next time
+        ui_high_score.animate_frame ^= (1 << 0);
+
+        ssd1306_UpdateScreen();
+    }
 }
 
 /**

@@ -330,6 +330,7 @@ void game_loop(void) {
                 controller_count++;
             }
         }
+        game.state = GAME_STATE_TEST_FEATURE;
 
         switch (game.state) {
 
@@ -722,6 +723,9 @@ void game_loop(void) {
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
             if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
+
+                // Save score if is better than a high score
+
                 game.state = GAME_STATE_GAME_OVER_WAIT;
                 // Persist settings and high scores by writing them to EEPROM
                 eeprom_write_settings(&eeprom, &settings);
@@ -758,6 +762,7 @@ void game_loop(void) {
             /* ------------------------ HIGH SCORES ------------------------ */
         case GAME_STATE_HIGH_SCORE:
             // TODO: Display high scores
+            // ui_display_high_scores(high_score_ptrs, NULL);
             break;
 
             /* ------------------------ SETTINGS MENU ---------------------- */
@@ -768,7 +773,7 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-
+            ui_display_high_scores(high_score_ptrs, NULL);
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
