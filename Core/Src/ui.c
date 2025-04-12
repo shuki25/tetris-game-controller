@@ -65,10 +65,11 @@ void ui_menu_init(ui_menu_t menu) {
     menu.current_selection_id = 0;
     menu.cursor_selection_id = 0;
     menu.is_cursor_on = 0;
-    menu.cursor_timeout = 0;
+    menu.cursor_timeout = 500000; // 500 ms
     menu.ui_status = UI_MENU_DRAW;
     menu.ui_menu_list_size = 0;
     menu.offset_num = 0;
+    menu.cursor_start_time = 0;
 }
 void ui_menu_id_set(ui_menu_t * menu, int menuID)
 {
@@ -214,43 +215,98 @@ void ui_main_menu_selection(ui_menu_t * menu) {
         ssd1306_SetCursor(32, 46);
         ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num+2], Font_7x10, White);
 
-        if(menu->is_cursor_on == 1)
+        if(menu->cursor_selection_id > 2)
         {
-            if(menu->cursor_selection_id > 2)
-            {
-                menu->cursor_selection_id = 2;
-                ssd1306_SetCursor(23, select_arrow_locations[2]);
-                ssd1306_WriteString(">", Font_6x8, White);
-                ssd1306_UpdateScreen();
-
-            }
-            else if(menu->cursor_selection_id < 0)
-            {
-                menu->cursor_selection_id = 0;
-                ssd1306_SetCursor(23, select_arrow_locations[0]);
-                ssd1306_WriteString(">", Font_6x8, White);
-                ssd1306_UpdateScreen();
-            }
-
-            ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+            menu->cursor_selection_id = 2;
+            ssd1306_SetCursor(23, select_arrow_locations[2]);
             ssd1306_WriteString(">", Font_6x8, White);
             ssd1306_UpdateScreen();
 
-            menu->is_cursor_on = 0;
         }
-        else{
-            if(menu->cursor_timeout == 5000)
-            {
-                menu->is_cursor_on = 1;
-            }
-            else{
-                menu->cursor_timeout += 1;
-            }
+        else if(menu->cursor_selection_id < 0)
+        {
+            menu->cursor_selection_id = 0;
+            ssd1306_SetCursor(23, select_arrow_locations[0]);
+            ssd1306_WriteString(">", Font_6x8, White);
+            ssd1306_UpdateScreen();
         }
+
+        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_WriteString(">", Font_6x8, White);
+        ssd1306_UpdateScreen();
+
+        menu->is_cursor_on = 0;
         ssd1306_UpdateScreen();
         menu->ui_status = UI_WAITING_STATE;
     }
 
+}
+
+void ui_controller_move_up(ui_menu_t * menu)
+{
+    menu->ui_status=UI_MENU_DRAW;
+    if(menu->current_selection_id != 0)
+    {
+        menu->current_selection_id = menu->current_selection_id - 1;
+    }
+    if(menu->cursor_selection_id != 0)
+    {
+        menu->cursor_selection_id = menu->cursor_selection_id - 1;
+    }
+    else{
+        if(menu->offset_num != 0)
+        {
+            menu->offset_num -= 1;
+        }
+    }
+    ui_main_menu_selection(menu);
+    menu->ui_status=UI_WAITING_STATE;
+}
+
+void ui_controller_move_down(ui_menu_t * menu)
+{
+    if(menu->current_selection_id == menu->ui_menu_list_size)
+    {
+        menu->ui_status=UI_WAITING_STATE;
+    }
+    else
+    {
+        menu->ui_status=UI_MENU_DRAW;
+        if(menu->current_selection_id != menu->ui_menu_list_size)
+        {
+            menu->current_selection_id = menu->current_selection_id + 1;
+        }
+        if(menu->cursor_selection_id != 2)
+        {
+            menu->cursor_selection_id = menu->cursor_selection_id + 1;
+        }
+        else
+        {
+            if(menu->offset_num != menu->ui_menu_list_size)
+            {
+                menu->offset_num += 1;
+            }
+        }
+    }
+    ui_main_menu_selection(menu);
+    menu->ui_status=UI_WAITING_STATE;
+}
+
+void ui_cursor_blink(ui_menu_t * menu)
+{
+    if(menu->is_cursor_on == 1)
+    {
+        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_WriteString(">", Font_6x8, White);
+        ssd1306_UpdateScreen();
+    }
+    if(menu->is_cursor_on == 0)
+    {
+        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_WriteString(" ", Font_6x8, White);
+        ssd1306_UpdateScreen();
+    }
+    menu->is_cursor_on = !menu->is_cursor_on;
 }
 
 //void menu_scroll_draw(ui_menu_t * menu, uint8_t offset)

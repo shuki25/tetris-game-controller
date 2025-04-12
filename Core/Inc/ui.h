@@ -35,11 +35,12 @@ typedef struct {
     uint8_t menu_id;
     uint8_t cursor_selection_id;
     uint8_t is_cursor_on;
-    uint8_t cursor_timeout;
+    uint32_t cursor_timeout;
     uint8_t current_selection_id;
     ui_state_t ui_status;
     uint8_t ui_menu_list_size;
     uint8_t offset_num;
+    uint32_t cursor_start_time;
 } ui_menu_t;
 
 
@@ -51,6 +52,9 @@ void ui_menu_init(ui_menu_t menu);
 void ui_menu_id_set(ui_menu_t * menu, int menuID);
 void ui_splash_screen();
 void ui_main_menu_selection(ui_menu_t * menu);
+void ui_cursor_blink(ui_menu_t * menu);
+void ui_controller_move_up(ui_menu_t * menu);
+void ui_controller_move_down(ui_menu_t * menu);
 void ui_test();
 void frame_maker();
 

@@ -369,50 +369,43 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-//            ui_menu_id_set(menu, 0);
-//        	ui_main_menu_selection(menu);
+            ui_menu_id_set(menu_pointer, 0);
+            ui_main_menu_selection(menu_pointer);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000))
+            {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_cursor_blink(menu_pointer);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
+            {
+                if (controller_current_buttons & SNES_BUTTON_UP)
+                {
+                    ui_controller_move_up(menu_pointer);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN)
+                {
+                    ui_controller_move_down(menu_pointer);
+                }
 
-//            while(1)
-//            {
-//              if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
-//                  if (controller_current_buttons & SNES_BUTTON_DOWN) {
-//                      if(position < 1)
-//                      {
-//                          position = 1;
-//                      }
-//                      else
-//                      {
-//                          position++;
-//                      }
-//
-//                      if(sizeXarray > 4)
-//                      {
-//                          sizeXarray++;
-//                      }
-//                      else
-//                      {
-//                          sizeXarray = 4;
-//                      }
-//                  }
-//                  if (controller_current_buttons & SNES_BUTTON_DOWN) {
-//                      if(position > 0)
-//                      {
-//                          position = 0;
-//                      }
-//                      else
-//                      {
-//                          position--;
-//                      }
-//
-//                      if(sizeXarray > 0)
-//                      {
-//                          sizeXarray--;
-//                      }
-//                      else{
-//                          sizeXarray = 0;
-//                      }
-//                  }
-//              }
+                if (controller_current_buttons & SNES_BUTTON_A)
+                {
+                    switch(menu.current_selection_id)
+                    {
+                        case 0:
+                            game.state = GAME_STATE_PLAY_MENU;
+                            break;
+                        case 1:
+                            game.state = GAME_STATE_HIGH_SCORE;
+                            break;
+                        case 2:
+                            game.state = GAME_STATE_SETTINGS;
+                            break;
+                        case 3:
+                            game.state = GAME_STATE_CREDITS;
+                            break;
+                    }
+                }
+            }
             break;
 
             /* ------------------------ PLAYING MENU ------------------------ */
@@ -804,59 +797,6 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-
-            ui_menu_id_set(menu_pointer, 0);
-            ui_main_menu_selection(menu_pointer);
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
-            {
-                if (controller_current_buttons & SNES_BUTTON_UP)
-                {
-                    menu.ui_status=UI_MENU_DRAW;
-                    if(menu.current_selection_id != 0)
-                    {
-                        menu.current_selection_id = menu.current_selection_id - 1;
-                    }
-                    if(menu.cursor_selection_id != 0)
-                    {
-                        menu.cursor_selection_id = menu.cursor_selection_id - 1;
-                    }
-                    else{
-                        if(menu.offset_num != 0)
-                        {
-                            menu.offset_num -= 1;
-                        }
-                    }
-                    ui_main_menu_selection(menu_pointer);
-                    menu.ui_status=UI_WAITING_STATE;
-                }
-                if (controller_current_buttons & SNES_BUTTON_DOWN)
-                {
-                    if(menu.current_selection_id == menu.ui_menu_list_size)
-                    {
-                        menu.ui_status=UI_WAITING_STATE;
-                    }
-                    else{
-                        menu.ui_status=UI_MENU_DRAW;
-                        if(menu.current_selection_id != menu.ui_menu_list_size)
-                        {
-                            menu.current_selection_id = menu.current_selection_id + 1;
-                        }
-                        if(menu.cursor_selection_id != 2)
-                        {
-                            menu.cursor_selection_id = menu.cursor_selection_id + 1;
-                        }
-                        else
-                        {
-                            if(menu.offset_num != menu.ui_menu_list_size)
-                            {
-                                menu.offset_num += 1;
-                            }
-                        }
-                        ui_main_menu_selection(menu_pointer);
-                        menu.ui_status=UI_WAITING_STATE;
-                    }
-                }
-            }
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
