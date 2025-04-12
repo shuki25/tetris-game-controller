@@ -74,6 +74,10 @@ saved_settings_t settings;
 // TIM Variables
 extern TIM_HandleTypeDef htim3;
 
+// UI variables
+ui_menu_t menu;
+ui_menu_t *menu_pointer;
+
 // EEPROM Variables
 eeprom_t eeprom;
 eeprom_id_t signature;
@@ -245,6 +249,10 @@ void game_loop(void) {
 #endif
     }
 
+    // Initialize menu system
+    ui_menu_init(menu);
+    menu_pointer = &menu;
+
     rendering_status = renderer_create_boundary(&renderer);
 
     if (rendering_status == RENDERER_OK) {
@@ -344,8 +352,7 @@ void game_loop(void) {
         case GAME_STATE_SPLASH_WAIT:
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-//                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -368,6 +375,44 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
+            ui_menu_id_set(menu_pointer, 0);
+            ui_main_menu_selection(menu_pointer);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_cursor_blink(menu_pointer);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_controller_move_up(menu_pointer);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_controller_move_down(menu_pointer);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        game.state = GAME_STATE_PREPARE_GAME;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 1:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_HIGH_SCORE;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 2:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_SETTINGS;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 3:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_CREDITS;
+                        ssd1306_Fill(Black);
+                        break;
+                    }
+                }
+            }
             break;
 
             /* ------------------------ PLAYING MENU ------------------------ */
@@ -737,8 +782,9 @@ void game_loop(void) {
 
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-                    //                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+//                    game.state = GAME_STATE_PREPARE_GAME;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -771,13 +817,59 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
 //                render_count++;
 //            }
 //#endif
+//            if(main_menu == 0)
+//            {
+//                ui_main_menu_selection();
+//                main_menu = 1;
+//            }
+//            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+//                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                    if (array_position > 1) {
+//                        array_position = 1;
+//                    } else {
+//                        array_position++;
+//                    }
+//
+//                    if (cursor_position < 2) {
+//                        cursor_position++;
+//                    } else {
+//                        cursor_position = 2;
+//                    }
+//                }
+//                if (controller_current_buttons & SNES_BUTTON_UP) {
+//                    if (array_position < 0) {
+//                        array_position = 0;
+//                    } else {
+//                        array_position--;
+//                    }
+//
+//                    if (cursor_position > 0) {
+//                        cursor_position--;
+//                    } else {
+//                        cursor_position = 0;
+//                    }
+//                }
+//            ssd1306_SetCursor(32, 14);
+//            ssd1306_WriteString(main_menu_list[array_position], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 30);
+//            ssd1306_WriteString(main_menu_list[array_position + 1], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 48);
+//            ssd1306_WriteString(main_menu_list[array_position + 2], Font_7x10, White);
+//
+//
+//            ssd1306_SetCursor(10, select_arrow_locations[cursor_position]);
+//            ssd1306_WriteString(">", Font_6x8, White);
+//
+//            ssd1306_UpdateScreen();
+//            }
             /* Developer test code END */
             break;
 
