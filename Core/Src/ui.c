@@ -27,6 +27,7 @@
 #include "splash_bitmap.h"
 #include "util.h"
 #include "tetris.h"
+#include "snes_controller.h"
 
 ui_stats_t ui_stats;
 /**

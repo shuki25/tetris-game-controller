@@ -25,7 +25,7 @@ extern "C" {
 #define EEPROM_SIGNATURE "TETRISES"
 #define EEPROM_NUM_USED_PAGES 7
 #define EEPROM_VERSION 1
-#define EEPROM_REVISION 2
+#define EEPROM_REVISION 3
 #define EEPROM_SIGNATURE_PAGE 0
 #define EEPROM_SIGNATURE_OFFSET 0
 #define EEPROM_SETTINGS_PAGE 1
@@ -64,7 +64,7 @@ typedef struct {
 } saved_settings_t;
 
 typedef struct {
-    char name[16];
+    char name[7];
     uint32_t score;
     uint32_t level;
     uint32_t lines;

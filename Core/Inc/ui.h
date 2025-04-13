@@ -24,6 +24,8 @@
 
 #include "game_loop.h"
 #include "tetris.h"
+#include "snes_controller.h"
+#include "eeprom.h"
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
 #define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
@@ -49,4 +51,5 @@ void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
+void ui_highscore_and_initials(game_high_score_t* high_score, snes_controller_t *controller);
 #endif /* INC_UI_H_ */
