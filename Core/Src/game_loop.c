@@ -229,13 +229,13 @@ void game_loop(void) {
     if (matrix_status == MATRIX_OK) {
 #if DEBUG_OUTPUT
         printf("Matrix initialization success\n");
-        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-            printf("Add Tetrimino to Matrix: Collision detected\n");
-        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-            printf("Add Tetrimino to Matrix: Out of bounds\n");
-        }
-        matrix_debug_print(&matrix);
+//        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//        if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//            printf("Add Tetrimino to Matrix: Collision detected\n");
+//        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//            printf("Add Tetrimino to Matrix: Out of bounds\n");
+//        }
+//        matrix_debug_print(&matrix);
 #endif
     }
 
@@ -436,6 +436,9 @@ void game_loop(void) {
             game.play_state = PLAY_STATE_NORMAL;
 
             memset(&game.stats, 0, sizeof(game_stats_t));
+
+            // Reinitialize tetrimino piece
+            tetrimino_init(&tetrimino);
 
             // reset game statistics and timer
             tetris_statistics_reset(&tetris_statistics);
