@@ -65,7 +65,7 @@ tetrimino_status_t tetrimino_init(tetrimino_t *tetrimino) {
     memset(tetrimino, 0, sizeof(tetrimino_t));
     rng_init(0);
     tetrimino->x = 5;
-    tetrimino->y = PLAYING_FIELD_HEIGHT - 1;
+    tetrimino->y = PLAYING_FIELD_HEIGHT;
     tetrimino->piece = rng_next() % TETRIMINO_COUNT;
     tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
     tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
@@ -116,7 +116,7 @@ tetrimino_status_t tetrimino_rotate(tetrimino_t *tetrimino, rotation_direction_t
  */
 tetrimino_status_t tetrimino_next(tetrimino_t *tetrimino) {
     tetrimino->x = 5;
-    tetrimino->y = PLAYING_FIELD_HEIGHT - 1;
+    tetrimino->y = PLAYING_FIELD_HEIGHT;
     tetrimino->piece = tetrimino->next_piece;
     tetrimino->rotation = tetrimino_spawn[tetrimino->piece];
     tetrimino->shape_offset = tetrimino_shape_offset_lut[tetrimino->piece][tetrimino->rotation];
