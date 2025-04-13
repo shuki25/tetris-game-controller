@@ -73,17 +73,17 @@ void ui_reset_ui_stats() {
     ui_stats.animate_frame = 0;
 }
 
-void ui_menu_init(ui_menu_t menu) {
+void ui_menu_init(ui_menu_t *menu) {
 //    memset(menu, 0, sizeof(*menu));
-    menu.menu_id = 0;
-    menu.current_selection_id = 0;
-    menu.cursor_selection_id = 0;
-    menu.is_cursor_on = 0;
-    menu.cursor_timeout = 500000; // 500 ms
-    menu.ui_status = UI_MENU_DRAW;
-    menu.ui_menu_list_size = 0;
-    menu.offset_num = 0;
-    menu.cursor_start_time = 0;
+    menu->menu_id = 0;
+    menu->current_selection_id = 0;
+    menu->cursor_selection_id = 0;
+    menu->is_cursor_on = 0;
+    menu->cursor_timeout = 500000; // 500 ms
+    menu->ui_status = UI_MENU_DRAW;
+    menu->ui_menu_list_size = 0;
+    menu->offset_num = 0;
+    menu->cursor_start_time = 0;
 }
 void ui_menu_id_set(ui_menu_t *menu, int menuID) {
     menu->menu_id = menuID;

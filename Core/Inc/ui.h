@@ -30,9 +30,7 @@
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
-    UI_MENU_DRAW,
-    UI_WAITING_STATE,
-    UI_CONTROLLER_DETECTED,
+    UI_MENU_DRAW, UI_WAITING_STATE, UI_CONTROLLER_DETECTED,
 } ui_state_t;
 
 typedef struct {
@@ -47,7 +45,6 @@ typedef struct {
     uint32_t cursor_start_time;
 } ui_menu_t;
 
-
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
 
 // Typedef for displaying statistics (e.g. game_t)
@@ -60,14 +57,14 @@ typedef struct {
 
 // TODO: Function prototypes for UI functions (e.g. ui_init, ui_main_menu_selection, ui_game_progress, ui_game_over_screen)
 void ui_init();
-void ui_menu_init(ui_menu_t menu);
-void ui_menu_id_set(ui_menu_t * menu, int menuID);
+void ui_menu_init(ui_menu_t *menu);
+void ui_menu_id_set(ui_menu_t *menu, int menuID);
 void ui_reset_ui_stats();
 void ui_splash_screen();
-void ui_main_menu_selection(ui_menu_t * menu);
-void ui_cursor_blink(ui_menu_t * menu);
-void ui_controller_move_up(ui_menu_t * menu);
-void ui_controller_move_down(ui_menu_t * menu);
+void ui_main_menu_selection(ui_menu_t *menu);
+void ui_cursor_blink(ui_menu_t *menu);
+void ui_controller_move_up(ui_menu_t *menu);
+void ui_controller_move_down(ui_menu_t *menu);
 void ui_test();
 void frame_maker();
 

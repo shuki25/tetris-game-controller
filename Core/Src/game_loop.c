@@ -76,7 +76,6 @@ extern TIM_HandleTypeDef htim3;
 
 // UI variables
 ui_menu_t menu;
-ui_menu_t *menu_pointer;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -250,8 +249,7 @@ void game_loop(void) {
     }
 
     // Initialize menu system
-    ui_menu_init(menu);
-    menu_pointer = &menu;
+    ui_menu_init(&menu);
 
     rendering_status = renderer_create_boundary(&renderer);
 
@@ -375,18 +373,18 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-            ui_menu_id_set(menu_pointer, 0);
-            ui_main_menu_selection(menu_pointer);
+            ui_menu_id_set(&menu, 0);
+            ui_main_menu_selection(&menu);
             if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
-                ui_cursor_blink(menu_pointer);
+                ui_cursor_blink(&menu);
             }
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_UP) {
-                    ui_controller_move_up(menu_pointer);
+                    ui_controller_move_up(&menu);
                 }
                 if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    ui_controller_move_down(menu_pointer);
+                    ui_controller_move_down(&menu);
                 }
 
                 if (controller_current_buttons & SNES_BUTTON_A) {
