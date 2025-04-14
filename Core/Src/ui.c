@@ -51,7 +51,6 @@ const char *menu_list[][5] = {
 
 const uint8_t select_arrow_locations[3] = { 14, 30, 46 };
 
-
 ui_stats_t ui_stats;
 /**
  * @brief  Initialize OLED display
@@ -80,12 +79,11 @@ void ui_menu_init(ui_menu_t menu) {
     menu.menu_id = 0;
     menu.current_selection_id = 0;
     menu.cursor_selection_id = 0;
-    menu.is_cursor_on = 0;
-    menu.cursor_timeout = 500000; // 500 ms
     menu.ui_status = UI_MENU_DRAW;
+    menu.is_cursor_on = 1;
+    menu.cursor_start_time = 0;
     menu.ui_menu_list_size = 0;
     menu.offset_num = 0;
-    menu.cursor_start_time = 0;
 }
 void ui_menu_id_set(ui_menu_t * menu, int menuID)
 {
@@ -258,7 +256,7 @@ void ui_main_menu_selection(ui_menu_t * menu) {
 
 }
 
-void ui_controller_move_up(ui_menu_t * menu)
+void ui_menu_controller_move_up(ui_menu_t * menu)
 {
     menu->ui_status=UI_MENU_DRAW;
     if(menu->current_selection_id != 0)
@@ -279,7 +277,7 @@ void ui_controller_move_up(ui_menu_t * menu)
     menu->ui_status=UI_WAITING_STATE;
 }
 
-void ui_controller_move_down(ui_menu_t * menu)
+void ui_menu_controller_move_down(ui_menu_t * menu)
 {
     if(menu->current_selection_id == menu->ui_menu_list_size)
     {
@@ -308,7 +306,7 @@ void ui_controller_move_down(ui_menu_t * menu)
     menu->ui_status=UI_WAITING_STATE;
 }
 
-void ui_cursor_blink(ui_menu_t * menu)
+void ui_menu_cursor_blink(ui_menu_t * menu)
 {
     if(menu->is_cursor_on == 1)
     {
@@ -323,6 +321,75 @@ void ui_cursor_blink(ui_menu_t * menu)
         ssd1306_UpdateScreen();
     }
     menu->is_cursor_on = !menu->is_cursor_on;
+}
+
+void ui_level_selection(uint32_t * level, ui_state_t * ui_level_selection_mode, uint8_t * ui_is_cursor_on)
+{
+    if(*ui_level_selection_mode == UI_LEVEL_SELECTION_DRAW)
+    {
+        char str[3];
+
+        sprintf(str, "%ld", *level);
+        ssd1306_Fill(Black);
+        frame_maker();
+
+        ssd1306_SetCursor(19, 0);
+        ssd1306_WriteString(" ", Font_6x8, White);
+
+        ssd1306_SetCursor(21, 0);
+        ssd1306_WriteString("Level Selection", Font_6x8, White);
+
+        ssd1306_SetCursor(16, 13);
+        ssd1306_WriteString("Level ", Font_11x18, White);
+
+        if(*ui_is_cursor_on == 1)
+        {
+            ssd1306_SetCursor(77, 13);
+            ssd1306_WriteString(str, Font_11x18, White);
+            *ui_is_cursor_on = !*ui_is_cursor_on;
+        }
+        else
+        {
+            ssd1306_SetCursor(77, 13);
+            ssd1306_WriteString(" ", Font_11x18, White);
+            *ui_is_cursor_on = !*ui_is_cursor_on;
+        }
+
+        ssd1306_SetCursor(15, 35);
+        ssd1306_WriteString("Press UP or DOWN", Font_6x8, White);
+
+        ssd1306_SetCursor(7, 50);
+        ssd1306_WriteString("Press START to play", Font_6x8, White);
+
+        ssd1306_UpdateScreen();
+        *ui_level_selection_mode = UI_WAITING_STATE;
+    }
+}
+
+void ui_level_controller_move_up(uint32_t *level, ui_state_t * ui_level_selection_mode)
+{
+    if(*level == 0)
+    {
+        *level = 255;
+    }
+    else{
+        *level-=1;
+    }
+
+    *ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+}
+
+void ui_level_controller_move_down(uint32_t * level, ui_state_t  * ui_level_selection_mode)
+{
+    if(*level == 255)
+    {
+        *level = 0;
+    }
+    else{
+        *level+=1;
+    }
+
+    *ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
 }
 
 //void menu_scroll_draw(ui_menu_t * menu, uint8_t offset)

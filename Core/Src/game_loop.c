@@ -77,6 +77,9 @@ extern TIM_HandleTypeDef htim3;
 // UI variables
 ui_menu_t menu;
 ui_menu_t * menu_pointer;
+ui_state_t ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+uint8_t ui_is_cursor_on = 0;
+uint32_t ui_cursor_start_time = 0;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -112,6 +115,7 @@ game_status_t game_init(void) {
     memset(&game, 0, sizeof(game_t));
     game.state = GAME_STATE_SPLASH;
     game.play_state = PLAY_STATE_NOT_STARTED;
+    game.level = 0;
     game.drop_time_delay = 1000000;
     game.lock_time_delay = 500000; // 0.5 seconds
 
@@ -274,8 +278,8 @@ void game_loop(void) {
     hb_led.active = 1;
     rj45_led.active = 1;
 
-    // If you want to test a feature, uncomment the following line
-//    game.state = GAME_STATE_TEST_FEATURE;
+//     If you want to test a feature, uncomment the following line
+    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
@@ -380,17 +384,17 @@ void game_loop(void) {
             if (util_time_expired_delay(menu.cursor_start_time, 500000))
             {
                 menu.cursor_start_time = TIM2->CNT;
-                ui_cursor_blink(menu_pointer);
+                ui_menu_cursor_blink(menu_pointer);
             }
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
             {
                 if (controller_current_buttons & SNES_BUTTON_UP)
                 {
-                    ui_controller_move_up(menu_pointer);
+                    ui_menu_controller_move_up(menu_pointer);
                 }
                 if (controller_current_buttons & SNES_BUTTON_DOWN)
                 {
-                    ui_controller_move_down(menu_pointer);
+                    ui_menu_controller_move_down(menu_pointer);
                 }
 
                 if (controller_current_buttons & SNES_BUTTON_A)
@@ -429,7 +433,7 @@ void game_loop(void) {
 
             matrix_clear(&matrix);
             game.score = 0;
-            game.level = 0;
+//            game.level = 0;
             game.lines = 0;
             game.lines_to_next_level = 10 * (game.level + 1);
             game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
@@ -816,6 +820,35 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
+            if (util_time_expired_delay(menu.cursor_start_time, 500000))
+            {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            }
+            ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
+            {
+                if (controller_current_buttons & SNES_BUTTON_UP)
+                {
+                    ui_level_controller_move_up(&game.level, &ui_level_selection_mode);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN)
+                {
+                    ui_level_controller_move_down(&game.level, &ui_level_selection_mode);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_START)
+                {
+                    game.state = GAME_STATE_PREPARE_GAME;
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B)
+                {
+                    game.state = GAME_STATE_MENU;
+                }
+            }
+
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
