@@ -76,6 +76,9 @@ extern TIM_HandleTypeDef htim3;
 
 // UI variables
 ui_menu_t menu;
+ui_state_t ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+uint8_t ui_is_cursor_on = 0;
+uint32_t ui_cursor_start_time = 0;
 
 // EEPROM Variables
 eeprom_t eeprom;
@@ -105,10 +108,10 @@ void splash() {
  * @retval None
  */
 game_status_t game_init(void) {
-//    splash();
-
-    // TODO: Initialize game state (structs, bitboards, etc.)
+    // Initialize game to zero
     memset(&game, 0, sizeof(game_t));
+
+    // Set game states to default values
     game.state = GAME_STATE_SPLASH;
     game.play_state = PLAY_STATE_NOT_STARTED;
     game.drop_time_delay = 1000000;
@@ -272,7 +275,7 @@ void game_loop(void) {
     hb_led.active = 1;
     rj45_led.active = 1;
 
-    // If you want to test a feature, uncomment the following line
+//     If you want to test a feature, uncomment the following line
 //    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
@@ -377,20 +380,20 @@ void game_loop(void) {
             ui_main_menu_selection(&menu);
             if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
-                ui_cursor_blink(&menu);
+                ui_menu_cursor_blink(&menu);
             }
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_UP) {
-                    ui_controller_move_up(&menu);
+                    ui_menu_controller_move_up(&menu);
                 }
                 if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    ui_controller_move_down(&menu);
+                    ui_menu_controller_move_down(&menu);
                 }
 
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     switch (menu.current_selection_id) {
                     case 0:
-                        game.state = GAME_STATE_PREPARE_GAME;
+                        game.state = GAME_STATE_PLAY_MENU;
                         ssd1306_Fill(Black);
                         break;
                     case 1:
@@ -415,7 +418,41 @@ void game_loop(void) {
 
             /* ------------------------ PLAYING MENU ------------------------ */
         case GAME_STATE_PLAY_MENU:
-            // TODO: Display playing menu
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            }
+            ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if (game.level == 0) {
+                        game.level = 255;
+                    } else {
+                        game.level--;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                }
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    if (game.level == 255) {
+                        game.level = 0;
+                    } else {
+                        game.level++;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_START) {
+                    game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B) {
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                    ssd1306_Fill(Black);
+                }
+            }
             break;
 
             /* -------------------- PREPARE GAME STATE ---------------------- */
@@ -424,7 +461,7 @@ void game_loop(void) {
 
             matrix_clear(&matrix);
             game.score = 0;
-            game.level = 0;
+//            game.level = 0;
             game.lines = 0;
             game.lines_to_next_level = 10 * (game.level + 1);
             game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
