@@ -279,7 +279,7 @@ void game_loop(void) {
     rj45_led.active = 1;
 
 //     If you want to test a feature, uncomment the following line
-    game.state = GAME_STATE_TEST_FEATURE;
+//    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
@@ -402,7 +402,7 @@ void game_loop(void) {
                     switch(menu.current_selection_id)
                     {
                         case 0:
-                            game.state = GAME_STATE_PREPARE_GAME;
+                            game.state = GAME_STATE_PLAY_MENU;
                             ssd1306_Fill(Black);
                             break;
                         case 1:
@@ -425,6 +425,35 @@ void game_loop(void) {
             /* ------------------------ PLAYING MENU ------------------------ */
         case GAME_STATE_PLAY_MENU:
             // TODO: Display playing menu
+            if (util_time_expired_delay(menu.cursor_start_time, 500000))
+            {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            }
+            ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
+            {
+                if (controller_current_buttons & SNES_BUTTON_UP)
+                {
+                    ui_level_controller_move_up(&game.level, &ui_level_selection_mode);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN)
+                {
+                    ui_level_controller_move_down(&game.level, &ui_level_selection_mode);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_START)
+                {
+                    game.state = GAME_STATE_PREPARE_GAME;
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B)
+                {
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                }
+            }
             break;
 
             /* -------------------- PREPARE GAME STATE ---------------------- */
@@ -820,34 +849,6 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-            if (util_time_expired_delay(menu.cursor_start_time, 500000))
-            {
-                menu.cursor_start_time = TIM2->CNT;
-                ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
-                ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
-            }
-            ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
-            {
-                if (controller_current_buttons & SNES_BUTTON_UP)
-                {
-                    ui_level_controller_move_up(&game.level, &ui_level_selection_mode);
-                }
-                if (controller_current_buttons & SNES_BUTTON_DOWN)
-                {
-                    ui_level_controller_move_down(&game.level, &ui_level_selection_mode);
-                }
-
-                if (controller_current_buttons & SNES_BUTTON_START)
-                {
-                    game.state = GAME_STATE_PREPARE_GAME;
-                }
-
-                if (controller_current_buttons & SNES_BUTTON_B)
-                {
-                    game.state = GAME_STATE_MENU;
-                }
-            }
 
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
