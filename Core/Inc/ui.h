@@ -28,6 +28,7 @@
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
 #define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
+#define UI_HIGH_SCORE_DELAY (2500000) // Delay between high score frames in microseconds
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 

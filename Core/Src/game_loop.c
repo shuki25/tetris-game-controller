@@ -301,6 +301,7 @@ void game_loop(void) {
 //    matrix.palette2[7] = 0;
 //    matrix.palette2[8] = 0;
 //    matrix.palette2[9] = 0;
+    ui_reset_ui_stats();
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -330,7 +331,7 @@ void game_loop(void) {
                 controller_count++;
             }
         }
-        game.state = GAME_STATE_TEST_FEATURE;
+        //game.state = GAME_STATE_TEST_FEATURE;
 
         switch (game.state) {
 
@@ -727,9 +728,10 @@ void game_loop(void) {
                 // Save score if is better than a high score
 
                 game.state = GAME_STATE_GAME_OVER_WAIT;
+
                 // Persist settings and high scores by writing them to EEPROM
-                eeprom_write_settings(&eeprom, &settings);
-                eeprom_write_high_scores(&eeprom, high_score_ptrs);
+//                eeprom_write_settings(&eeprom, &settings);
+//                eeprom_write_high_scores(&eeprom, high_score_ptrs);
             }
             break;
 
@@ -762,7 +764,8 @@ void game_loop(void) {
             /* ------------------------ HIGH SCORES ------------------------ */
         case GAME_STATE_HIGH_SCORE:
             // TODO: Display high scores
-            // ui_display_high_scores(high_score_ptrs, NULL);
+            ui_reset_ui_stats(); // Needed to initialize values for switching frames
+            ui_display_high_scores(high_score_ptrs, NULL);
             break;
 
             /* ------------------------ SETTINGS MENU ---------------------- */

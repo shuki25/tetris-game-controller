@@ -322,7 +322,7 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
                 snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->level);
             }
             else {
-                snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->level);
+                snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->lines);
             }
             ssd1306_WriteString(buffer, Font_6x8, White);
         }
