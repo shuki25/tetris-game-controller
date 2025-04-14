@@ -76,7 +76,6 @@ extern TIM_HandleTypeDef htim3;
 
 // UI variables
 ui_menu_t menu;
-ui_menu_t * menu_pointer;
 ui_state_t ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
 uint8_t ui_is_cursor_on = 0;
 uint32_t ui_cursor_start_time = 0;
@@ -109,13 +108,12 @@ void splash() {
  * @retval None
  */
 game_status_t game_init(void) {
-//    splash();
-
-    // TODO: Initialize game state (structs, bitboards, etc.)
+    // Initialize game to zero
     memset(&game, 0, sizeof(game_t));
+
+    // Set game states to default values
     game.state = GAME_STATE_SPLASH;
     game.play_state = PLAY_STATE_NOT_STARTED;
-    game.level = 0;
     game.drop_time_delay = 1000000;
     game.lock_time_delay = 500000; // 0.5 seconds
 
@@ -382,20 +380,20 @@ void game_loop(void) {
             ui_main_menu_selection(&menu);
             if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
-                ui_cursor_blink(&menu);
+                ui_menu_cursor_blink(&menu);
             }
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_UP) {
-                    ui_controller_move_up(&menu);
+                    ui_menu_controller_move_up(&menu);
                 }
                 if (controller_current_buttons & SNES_BUTTON_DOWN) {
-                    ui_controller_move_down(&menu);
+                    ui_menu_controller_move_down(&menu);
                 }
 
                 if (controller_current_buttons & SNES_BUTTON_A) {
                     switch (menu.current_selection_id) {
                     case 0:
-                        game.state = GAME_STATE_PREPARE_GAME;
+                        game.state = GAME_STATE_PLAY_MENU;
                         ssd1306_Fill(Black);
                         break;
                     case 1:
@@ -420,34 +418,39 @@ void game_loop(void) {
 
             /* ------------------------ PLAYING MENU ------------------------ */
         case GAME_STATE_PLAY_MENU:
-            // TODO: Display playing menu
-            if (util_time_expired_delay(menu.cursor_start_time, 500000))
-            {
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
                 ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
                 ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
             }
             ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
-            {
-                if (controller_current_buttons & SNES_BUTTON_UP)
-                {
-                    ui_level_controller_move_up(&game.level, &ui_level_selection_mode);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if (game.level == 0) {
+                        game.level = 255;
+                    } else {
+                        game.level--;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
                 }
-                if (controller_current_buttons & SNES_BUTTON_DOWN)
-                {
-                    ui_level_controller_move_down(&game.level, &ui_level_selection_mode);
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    if (game.level == 255) {
+                        game.level = 0;
+                    } else {
+                        game.level++;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
                 }
 
-                if (controller_current_buttons & SNES_BUTTON_START)
-                {
+                if (controller_current_buttons & SNES_BUTTON_START) {
                     game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
                 }
 
-                if (controller_current_buttons & SNES_BUTTON_B)
-                {
+                if (controller_current_buttons & SNES_BUTTON_B) {
                     menu.ui_status = UI_MENU_DRAW;
                     game.state = GAME_STATE_MENU;
+                    ssd1306_Fill(Black);
                 }
             }
             break;
