@@ -30,11 +30,7 @@
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
-    UI_MENU_DRAW,
-    UI_WAITING_STATE,
-    UI_CONTROLLER_DETECTED,
-    UI_LEVEL_SELECTION_DRAW,
-    UI_LEVEL_SELECTION,
+    UI_MENU_DRAW, UI_WAITING_STATE, UI_CONTROLLER_DETECTED, UI_LEVEL_SELECTION_DRAW, UI_LEVEL_SELECTION,
 } ui_state_t;
 
 typedef struct {
@@ -48,7 +44,6 @@ typedef struct {
     uint8_t offset_num;
     uint32_t cursor_start_time;
 } ui_menu_t;
-
 
 // TODO: Typedef constants in enum for menu selection (e.g. MAIN_MENU, GAME_PROGRESS, GAME_OVER)
 
@@ -68,16 +63,15 @@ void ui_reset_ui_stats();
 void ui_splash_screen();
 
 //General Menu
-void ui_main_menu_selection(ui_menu_t * menu);
-void ui_menu_controller_move_up(ui_menu_t * menu);
-void ui_menu_controller_move_down(ui_menu_t * menu);
-void ui_menu_cursor_blink(ui_menu_t * menu);
+void ui_main_menu_selection(ui_menu_t *menu);
+void ui_menu_controller_move_up(ui_menu_t *menu);
+void ui_menu_controller_move_down(ui_menu_t *menu);
+void ui_menu_cursor_blink(ui_menu_t *menu);
 
 //Level Selection
-void ui_level_controller_move_up(uint32_t * level, ui_state_t * ui_level_selection_mode);
-void ui_level_controller_move_down(uint32_t * level, ui_state_t * ui_level_selection_mode);
-void ui_level_selection(uint32_t * level, ui_state_t * ui_level_selection_mode, uint8_t * ui_is_cursor_on);
-
+void ui_level_controller_move_up(uint32_t *level, ui_state_t *ui_level_selection_mode);
+void ui_level_controller_move_down(uint32_t *level, ui_state_t *ui_level_selection_mode);
+void ui_level_selection(uint32_t *level, ui_state_t *ui_level_selection_mode, uint8_t *ui_is_cursor_on);
 
 void ui_test();
 void frame_maker();
