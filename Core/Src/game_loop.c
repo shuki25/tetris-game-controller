@@ -234,13 +234,13 @@ void game_loop(void) {
     if (matrix_status == MATRIX_OK) {
 #if DEBUG_OUTPUT
         printf("Matrix initialization success\n");
-        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-            printf("Add Tetrimino to Matrix: Collision detected\n");
-        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-            printf("Add Tetrimino to Matrix: Out of bounds\n");
-        }
-        matrix_debug_print(&matrix);
+//        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//        if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//            printf("Add Tetrimino to Matrix: Collision detected\n");
+//        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//            printf("Add Tetrimino to Matrix: Out of bounds\n");
+//        }
+//        matrix_debug_print(&matrix);
 #endif
     }
 
@@ -254,8 +254,7 @@ void game_loop(void) {
     }
 
     // Initialize menu system
-    ui_menu_init(menu);
-    menu_pointer = &menu;
+    ui_menu_init(&menu);
 
     rendering_status = renderer_create_boundary(&renderer);
 
@@ -336,7 +335,7 @@ void game_loop(void) {
 #if DEBUG_OUTPUT
                 printf("Controller buffer is full. Dropping.\n");
 #endif
-                Error_Handler();
+
             }
             if (snes_controller.buttons_state) {
                 controller_count++;
@@ -379,44 +378,41 @@ void game_loop(void) {
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
             // TODO: Display main menu
-            ui_menu_id_set(menu_pointer, 0);
-            ui_main_menu_selection(menu_pointer);
-            if (util_time_expired_delay(menu.cursor_start_time, 500000))
-            {
+            ui_menu_id_set(&menu, 0);
+            ui_main_menu_selection(&menu);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
-                ui_menu_cursor_blink(menu_pointer);
+                ui_cursor_blink(&menu);
             }
-            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true)
-            {
-                if (controller_current_buttons & SNES_BUTTON_UP)
-                {
-                    ui_menu_controller_move_up(menu_pointer);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_controller_move_up(&menu);
                 }
-                if (controller_current_buttons & SNES_BUTTON_DOWN)
-                {
-                    ui_menu_controller_move_down(menu_pointer);
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_controller_move_down(&menu);
                 }
 
-                if (controller_current_buttons & SNES_BUTTON_A)
-                {
-                    switch(menu.current_selection_id)
-                    {
-                        case 0:
-                            game.state = GAME_STATE_PLAY_MENU;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 1:
-                            game.state = GAME_STATE_HIGH_SCORE;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 2:
-                            game.state = GAME_STATE_SETTINGS;
-                            ssd1306_Fill(Black);
-                            break;
-                        case 3:
-                            game.state = GAME_STATE_CREDITS;
-                            ssd1306_Fill(Black);
-                            break;
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        game.state = GAME_STATE_PREPARE_GAME;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 1:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_HIGH_SCORE;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 2:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_SETTINGS;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 3:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_CREDITS;
+                        ssd1306_Fill(Black);
+                        break;
                     }
                 }
             }
@@ -474,6 +470,9 @@ void game_loop(void) {
             game.play_state = PLAY_STATE_NORMAL;
 
             memset(&game.stats, 0, sizeof(game_stats_t));
+
+            // Reinitialize tetrimino piece
+            tetrimino_init(&tetrimino);
 
             // reset game statistics and timer
             tetris_statistics_reset(&tetris_statistics);
@@ -804,6 +803,9 @@ void game_loop(void) {
         case GAME_STATE_GAME_ENDED:
             if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
+
+                // Flush the buffer
+                ring_buffer_flush(&controller_buffer);
                 // Persist settings and high scores by writing them to EEPROM
                 eeprom_write_settings(&eeprom, &settings);
                 eeprom_write_high_scores(&eeprom, high_score_ptrs);
@@ -815,8 +817,9 @@ void game_loop(void) {
 
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-                    //                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+//                    game.state = GAME_STATE_PREPARE_GAME;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -849,7 +852,6 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {

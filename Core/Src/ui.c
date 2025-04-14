@@ -23,8 +23,6 @@
 // - Add state machines for ui, (FIRST_TIME_DRAW, WAITING_STATE, CONTROLLER_DETECTED)
 // - Add state in UI struct in header! Also add emun for states in ui header
 // - For controller_detected, look at Prof. Butler code for game state with play state especially matrix movement and try to write code like him in controller modify
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -34,22 +32,23 @@
 #include "util.h"
 #include "tetris.h"
 
-//uint8_t select_arrow_locations[3] = { 14, 30, 46 };
-const char *menu_title_list[] = {
+//@formatter:off
+char *menu_title_list[] = {
     "Main Menu", // Start Menu
     "Game Modes", // Game mode menu
     "Paused", // Pause menu
     "Settings" // Settings menu
 };
 
-const char *menu_list[][5] = {
+char *menu_list[][5] = {
     {"Play game", "High Score", "Settings", "Credits"}, // Start Menu
     {"Classic", "Placeholder", "placeholder"}, // Game mode menu
     {"Continue", "Restart", "Quit"}, // Pause menu
     {"Brightness", "Debug", "Reset High Score", "Scoreboard ID"} // Settings menu
 };
 
-const uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+uint8_t select_arrow_locations[3] = { 14, 30, 46 };
+//@formatter:on
 
 ui_stats_t ui_stats;
 /**
