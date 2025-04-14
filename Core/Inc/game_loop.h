@@ -44,7 +44,8 @@ typedef enum {
     GAME_STATE_GAME_OVER_WAIT,
     GAME_STATE_HIGH_SCORE,
     GAME_STATE_SETTINGS,
-    GAME_STATE_TEST_FEATURE
+    GAME_STATE_TEST_FEATURE,
+    GAME_STATE_CREDITS
 } game_state_t;
 
 typedef enum {
