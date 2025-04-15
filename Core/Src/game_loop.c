@@ -127,6 +127,10 @@ game_status_t game_init(void) {
  */
 void game_loop(void) {
     snes_controller_status_t controller_status;
+    snes_controller_das_t controller_repeat_left;
+    snes_controller_das_t controller_repeat_right;
+    snes_controller_das_t controller_repeat_up;
+    snes_controller_das_t controller_repeat_down;
     matrix_status_t matrix_status;
     renderer_status_t rendering_status;
 //    char output_buffer[80];
@@ -211,6 +215,34 @@ void game_loop(void) {
         printf("SNES controller initialization failed\n");
 #endif
     }
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_left, SNES_BUTTON_LEFT)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller left repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_right, SNES_BUTTON_RIGHT)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller right repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_up, SNES_BUTTON_UP)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller up repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_down, SNES_BUTTON_DOWN)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller down repeater initialization failed\n");
+#endif
+    }
+
     tetrimino_status = tetrimino_init(&tetrimino);
 #if DEBUG_OUTPUT
     if (tetrimino_status == TETRIMINO_OK) {
@@ -313,7 +345,7 @@ void game_loop(void) {
     ui_reset_ui_stats();
 
     for (;;) {
-        // TODO: Respond to scoreboard requests
+        // Future: Respond to scoreboard requests
 
         // Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
@@ -338,6 +370,45 @@ void game_loop(void) {
             }
             if (snes_controller.buttons_state) {
                 controller_count++;
+            }
+        }
+
+        // Check for Delayed Auto Shift (DAS) events and enqueue them at predefined intervals
+
+        snes_controller_delayed_auto_shift(&controller_repeat_left, &snes_controller);
+        if (controller_repeat_left.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+            if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_left.target_button) == false) {
+#if DEBUG_OUTPUT
+                printf("Controller buffer is full. Dropping.\n");
+#endif
+            }
+        }
+        snes_controller_delayed_auto_shift(&controller_repeat_right, &snes_controller);
+        if (controller_repeat_right.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+            if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_right.target_button) == false) {
+#if DEBUG_OUTPUT
+                printf("Controller buffer is full. Dropping.\n");
+#endif
+            }
+        }
+
+        if (game.state == GAME_STATE_PLAY_MENU) {
+            snes_controller_delayed_auto_shift(&controller_repeat_up, &snes_controller);
+            if (controller_repeat_up.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+                if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_up.target_button) == false) {
+#if DEBUG_OUTPUT
+                    printf("Controller buffer is full. Dropping.\n");
+#endif
+                }
+            }
+
+            snes_controller_delayed_auto_shift(&controller_repeat_down, &snes_controller);
+            if (controller_repeat_down.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+                if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_down.target_button) == false) {
+#if DEBUG_OUTPUT
+                    printf("Controller buffer is full. Dropping.\n");
+#endif
+                }
             }
         }
         //game.state = GAME_STATE_TEST_FEATURE;
@@ -492,6 +563,8 @@ void game_loop(void) {
             } else {
                 controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
             }
+
+            // Determine if the controller button is in repeat mode (if the button is held down)
 
             if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
                 tetrimino_copy(&temp_tetrimino, &tetrimino);
@@ -649,7 +722,10 @@ void game_loop(void) {
                         game.play_state = PLAY_STATE_NORMAL;
                         game.drop_time_start = TIM2->CNT;
                     } else {
-                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+//                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
+
+                        // According to documentation, the locking delay is equal to drop delay
+                        if (util_time_expired_delay(game.lock_time_start, game.drop_time_delay)) {
                             game.play_state = PLAY_STATE_LOCKED;
                         }
                     }

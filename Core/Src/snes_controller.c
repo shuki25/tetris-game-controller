@@ -55,6 +55,24 @@ snes_controller_status_t snes_controller_init(snes_controller_t *controller, GPI
 }
 
 /**
+ * @brief  Initialize the SNES controller repeater struct
+ * @param  repeater: pointer to the repeater struct, target_button: button to repeat, repeat_rate: rate of repeat
+ * @retval snes_controller_repeat_status_t
+ */
+snes_controller_das_status_t snes_controller_delayed_auto_shift_init(snes_controller_das_t *repeater,
+        uint16_t target_button) {
+
+    memset(repeater, 0, sizeof(snes_controller_das_t));
+    repeater->repeat_status = SNES_CONTROLLER_DAS_INACTIVE;
+    repeater->target_button = target_button;
+    repeater->repeat_rate = 1000000 / SNES_DAS_DELAY; // 10Hz default repeat rate (Classic NES Tetris);
+    repeater->repeat_start_delay = 266228; // 266.228ms (16 frames at 60Hz)
+    repeater->repeat_delay = SNES_DAS_DELAY; // 10 Hz
+
+    return SNES_CONTROLLER_OK;
+}
+
+/**
  * @brief  Latch the SNES controller
  * @param  None
  * @retval None
@@ -105,7 +123,6 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
         snes_controller_clock(controller, GPIO_PIN_SET);
     }
 
-
     // Invert the button state as the controller is active low
     controller->buttons_state = ~controller->buttons_state;
 
@@ -119,6 +136,52 @@ snes_controller_status_t snes_controller_read(snes_controller_t *controller) {
     }
 
     return SNES_CONTROLLER_NO_STATE_CHANGE;
+}
+
+/**
+ * @brief  Check the repeat status of the SNES controller
+ * @param  snes_controller_repeat_t *repeater, snes_controller_t *controller
+ * @retval None
+ */
+void snes_controller_delayed_auto_shift(snes_controller_das_t *repeater, snes_controller_t *controller) {
+    repeater->buttons_state = controller->buttons_state;
+
+    if (repeater->repeat_status == SNES_CONTROLLER_DAS_INACTIVE) {
+        if (controller->buttons_state & repeater->target_button
+                && !(repeater->previous_buttons_state & repeater->target_button)) {
+            repeater->repeat_status = SNES_CONTROLLER_DAS_START;
+            repeater->repeat_start_time = TIM2->CNT;
+        }
+    } else if (repeater->repeat_status == SNES_CONTROLLER_DAS_START) {
+        if (util_time_expired_delay(repeater->repeat_start_time, repeater->repeat_start_delay)) {
+            repeater->repeat_status = SNES_CONTROLLER_DAS_ACTIVE_IDLE;
+            repeater->repeat_start_time = TIM2->CNT;
+
+        }
+    } else if (repeater->repeat_status == SNES_CONTROLLER_DAS_ACTIVE_IDLE) {
+        // Check if the button is still pressed
+        if (!(controller->buttons_state & repeater->target_button)) {
+            repeater->repeat_status = SNES_CONTROLLER_DAS_INACTIVE;
+        } else {
+            // Check if the repeat delay has expired
+            if (util_time_expired_delay(repeater->repeat_start_time, repeater->repeat_delay)) {
+                repeater->repeat_status = SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE;
+            }
+        }
+    } else if (repeater->repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+        // Check if the button is still pressed
+        if (!(controller->buttons_state & repeater->target_button)) {
+            repeater->repeat_status = SNES_CONTROLLER_DAS_INACTIVE;
+        } else {
+            repeater->repeat_status = SNES_CONTROLLER_DAS_ACTIVE_IDLE;
+            repeater->repeat_start_time = TIM2->CNT;
+        }
+    } else {
+        // This should never happen
+        repeater->repeat_status = SNES_CONTROLLER_DAS_INACTIVE;
+    }
+
+    repeater->previous_buttons_state = repeater->buttons_state;
 }
 
 /**
