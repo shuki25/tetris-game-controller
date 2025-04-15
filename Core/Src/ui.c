@@ -33,7 +33,6 @@
 #include "tetris.h"
 #include "eeprom.h"
 
-
 //@formatter:off
 char *menu_title_list[] = {
     "Main Menu", // Start Menu
@@ -75,11 +74,11 @@ void ui_init(tetris_statistics_t *stats) {
  * @retval None
  */
 void ui_reset_ui_stats() {
-    ui_stats.animate_start_time = TIM2->CNT;
+    ui_stats.animate_start_time = TIM2->CNT - UI_STATS_DELAY;  // Expires immediately;
     ui_stats.animate_delay = UI_STATS_DELAY;
     ui_stats.animate_frame = 0;
 
-    ui_high_score.animate_start_time = TIM2->CNT;
+    ui_high_score.animate_start_time = TIM2->CNT - UI_STATS_DELAY;  // Expires immediately
     ui_high_score.animate_delay = UI_STATS_DELAY;
     ui_high_score.animate_frame = 0;
 }
@@ -471,8 +470,7 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
         // Figure out which header to display
         if (ui_high_score.animate_frame == 0) {
             snprintf(buffer, 32, "  NAME   SCORE  LEVEL");
-        }
-        else {
+        } else {
             snprintf(buffer, 32, "  NAME   SCORE  LINES");
         }
 
@@ -484,15 +482,14 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
         for (int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++) {
             // Display name
             ssd1306_SetCursor(1, 11 + i * 9);
-            snprintf(buffer, 32, "%d %s", i + 1, high_scores[i]-> name);
+            snprintf(buffer, 32, "%d %s", i + 1, high_scores[i]->name);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             // Display score and level/lines
             ssd1306_SetCursor(55, 11 + i * 9);
             if (ui_high_score.animate_frame == 0) {
                 snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->level);
-            }
-            else {
+            } else {
                 snprintf(buffer, 32, "%06ld %02ld", high_scores[i]->score, high_scores[i]->lines);
             }
             ssd1306_WriteString(buffer, Font_6x8, White);
@@ -503,8 +500,7 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
             ssd1306_SetCursor(1, 2 + 6 * 9);
             if (ui_high_score.animate_frame == 0) {
                 snprintf(buffer, 32, "  YOU    %06ld %02ld", game->score, game->level);
-            }
-            else {
+            } else {
                 snprintf(buffer, 32, "  YOU    %06ld %03ld", game->score, game->lines);
             }
             ssd1306_WriteString(buffer, Font_6x8, White);

@@ -399,8 +399,8 @@ void game_loop(void) {
                         ssd1306_Fill(Black);
                         break;
                     case 1:
-                        game.state = GAME_STATE_PREPARE_GAME;
-//                            game.state = GAME_STATE_HIGH_SCORE;
+                        game.state = GAME_STATE_HIGH_SCORE;
+                        ui_reset_ui_stats(); // Needed to initialize values for switching frames
                         ssd1306_Fill(Black);
                         break;
                     case 2:
@@ -850,7 +850,15 @@ void game_loop(void) {
             /* ------------------------ HIGH SCORES ------------------------ */
         case GAME_STATE_HIGH_SCORE:
             // TODO: Display high scores
-            ui_reset_ui_stats(); // Needed to initialize values for switching frames
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & (SNES_BUTTON_START | SNES_BUTTON_B | SNES_BUTTON_Y)) {
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            }
             ui_display_high_scores(high_score_ptrs, NULL);
             break;
 
@@ -862,7 +870,7 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
-            ui_display_high_scores(high_score_ptrs, NULL);
+//            ui_display_high_scores(high_score_ptrs, NULL);
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
