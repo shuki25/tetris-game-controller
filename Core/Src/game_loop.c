@@ -941,6 +941,48 @@ void game_loop(void) {
             /* ------------------------ SETTINGS MENU ---------------------- */
         case GAME_STATE_SETTINGS:
             // TODO: Display settings menu
+            ui_menu_id_set(&menu, 1);
+            ui_main_menu_selection(&menu);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_menu_cursor_blink(&menu);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_menu_controller_move_up(&menu);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_menu_controller_move_down(&menu);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        // Modify brightness
+
+                        break;
+                    case 1:
+                        // Debug 1 or 0 (true or false)
+
+                        break;
+                    case 2:
+                        // Reset high score (summons that function?)
+
+                        break;
+                    case 3:
+                        // Display scoreboard ID
+
+                        break;
+                    }
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B)
+                {
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                    ssd1306_Fill(Black);
+                }
+            }
             break;
 
             /* ------------------------ TEST FEATURE ------------------------ */

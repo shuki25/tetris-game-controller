@@ -520,6 +520,7 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
  */
 void ui_settings_menu() {
     // TODO: Display settings menu (brightness, reset high score, scoreboard device identifier, etc.)
+
 }
 
 /**
