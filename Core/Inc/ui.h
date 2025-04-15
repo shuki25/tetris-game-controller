@@ -23,10 +23,12 @@
 #define INC_UI_H_
 
 #include "game_loop.h"
+#include "eeprom.h"
 #include "tetris.h"
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
 #define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
+#define UI_HIGH_SCORE_DELAY (2500000) // Delay between high score frames in microseconds
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
@@ -74,6 +76,7 @@ void ui_level_controller_move_down(uint32_t *level, ui_state_t *ui_level_selecti
 void ui_level_selection(uint32_t *level, ui_state_t *ui_level_selection_mode, uint8_t *ui_is_cursor_on);
 
 void ui_test();
+void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game);
 void frame_maker();
 
 void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);

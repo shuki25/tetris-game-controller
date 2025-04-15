@@ -310,6 +310,7 @@ void game_loop(void) {
 //    matrix.palette2[7] = 0;
 //    matrix.palette2[8] = 0;
 //    matrix.palette2[9] = 0;
+    ui_reset_ui_stats();
 
     for (;;) {
         // TODO: Respond to scoreboard requests
@@ -339,6 +340,7 @@ void game_loop(void) {
                 controller_count++;
             }
         }
+        //game.state = GAME_STATE_TEST_FEATURE;
 
         switch (game.state) {
 
@@ -397,8 +399,8 @@ void game_loop(void) {
                         ssd1306_Fill(Black);
                         break;
                     case 1:
-                        game.state = GAME_STATE_PREPARE_GAME;
-//                            game.state = GAME_STATE_HIGH_SCORE;
+                        game.state = GAME_STATE_HIGH_SCORE;
+                        ui_reset_ui_stats(); // Needed to initialize values for switching frames
                         ssd1306_Fill(Black);
                         break;
                     case 2:
@@ -805,13 +807,16 @@ void game_loop(void) {
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
             if (renderer_top_out_animate(&renderer) == RENDERER_ANIMATION_DONE) {
+
+                // Save score if is better than a high score
+
                 game.state = GAME_STATE_GAME_OVER_WAIT;
 
                 // Flush the buffer
                 ring_buffer_flush(&controller_buffer);
                 // Persist settings and high scores by writing them to EEPROM
-                eeprom_write_settings(&eeprom, &settings);
-                eeprom_write_high_scores(&eeprom, high_score_ptrs);
+//                eeprom_write_settings(&eeprom, &settings);
+//                eeprom_write_high_scores(&eeprom, high_score_ptrs);
             }
             break;
 
@@ -845,6 +850,16 @@ void game_loop(void) {
             /* ------------------------ HIGH SCORES ------------------------ */
         case GAME_STATE_HIGH_SCORE:
             // TODO: Display high scores
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & (SNES_BUTTON_START | SNES_BUTTON_B | SNES_BUTTON_Y)) {
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            }
+            ui_display_high_scores(high_score_ptrs, NULL);
             break;
 
             /* ------------------------ SETTINGS MENU ---------------------- */
@@ -855,6 +870,7 @@ void game_loop(void) {
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
+//            ui_display_high_scores(high_score_ptrs, NULL);
 //            rendering_status = renderer_test_render(&renderer);
 //#if DEBUG_OUTPUT
 //            if (rendering_status == RENDERER_UPDATED) {
