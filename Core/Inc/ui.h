@@ -88,5 +88,6 @@ void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
 void ui_display_not_implemented(snes_controller_t *controller);
+void ui_elapsed_time(uint32_t game_elapsed_time);
 
 #endif /* INC_UI_H_ */

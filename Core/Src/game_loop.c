@@ -146,6 +146,7 @@ void game_loop(void) {
     uint32_t fps_time_last_update = 0;
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
+    uint32_t elapsed_time = 0;
     matrix_t temp_matrix;
     matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
@@ -542,6 +543,8 @@ void game_loop(void) {
             game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
             game.drop_time_delay = game.drop_time_normal_delay;
             game.drop_time_start = TIM2->CNT;
+            game.game_start_time = TIM2->CNT;
+            elapsed_time = 0;
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
             game.play_state = PLAY_STATE_NORMAL;
@@ -871,6 +874,8 @@ void game_loop(void) {
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
                 ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+                elapsed_time = util_time_diff_us(game.game_start_time, TIM2->CNT) / 1000000; // seconds
+                ui_elapsed_time(elapsed_time);
 //                ui_display_game_info(&game);
                 ui_display_game_progress(&game);
             }
