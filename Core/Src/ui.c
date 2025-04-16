@@ -45,7 +45,14 @@ char *menu_list[][5] = {
     {"Play game", "High Score", "Settings", "Credits"}, // Start Menu
     {"Classic", "Placeholder", "placeholder"}, // Game mode menu
     {"Continue", "Restart", "Quit"}, // Pause menu
-    {"Brightness", "Debug", "Reset High Score", "Scoreboard ID"} // Settings menu
+    {"Brightness", "Clear Scores", "Scoreboard ID"} // Settings menu
+};
+
+uint8_t menu_list_size[] = {
+    4, // Start Menu
+    3, // Game mode menu
+    3, // Pause menu
+    3 // Settings menu
 };
 
 uint8_t select_arrow_locations[3] = { 14, 30, 46 };
@@ -98,7 +105,10 @@ void ui_menu_init(ui_menu_t *menu) {
 
 void ui_menu_id_set(ui_menu_t *menu, int menuID) {
     menu->menu_id = menuID;
-    menu->ui_menu_list_size = (sizeof(menu_list[menu->menu_id]) / sizeof(menu_list[menu->menu_id][0]) - 2);
+    menu->ui_menu_list_size = menu_list_size[menuID] - 1;
+    menu->current_selection_id = 0;
+    menu->cursor_selection_id = 0;
+    menu->offset_num = 0;
 }
 
 void ui_splash_screen() {
@@ -228,29 +238,29 @@ void ui_main_menu_selection(ui_menu_t *menu) {
         ssd1306_SetCursor(36, 0);
         ssd1306_WriteString(menu_title_list[menu->menu_id], Font_6x8, White);
 
-        ssd1306_SetCursor(32, 14);
-        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num], Font_7x10, White);
+        ssd1306_SetCursor(UI_MENU_OPTION_X_POS, 14);
+        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num], UI_MENU_OPTION_FONT, White);
 
-        ssd1306_SetCursor(32, 30);
-        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num + 1], Font_7x10, White);
+        ssd1306_SetCursor(UI_MENU_OPTION_X_POS, 30);
+        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num + 1], UI_MENU_OPTION_FONT, White);
 
-        ssd1306_SetCursor(32, 46);
-        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num + 2], Font_7x10, White);
+        ssd1306_SetCursor(UI_MENU_OPTION_X_POS, 46);
+        ssd1306_WriteString(menu_list[menu->menu_id][menu->offset_num + 2], UI_MENU_OPTION_FONT, White);
 
         if (menu->cursor_selection_id > 2) {
             menu->cursor_selection_id = 2;
-            ssd1306_SetCursor(23, select_arrow_locations[2]);
+            ssd1306_SetCursor(UI_CURSOR_X_POS, select_arrow_locations[2]);
             ssd1306_WriteString(">", Font_6x8, White);
             ssd1306_UpdateScreen();
 
         } else if (menu->cursor_selection_id < 0) {
             menu->cursor_selection_id = 0;
-            ssd1306_SetCursor(23, select_arrow_locations[0]);
+            ssd1306_SetCursor(UI_CURSOR_X_POS, select_arrow_locations[0]);
             ssd1306_WriteString(">", Font_6x8, White);
             ssd1306_UpdateScreen();
         }
 
-        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_SetCursor(UI_CURSOR_X_POS, select_arrow_locations[menu->cursor_selection_id]);
         ssd1306_WriteString(">", Font_6x8, White);
         ssd1306_UpdateScreen();
 
@@ -299,12 +309,12 @@ void ui_menu_controller_move_down(ui_menu_t *menu) {
 
 void ui_menu_cursor_blink(ui_menu_t *menu) {
     if (menu->is_cursor_on == 1) {
-        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_SetCursor(UI_CURSOR_X_POS, select_arrow_locations[menu->cursor_selection_id]);
         ssd1306_WriteString(">", Font_6x8, White);
         ssd1306_UpdateScreen();
     }
     if (menu->is_cursor_on == 0) {
-        ssd1306_SetCursor(23, select_arrow_locations[menu->cursor_selection_id]);
+        ssd1306_SetCursor(UI_CURSOR_X_POS, select_arrow_locations[menu->cursor_selection_id]);
         ssd1306_WriteString(" ", Font_6x8, White);
         ssd1306_UpdateScreen();
     }
@@ -373,62 +383,62 @@ void ui_display_game_progress(game_t *game) {
             ui_stats.animate_frame = 0;
         }
         // clear previous frame
-        ssd1306_FillRectangle(0, 24, 128, 55, Black);
+        ssd1306_FillRectangle(0, 24, 128, 50, Black);
 
         // display current frame
         ssd1306_SetCursor(0, 22);
 
         switch (ui_stats.animate_frame) {
         case 0:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "T: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_T]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "J: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_J]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "Z: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_Z]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "O: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_O]);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
         case 1:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "S: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_S]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "L: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_L]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "I: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_I]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "Total: %d", ui_stats.stats->tetriminos_spawned);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
         case 2:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "Single: %d", game->stats.singles);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "Double: %d", game->stats.doubles);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "Triple: %d", game->stats.triples);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "Tetris: %d", game->stats.tetrises);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
@@ -520,6 +530,7 @@ void ui_display_high_scores(game_high_score_t *high_scores[], game_t *game) {
  */
 void ui_settings_menu() {
     // TODO: Display settings menu (brightness, reset high score, scoreboard device identifier, etc.)
+
 }
 
 /**
@@ -569,6 +580,37 @@ void ui_display_top_out() {
     ssd1306_WriteString("        ", Font_6x8, White);
     ssd1306_SetCursor(37, 44);
     ssd1306_WriteString("Game Over", Font_6x8, White);
+    ssd1306_UpdateScreen();
+}
+
+void ui_display_not_implemented(snes_controller_t *controller) {
+    uint8_t done = 0;
+
+    ssd1306_Fill(Black);
+    ssd1306_SetCursor(25, 13);
+    ssd1306_WriteString("Not Yet", Font_11x18, White);
+    ssd1306_SetCursor(3, 33);
+    ssd1306_WriteString("Implemented", Font_11x18, White);
+    ssd1306_UpdateScreen();
+
+    while (!done) {
+        if (snes_controller_read(controller) == SNES_CONTROLLER_STATE_CHANGE) {
+            if (controller->buttons_state & (SNES_BUTTON_B | SNES_BUTTON_Y)) {
+                done = 1;
+            }
+        }
+    }
+}
+
+void ui_elapsed_time(uint32_t game_elapsed_time) {
+    uint8_t oled_buffer[16];
+    uint8_t len;
+
+    snprintf((char*) oled_buffer, 16, "%d:%02d", (uint8_t) (game_elapsed_time / 60),
+            (uint8_t) (game_elapsed_time % 60));
+    len = strlen((char*) oled_buffer);
+    ssd1306_SetCursor((128 - (7 * len)), 54);
+    ssd1306_WriteString((char*) oled_buffer, Font_7x10, White);
     ssd1306_UpdateScreen();
 }
 

@@ -86,6 +86,7 @@ typedef struct {
     uint32_t drop_time_start;
     uint32_t lock_time_delay; // in microseconds (determines lock length)
     uint32_t lock_time_start;
+    uint32_t game_start_time; // time when the game started to calculate elapsed time
 } game_t;
 
 // Game loop function prototypes

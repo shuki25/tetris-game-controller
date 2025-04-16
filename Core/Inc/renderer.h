@@ -73,8 +73,9 @@ renderer_status_t renderer_init(renderer_t *renderer, uint16_t lookup_table[MATR
         matrix_t *matrix, led_t *led, TIM_HandleTypeDef *htim, const uint32_t channel, uint32_t delay_length);
 renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrimino_t *tetrimino,
         game_t *game);
-void renderer_clear(void);
+void renderer_clear(renderer_t *renderer);
 renderer_status_t renderer_top_out_start(renderer_t *renderer);
 renderer_status_t renderer_top_out_animate(renderer_t *renderer);
 renderer_status_t renderer_test_render(renderer_t *renderer);
+void renderer_brightness_test(renderer_t *renderer);
 #endif /* INC_RENDERER_H_ */

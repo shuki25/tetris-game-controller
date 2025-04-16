@@ -146,6 +146,7 @@ void game_loop(void) {
     uint32_t fps_time_last_update = 0;
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
+    uint32_t elapsed_time = 0;
     matrix_t temp_matrix;
     matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
@@ -427,6 +428,8 @@ void game_loop(void) {
             if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
                     game.state = GAME_STATE_MENU;
+                    ui_menu_id_set(&menu, 0);
+                    menu.ui_status = UI_MENU_DRAW;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -448,8 +451,6 @@ void game_loop(void) {
 
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
-            // TODO: Display main menu
-            ui_menu_id_set(&menu, 0);
             ui_main_menu_selection(&menu);
             if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
                 menu.cursor_start_time = TIM2->CNT;
@@ -475,9 +476,10 @@ void game_loop(void) {
                         ssd1306_Fill(Black);
                         break;
                     case 2:
-                        game.state = GAME_STATE_PREPARE_GAME;
-//                            game.state = GAME_STATE_SETTINGS;
-                        ssd1306_Fill(Black);
+//                        game.state = GAME_STATE_PREPARE_GAME;
+                        game.state = GAME_STATE_SETTINGS;
+                        ui_menu_id_set(&menu, 3);
+                        menu.ui_status = UI_MENU_DRAW;
                         break;
                     case 3:
                         game.state = GAME_STATE_PREPARE_GAME;
@@ -541,9 +543,14 @@ void game_loop(void) {
             game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
             game.drop_time_delay = game.drop_time_normal_delay;
             game.drop_time_start = TIM2->CNT;
+            game.game_start_time = TIM2->CNT;
+            elapsed_time = 0;
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
             game.play_state = PLAY_STATE_NORMAL;
+
+            renderer_clear(&renderer);
+            renderer_create_boundary(&renderer);
 
             memset(&game.stats, 0, sizeof(game_stats_t));
 
@@ -722,10 +729,7 @@ void game_loop(void) {
                         game.play_state = PLAY_STATE_NORMAL;
                         game.drop_time_start = TIM2->CNT;
                     } else {
-//                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
-
-                        // According to documentation, the locking delay is equal to drop delay
-                        if (util_time_expired_delay(game.lock_time_start, game.drop_time_delay)) {
+                        if (util_time_expired_delay(game.lock_time_start, game.lock_time_delay)) {
                             game.play_state = PLAY_STATE_LOCKED;
                         }
                     }
@@ -870,6 +874,8 @@ void game_loop(void) {
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
                 ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+                elapsed_time = util_time_diff_us(game.game_start_time, TIM2->CNT) / 1000000; // seconds
+                ui_elapsed_time(elapsed_time);
 //                ui_display_game_info(&game);
                 ui_display_game_progress(&game);
             }
@@ -941,6 +947,50 @@ void game_loop(void) {
             /* ------------------------ SETTINGS MENU ---------------------- */
         case GAME_STATE_SETTINGS:
             // TODO: Display settings menu
+            ui_main_menu_selection(&menu);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_menu_cursor_blink(&menu);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_menu_controller_move_up(&menu);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_menu_controller_move_down(&menu);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        // Modify brightness
+                        renderer_brightness_test(&renderer);
+                        break;
+                    case 1:
+                        // Debug 1 or 0 (true or false)
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    case 2:
+                        // Reset high score (summons that function?)
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    case 3:
+                        // Display scoreboard ID
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    }
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B) {
+                    ui_menu_id_set(&menu, 0);
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                    renderer_clear(&renderer);
+                }
+            }
             break;
 
             /* ------------------------ TEST FEATURE ------------------------ */
