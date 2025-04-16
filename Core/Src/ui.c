@@ -383,62 +383,62 @@ void ui_display_game_progress(game_t *game) {
             ui_stats.animate_frame = 0;
         }
         // clear previous frame
-        ssd1306_FillRectangle(0, 24, 128, 55, Black);
+        ssd1306_FillRectangle(0, 24, 128, 50, Black);
 
         // display current frame
         ssd1306_SetCursor(0, 22);
 
         switch (ui_stats.animate_frame) {
         case 0:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "T: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_T]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "J: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_J]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "Z: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_Z]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "O: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_O]);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
         case 1:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "S: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_S]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "L: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_L]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "I: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_I]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "Total: %d", ui_stats.stats->tetriminos_spawned);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
         case 2:
-            ssd1306_SetCursor(0, 32);
+            ssd1306_SetCursor(0, 28);
             snprintf(buffer, 32, "Single: %d", game->stats.singles);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 32);
+            ssd1306_SetCursor(60, 28);
             snprintf(buffer, 32, "Double: %d", game->stats.doubles);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(0, 42);
+            ssd1306_SetCursor(0, 38);
             snprintf(buffer, 32, "Triple: %d", game->stats.triples);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
-            ssd1306_SetCursor(60, 42);
+            ssd1306_SetCursor(60, 38);
             snprintf(buffer, 32, "Tetris: %d", game->stats.tetrises);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
