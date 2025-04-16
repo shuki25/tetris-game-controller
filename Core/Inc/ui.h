@@ -23,12 +23,16 @@
 #define INC_UI_H_
 
 #include "game_loop.h"
+#include "snes_controller.h"
 #include "eeprom.h"
 #include "tetris.h"
 
 #define UI_STATS_NUM_FRAMES (3) // Number of frames for statistics animation
 #define UI_STATS_DELAY (1500000) // Delay between statistics frames in microseconds
 #define UI_HIGH_SCORE_DELAY (2500000) // Delay between high score frames in microseconds
+#define UI_CURSOR_X_POS (13) // X position of the cursor
+#define UI_MENU_OPTION_X_POS (23) // X position of the menu options
+#define UI_MENU_OPTION_FONT (Font_7x10) // Font for menu options
 
 // TODO: Typedef for UI status in enum (e.g. UI_OK, UI_ERROR)
 typedef enum {
@@ -83,4 +87,6 @@ void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
+void ui_display_not_implemented(snes_controller_t *controller);
+
 #endif /* INC_UI_H_ */
