@@ -804,6 +804,14 @@ void game_loop(void) {
             game.score = 102;
 
             uint8_t is_new_score = check_high_score(&game, high_score_ptrs);
+
+            if (is_new_score){
+                char* buffer = ui_get_initials_high_score(&game, high_score_ptrs, &snes_controller);
+                eeprom_status_t status = save_initials_to_high_score(&eeprom, buffer, &game, high_score_ptrs);
+                if (status == EEPROM_OK){
+                    // display the high score...
+                }
+            }
 #if DEBUG_OUTPUT
 
             //if 5th high score is lower than current score, update it.
@@ -817,12 +825,6 @@ void game_loop(void) {
                         high_score_ptrs[i]->name, high_score_ptrs[i]->score);
             }
 #endif
-
-            if (is_new_score) {
-                printf("New high score: %ld!\n", game.score);
-                update_high_score(game.score, high_score_ptrs,
-                        &snes_controller);
-            }
 
             game.state = GAME_STATE_PAUSE;
 

@@ -16,6 +16,6 @@
 
 uint8_t check_high_score(game_t *game, game_high_score_t **high_score);
 
-void update_high_score(uint32_t game_score, game_high_score_t **high_score, snes_controller_t *controller);
+eeprom_status_t save_initials_to_high_score(eeprom_t *eeprom, char* buffer, game_t *game, game_high_score_t **high_score);
 
 #endif /* INC_HIGH_SCORE_HANDLER_H_ */
