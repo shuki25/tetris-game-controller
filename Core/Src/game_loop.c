@@ -269,7 +269,7 @@ void game_loop(void) {
     rj45_led.active = 1;
 
     // If you want to test a feature, uncomment the following line
-    game.state = GAME_STATE_TEST_FEATURE;
+//    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
     // Test rendering, define tetrimino stack
@@ -754,9 +754,16 @@ void game_loop(void) {
             if (renderer_top_out_animate(&renderer)
                     == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
-//                ui_highscore_and_initials(high_score_ptrs, &snes_controller);
-                // Persist settings and high scores by writing them to EEPROM
+
+                uint8_t is_new_score = check_high_score(&game, high_score_ptrs);
+
+                if (is_new_score){
+                    uint8_t new_score_index = get_high_score_index(&game, high_score_ptrs); // retrieve the index of the high score
+                    ui_get_initials_high_score(&game, high_score_ptrs[new_score_index], &snes_controller);
+                }
+
                 eeprom_write_settings(&eeprom, &settings);
+
                 eeprom_write_high_scores(&eeprom, high_score_ptrs);
             }
             break;
