@@ -21,13 +21,10 @@ uint8_t check_high_score(game_t *game, game_high_score_t **high_score) {
     return is_new_score;
 }
 
-eeprom_status_t save_initials_to_high_score(eeprom_t *eeprom, char* buffer, game_t *game, game_high_score_t **high_score){
+uint8_t get_high_score_index(game_t *game, game_high_score_t **high_score){
     for(int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++){
-        if (game->score > high_score[i]->score){
-            strcpy(high_score[i]->name, buffer);
-            high_score[i]->score = game->score;
-            high_score[i]->level = game->level;
+        if (game->score > high_score[i]){
+            return i;
         }
     }
-    return eeprom_write_high_scores(eeprom, high_score);
 }

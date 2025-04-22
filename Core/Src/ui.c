@@ -72,7 +72,8 @@ void ui_splash_screen() {
     for (int i = 100; i >= 60; i -= 10) { // Moves left
         ssd1306_SetCursor(i, 0);
         ssd1306_WriteString("    ", Font_16x24, White);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -81,7 +82,8 @@ void ui_splash_screen() {
     for (int i = 60; i <= 90; i += 10) { // Moves right}
         ssd1306_SetCursor(i, 0);
         ssd1306_WriteString("     ", Font_16x26, White);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 13, 20, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 13, 20,
+                White);
         ssd1306_UpdateScreen();
         ssd1306_SetCursor((i - 5), 0); // to clean up after displaying
         ssd1306_WriteString("     ", Font_16x26, White);
@@ -93,7 +95,8 @@ void ui_splash_screen() {
     for (int i = 90; i >= 66; i -= 10) { // Moves right to center again
         ssd1306_WriteString("  ", Font_16x24, White);
         ssd1306_SetCursor(i, 0);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -104,7 +107,8 @@ void ui_splash_screen() {
         }
         ssd1306_WriteString("  ", Font_11x18, White);
         ssd1306_SetCursor(66, i);
-        ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -119,7 +123,8 @@ void ui_splash_screen() {
             ssd1306_SetCursor(35, 27);
             ssd1306_WriteString("RI ", Font_16x24, Black);
 
-            ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13, Black);
+            ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20,
+                    13, Black);
 
             ssd1306_SetCursor(59, 55); // x y
             ssd1306_WriteString("presents...", Font_6x8, Black);
@@ -135,7 +140,8 @@ void ui_splash_screen() {
         ssd1306_SetCursor(35, 27);
         ssd1306_WriteString("RI ", Font_16x24, White);
 
-        ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
 
         ssd1306_SetCursor(59, 55); // x y
         ssd1306_WriteString("presents...", Font_6x8, White);
@@ -186,7 +192,8 @@ void ui_display_game_progress(game_t *game) {
 
     ui_display_game_info(game);
     // Display lines cleared, game score, level, tetrimino count and time elapsed
-    if (util_time_expired_delay(ui_stats.animate_start_time, ui_stats.animate_delay)) {
+    if (util_time_expired_delay(ui_stats.animate_start_time,
+            ui_stats.animate_delay)) {
         ui_stats.animate_start_time = TIM2->CNT;
         ui_stats.animate_delay = UI_STATS_DELAY;
         ui_stats.animate_frame++;
@@ -202,37 +209,45 @@ void ui_display_game_progress(game_t *game) {
         switch (ui_stats.animate_frame) {
         case 0:
             ssd1306_SetCursor(0, 32);
-            snprintf(buffer, 32, "T: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_T]);
+            snprintf(buffer, 32, "T: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_T]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(60, 32);
-            snprintf(buffer, 32, "J: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_J]);
+            snprintf(buffer, 32, "J: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_J]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(0, 42);
-            snprintf(buffer, 32, "Z: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_Z]);
+            snprintf(buffer, 32, "Z: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_Z]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(60, 42);
-            snprintf(buffer, 32, "O: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_O]);
+            snprintf(buffer, 32, "O: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_O]);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
         case 1:
             ssd1306_SetCursor(0, 32);
-            snprintf(buffer, 32, "S: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_S]);
+            snprintf(buffer, 32, "S: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_S]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(60, 32);
-            snprintf(buffer, 32, "L: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_L]);
+            snprintf(buffer, 32, "L: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_L]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(0, 42);
-            snprintf(buffer, 32, "I: %d", ui_stats.stats->tetriminos_frequency[TETRIMINO_I]);
+            snprintf(buffer, 32, "I: %d",
+                    ui_stats.stats->tetriminos_frequency[TETRIMINO_I]);
             ssd1306_WriteString(buffer, Font_6x8, White);
 
             ssd1306_SetCursor(60, 42);
-            snprintf(buffer, 32, "Total: %d", ui_stats.stats->tetriminos_spawned);
+            snprintf(buffer, 32, "Total: %d",
+                    ui_stats.stats->tetriminos_spawned);
             ssd1306_WriteString(buffer, Font_6x8, White);
             break;
 
@@ -343,7 +358,7 @@ void ui_test() {
 
 // Gets the player's input for their name
 // Returns a pointer to the buffer containing the initials
-char* ui_get_initials_high_score(game_t *game, game_high_score_t **high_score,
+void ui_get_initials_high_score(game_t *game, game_high_score_t *high_score,
         snes_controller_t *controller) {
     char player_initials_buffer[7];
     memset(player_initials_buffer, '_', sizeof(player_initials_buffer) - 1);
@@ -452,6 +467,7 @@ char* ui_get_initials_high_score(game_t *game, game_high_score_t **high_score,
         counter--;
         HAL_Delay(BLINK_DELAY * 3);
     }
-    return player_initials_buffer;
-
+    strcpy(high_score->name, player_initials_buffer);
+    high_score->score = game->score;
+    high_score->level = game->level;
 }

@@ -51,6 +51,6 @@ void ui_display_fps(uint32_t start_count, uint32_t end_count, uint32_t time_us);
 void ui_display_game_progress(game_t *game);
 void ui_display_game_info(game_t *game);
 void ui_display_top_out();
-char* ui_get_initials_high_score(game_t *game, game_high_score_t **high_score,
+void ui_get_initials_high_score(game_t *game, game_high_score_t *high_score,
         snes_controller_t *controller);
 #endif /* INC_UI_H_ */

@@ -16,6 +16,8 @@
 
 uint8_t check_high_score(game_t *game, game_high_score_t **high_score);
 
+uint8_t get_high_score_index(game_t *game, game_high_score_t **high_score);
+
 eeprom_status_t save_initials_to_high_score(eeprom_t *eeprom, char* buffer, game_t *game, game_high_score_t **high_score);
 
 #endif /* INC_HIGH_SCORE_HANDLER_H_ */

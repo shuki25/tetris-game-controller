@@ -803,11 +803,13 @@ void game_loop(void) {
             /* Developer test code START */
             game.score = 102;
 
+            // first only check if it is new high score by comparing the last index to avoid unnecessary N loops
             uint8_t is_new_score = check_high_score(&game, high_score_ptrs);
 
             if (is_new_score){
-                char* buffer = ui_get_initials_high_score(&game, high_score_ptrs, &snes_controller);
-                eeprom_status_t status = save_initials_to_high_score(&eeprom, buffer, &game, high_score_ptrs);
+                uint8_t new_score_index = get_high_score_index(&game, high_score_ptrs); // retrieve the index of the high score
+                ui_get_initials_high_score(&game, high_score_ptrs[new_score_index], &snes_controller);
+                eeprom_status_t status = eeprom_write_high_scores(&eeprom, high_score_ptrs);
                 if (status == EEPROM_OK){
                     // display the high score...
                 }
