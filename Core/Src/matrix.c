@@ -106,6 +106,14 @@ matrix_status_t matrix_add_tetrimino(matrix_t *matrix, tetrimino_t *tetrimino) {
         return MATRIX_OUT_OF_BOUNDS;
     }
 
+    if (tetrimino->y >= PLAYING_FIELD_HEIGHT && tetrimino->x > PLAYING_FIELD_WIDTH - TETRIMINO_CENTER_X) {
+        return MATRIX_OUT_OF_BOUNDS;
+    }
+
+    if (tetrimino->y >= PLAYING_FIELD_HEIGHT && tetrimino->x < TETRIMINO_CENTER_X) {
+        return MATRIX_OUT_OF_BOUNDS;
+    }
+
     shape_offset = tetrimino->shape_offset;
     row_index = tetrimino->y + TETRIMINO_CENTER_Y;
 

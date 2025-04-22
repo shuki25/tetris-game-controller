@@ -75,6 +75,12 @@ saved_settings_t settings;
 // TIM Variables
 extern TIM_HandleTypeDef htim3;
 
+// UI variables
+ui_menu_t menu;
+ui_state_t ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+uint8_t ui_is_cursor_on = 0;
+uint32_t ui_cursor_start_time = 0;
+
 // EEPROM Variables
 eeprom_t eeprom;
 eeprom_id_t signature;
@@ -103,10 +109,10 @@ void splash() {
  * @retval None
  */
 game_status_t game_init(void) {
-//    splash();
-
-    // TODO: Initialize game state (structs, bitboards, etc.)
+    // Initialize game to zero
     memset(&game, 0, sizeof(game_t));
+
+    // Set game states to default values
     game.state = GAME_STATE_SPLASH;
     game.play_state = PLAY_STATE_NOT_STARTED;
     game.drop_time_delay = 1000000;
@@ -122,6 +128,10 @@ game_status_t game_init(void) {
  */
 void game_loop(void) {
     snes_controller_status_t controller_status;
+    snes_controller_das_t controller_repeat_left;
+    snes_controller_das_t controller_repeat_right;
+    snes_controller_das_t controller_repeat_up;
+    snes_controller_das_t controller_repeat_down;
     matrix_status_t matrix_status;
     renderer_status_t rendering_status;
 //    char output_buffer[80];
@@ -137,6 +147,7 @@ void game_loop(void) {
     uint32_t fps_time_last_update = 0;
     uint32_t fps_time_diff = 0;
     uint32_t lines_to_be_cleared = 0;
+    uint32_t elapsed_time = 0;
     matrix_t temp_matrix;
     matrix_t rotate_check_matrix;
     tetrimino_t temp_tetrimino;
@@ -207,6 +218,34 @@ void game_loop(void) {
         printf("SNES controller initialization failed\n");
 #endif
     }
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_left, SNES_BUTTON_LEFT)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller left repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_right, SNES_BUTTON_RIGHT)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller right repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_up, SNES_BUTTON_UP)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller up repeater initialization failed\n");
+#endif
+    }
+
+    if (snes_controller_delayed_auto_shift_init(&controller_repeat_down, SNES_BUTTON_DOWN)
+            != SNES_CONTROLLER_DAS_OK) {
+#if DEBUG_OUTPUT
+        printf("SNES controller down repeater initialization failed\n");
+#endif
+    }
+
     tetrimino_status = tetrimino_init(&tetrimino);
 #if DEBUG_OUTPUT
     if (tetrimino_status == TETRIMINO_OK) {
@@ -228,13 +267,13 @@ void game_loop(void) {
     if (matrix_status == MATRIX_OK) {
 #if DEBUG_OUTPUT
         printf("Matrix initialization success\n");
-        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
-        if (matrix_status == MATRIX_COLLISION_DETECTED) {
-            printf("Add Tetrimino to Matrix: Collision detected\n");
-        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
-            printf("Add Tetrimino to Matrix: Out of bounds\n");
-        }
-        matrix_debug_print(&matrix);
+//        matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
+//        if (matrix_status == MATRIX_COLLISION_DETECTED) {
+//            printf("Add Tetrimino to Matrix: Collision detected\n");
+//        } else if (matrix_status == MATRIX_OUT_OF_BOUNDS) {
+//            printf("Add Tetrimino to Matrix: Out of bounds\n");
+//        }
+//        matrix_debug_print(&matrix);
 #endif
     }
 
@@ -246,6 +285,9 @@ void game_loop(void) {
         printf("Rendering initialization success\n");
 #endif
     }
+
+    // Initialize menu system
+    ui_menu_init(&menu);
 
     rendering_status = renderer_create_boundary(&renderer);
 
@@ -268,7 +310,7 @@ void game_loop(void) {
     hb_led.active = 1;
     rj45_led.active = 1;
 
-    // If you want to test a feature, uncomment the following line
+//     If you want to test a feature, uncomment the following line
 //    game.state = GAME_STATE_TEST_FEATURE;
 //    game.state = GAME_STATE_GAME_IN_PROGRESS;
 
@@ -303,9 +345,10 @@ void game_loop(void) {
 //    matrix.palette2[7] = 0;
 //    matrix.palette2[8] = 0;
 //    matrix.palette2[9] = 0;
+    ui_reset_ui_stats();
 
     for (;;) {
-        // TODO: Respond to scoreboard requests
+        // Future: Respond to scoreboard requests
 
         // Poll SNES controller before any other processing in the state machine
         controller_status = snes_controller_read(&snes_controller);
@@ -330,12 +373,52 @@ void game_loop(void) {
 #if DEBUG_OUTPUT
                 printf("Controller buffer is full. Dropping.\n");
 #endif
-                Error_Handler();
+
             }
             if (snes_controller.buttons_state) {
                 controller_count++;
             }
         }
+
+        // Check for Delayed Auto Shift (DAS) events and enqueue them at predefined intervals
+
+        snes_controller_delayed_auto_shift(&controller_repeat_left, &snes_controller);
+        if (controller_repeat_left.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+            if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_left.target_button) == false) {
+#if DEBUG_OUTPUT
+                printf("Controller buffer is full. Dropping.\n");
+#endif
+            }
+        }
+        snes_controller_delayed_auto_shift(&controller_repeat_right, &snes_controller);
+        if (controller_repeat_right.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+            if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_right.target_button) == false) {
+#if DEBUG_OUTPUT
+                printf("Controller buffer is full. Dropping.\n");
+#endif
+            }
+        }
+
+        if (game.state == GAME_STATE_PLAY_MENU) {
+            snes_controller_delayed_auto_shift(&controller_repeat_up, &snes_controller);
+            if (controller_repeat_up.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+                if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_up.target_button) == false) {
+#if DEBUG_OUTPUT
+                    printf("Controller buffer is full. Dropping.\n");
+#endif
+                }
+            }
+
+            snes_controller_delayed_auto_shift(&controller_repeat_down, &snes_controller);
+            if (controller_repeat_down.repeat_status == SNES_CONTROLLER_DAS_ACTIVE_ENQUEUE) {
+                if (ring_buffer_enqueue(&controller_buffer, &controller_repeat_down.target_button) == false) {
+#if DEBUG_OUTPUT
+                    printf("Controller buffer is full. Dropping.\n");
+#endif
+                }
+            }
+        }
+        //game.state = GAME_STATE_TEST_FEATURE;
 
         switch (game.state) {
 
@@ -351,8 +434,9 @@ void game_loop(void) {
             if (ring_buffer_dequeue(&controller_buffer,
                     &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-//                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
+                    ui_menu_id_set(&menu, 0);
+                    menu.ui_status = UI_MENU_DRAW;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -374,12 +458,83 @@ void game_loop(void) {
 
             /* ------------------------- MAIN MENU -------------------------- */
         case GAME_STATE_MENU:
-            // TODO: Display main menu
+            ui_main_menu_selection(&menu);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_menu_cursor_blink(&menu);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_menu_controller_move_up(&menu);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_menu_controller_move_down(&menu);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        game.state = GAME_STATE_PLAY_MENU;
+                        ssd1306_Fill(Black);
+                        break;
+                    case 1:
+                        game.state = GAME_STATE_HIGH_SCORE;
+                        ui_reset_ui_stats(); // Needed to initialize values for switching frames
+                        ssd1306_Fill(Black);
+                        break;
+                    case 2:
+//                        game.state = GAME_STATE_PREPARE_GAME;
+                        game.state = GAME_STATE_SETTINGS;
+                        ui_menu_id_set(&menu, 3);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    case 3:
+                        game.state = GAME_STATE_PREPARE_GAME;
+//                            game.state = GAME_STATE_CREDITS;
+                        ssd1306_Fill(Black);
+                        break;
+                    }
+                }
+            }
             break;
 
             /* ------------------------ PLAYING MENU ------------------------ */
         case GAME_STATE_PLAY_MENU:
-            // TODO: Display playing menu
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            }
+            ui_level_selection(&game.level, &ui_level_selection_mode, &ui_is_cursor_on);
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    if (game.level == 0) {
+                        game.level = 255;
+                    } else {
+                        game.level--;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                }
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    if (game.level == 255) {
+                        game.level = 0;
+                    } else {
+                        game.level++;
+                    }
+                    ui_level_selection_mode = UI_LEVEL_SELECTION_DRAW;
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_START) {
+                    game.state = GAME_STATE_PREPARE_GAME;
+                    ssd1306_Fill(Black);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B) {
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                    ssd1306_Fill(Black);
+                }
+            }
             break;
 
             /* -------------------- PREPARE GAME STATE ---------------------- */
@@ -388,18 +543,26 @@ void game_loop(void) {
 
             matrix_clear(&matrix);
             game.score = 0;
-            game.level = 0;
+//            game.level = 0;
             game.lines = 0;
             game.lines_to_next_level = 10 * (game.level + 1);
             game.drop_time_normal_delay = tetrimino_drop_speed(game.level);
             game.drop_time_soft_drop_delay = game.drop_time_normal_delay / 20;
             game.drop_time_delay = game.drop_time_normal_delay;
             game.drop_time_start = TIM2->CNT;
+            game.game_start_time = TIM2->CNT;
+            elapsed_time = 0;
 
             game.state = GAME_STATE_GAME_IN_PROGRESS;
             game.play_state = PLAY_STATE_NORMAL;
 
+            renderer_clear(&renderer);
+            renderer_create_boundary(&renderer);
+
             memset(&game.stats, 0, sizeof(game_stats_t));
+
+            // Reinitialize tetrimino piece
+            tetrimino_init(&tetrimino);
 
             // reset game statistics and timer
             tetris_statistics_reset(&tetris_statistics);
@@ -416,12 +579,19 @@ void game_loop(void) {
                 controller_status = SNES_CONTROLLER_NO_STATE_CHANGE;
             }
 
+            // Determine if the controller button is in repeat mode (if the button is held down)
+
             if (controller_status == SNES_CONTROLLER_STATE_CHANGE) {
                 tetrimino_copy(&temp_tetrimino, &tetrimino);
                 matrix_copy(&temp_matrix, &matrix);
                 matrix_copy(&rotate_check_matrix, &matrix);
+#if YX_ROTATE_TETRIMINO
+                if (controller_current_buttons & (SNES_BUTTON_A | SNES_BUTTON_X)
+                        && !(controller_previous_buttons & (SNES_BUTTON_A | SNES_BUTTON_X))) {
+#else
                 if (controller_current_buttons & SNES_BUTTON_A
                         && !(controller_previous_buttons & SNES_BUTTON_A)) {
+#endif
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix,
                             &tetrimino);
@@ -430,8 +600,13 @@ void game_loop(void) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_B
-                        && !(controller_previous_buttons & SNES_BUTTON_B)) {
+#if YX_ROTATE_TETRIMINO
+                } else if (controller_current_buttons & (SNES_BUTTON_B | SNES_BUTTON_Y)
+                        && !(controller_previous_buttons & (SNES_BUTTON_B | SNES_BUTTON_Y))) {
+#else
+                    } else if (controller_current_buttons & SNES_BUTTON_B
+                            && !(controller_previous_buttons & SNES_BUTTON_B)) {
+#endif
                     tetrimino_status = tetrimino_rotate(&tetrimino, ROTATE_CCW);
                     matrix_status = matrix_add_tetrimino(&rotate_check_matrix,
                             &tetrimino);
@@ -440,7 +615,10 @@ void game_loop(void) {
                         tetrimino_copy(&tetrimino, &temp_tetrimino); // Revert tetrimino position
                         tetrimino_status = TETRIMINO_REFRESH;
                     }
-                } else if (controller_current_buttons & SNES_BUTTON_R) {
+                }
+
+#if TEST_TETRIMINO_CHANGE
+                else if (controller_current_buttons & SNES_BUTTON_R) {
                     tetrimino.piece++;
                     if (tetrimino.piece >= TETRIMINO_COUNT) {
                         tetrimino.piece = 0;
@@ -459,6 +637,7 @@ void game_loop(void) {
                             tetrimino_shape_offset_lut[tetrimino.piece][tetrimino.rotation];
                     tetrimino_status = TETRIMINO_REFRESH;
                 }
+#endif
 //                if (controller_current_buttons & SNES_BUTTON_UP) {
 //                    if (matrix_move_tetrimino(&matrix, &tetrimino, MOVE_UP) == MATRIX_REFRESH) {
 //                    }
@@ -493,6 +672,7 @@ void game_loop(void) {
                 if (controller_current_buttons & SNES_BUTTON_RIGHT) {
                     matrix_move_tetrimino(&matrix, &tetrimino, MOVE_RIGHT);
                 }
+#if TEST_TETRIMINO_CHANGE && !YX_ROTATE_TETRIMINO
                 if (controller_current_buttons & SNES_BUTTON_Y) {
 //                    game.drop_time_delay += 25000;
                     game.level++;
@@ -504,10 +684,12 @@ void game_loop(void) {
                     if (game.level > 0) {
                         game.level--;
                     }
+
 #if DEBUG_OUTPUT
                     printf("Level: %ld\n", game.level);
 #endif
                 }
+#endif
                 if (matrix_status != MATRIX_REFRESH) {
                     // Revert tetrimino position and refresh matrix
                     matrix_status = matrix_add_tetrimino(&matrix, &tetrimino);
@@ -739,6 +921,8 @@ void game_loop(void) {
                 fps_end_count = render_count;
                 fps_time_last_update = TIM2->CNT;
                 ui_display_fps(fps_start_count, fps_end_count, fps_time_diff);
+                elapsed_time = util_time_diff_us(game.game_start_time, TIM2->CNT) / 1000000; // seconds
+                ui_elapsed_time(elapsed_time);
 //                ui_display_game_info(&game);
                 ui_display_game_progress(&game);
             }
@@ -751,10 +935,11 @@ void game_loop(void) {
 
             /* -------------------------- GAME OVER ------------------------ */
         case GAME_STATE_GAME_ENDED:
+
             if (renderer_top_out_animate(&renderer)
                     == RENDERER_ANIMATION_DONE) {
                 game.state = GAME_STATE_GAME_OVER_WAIT;
-
+                ring_buffer_flush(&controller_buffer);
                 uint8_t is_new_score = check_high_score(&game, high_score_ptrs);
 
                 if (is_new_score){
@@ -774,8 +959,9 @@ void game_loop(void) {
             if (ring_buffer_dequeue(&controller_buffer,
                     &controller_current_buttons) == true) {
                 if (controller_current_buttons & SNES_BUTTON_START) {
-                    //                    game.state = GAME_STATE_MENU;
-                    game.state = GAME_STATE_PREPARE_GAME;
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+//                    game.state = GAME_STATE_PREPARE_GAME;
                     ssd1306_Fill(Black);
                     ssd1306_UpdateScreen();
                     break;
@@ -798,16 +984,71 @@ void game_loop(void) {
             /* ------------------------ HIGH SCORES ------------------------ */
         case GAME_STATE_HIGH_SCORE:
             // TODO: Display high scores
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & (SNES_BUTTON_START | SNES_BUTTON_B | SNES_BUTTON_Y)) {
+                    game.state = GAME_STATE_MENU;
+                    menu.ui_status = UI_MENU_DRAW;
+                    ssd1306_Fill(Black);
+                    ssd1306_UpdateScreen();
+                    break;
+                }
+            }
+            ui_display_high_scores(high_score_ptrs, NULL);
             break;
 
             /* ------------------------ SETTINGS MENU ---------------------- */
         case GAME_STATE_SETTINGS:
             // TODO: Display settings menu
+            ui_main_menu_selection(&menu);
+            if (util_time_expired_delay(menu.cursor_start_time, 500000)) {
+                menu.cursor_start_time = TIM2->CNT;
+                ui_menu_cursor_blink(&menu);
+            }
+            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+                if (controller_current_buttons & SNES_BUTTON_UP) {
+                    ui_menu_controller_move_up(&menu);
+                }
+                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+                    ui_menu_controller_move_down(&menu);
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_A) {
+                    switch (menu.current_selection_id) {
+                    case 0:
+                        // Modify brightness
+                        renderer_brightness_test(&renderer);
+                        break;
+                    case 1:
+                        // Debug 1 or 0 (true or false)
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    case 2:
+                        // Reset high score (summons that function?)
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    case 3:
+                        // Display scoreboard ID
+                        ui_display_not_implemented(&snes_controller);
+                        menu.ui_status = UI_MENU_DRAW;
+                        break;
+                    }
+                }
+
+                if (controller_current_buttons & SNES_BUTTON_B) {
+                    ui_menu_id_set(&menu, 0);
+                    menu.ui_status = UI_MENU_DRAW;
+                    game.state = GAME_STATE_MENU;
+                    renderer_clear(&renderer);
+                }
+            }
             break;
 
             /* ------------------------ TEST FEATURE ------------------------ */
         case GAME_STATE_TEST_FEATURE:
             /* Developer test code START */
+
             game.score = 102;
 
             // first only check if it is new high score by comparing the last index to avoid unnecessary N loops
@@ -845,6 +1086,53 @@ void game_loop(void) {
 //                render_count++;
 //            }
 //#endif
+//            if(main_menu == 0)
+//            {
+//                ui_main_menu_selection();
+//                main_menu = 1;
+//            }
+//            if (ring_buffer_dequeue(&controller_buffer, &controller_current_buttons) == true) {
+//                if (controller_current_buttons & SNES_BUTTON_DOWN) {
+//                    if (array_position > 1) {
+//                        array_position = 1;
+//                    } else {
+//                        array_position++;
+//                    }
+//
+//                    if (cursor_position < 2) {
+//                        cursor_position++;
+//                    } else {
+//                        cursor_position = 2;
+//                    }
+//                }
+//                if (controller_current_buttons & SNES_BUTTON_UP) {
+//                    if (array_position < 0) {
+//                        array_position = 0;
+//                    } else {
+//                        array_position--;
+//                    }
+//
+//                    if (cursor_position > 0) {
+//                        cursor_position--;
+//                    } else {
+//                        cursor_position = 0;
+//                    }
+//                }
+//            ssd1306_SetCursor(32, 14);
+//            ssd1306_WriteString(main_menu_list[array_position], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 30);
+//            ssd1306_WriteString(main_menu_list[array_position + 1], Font_7x10, White);
+//
+//            ssd1306_SetCursor(32, 48);
+//            ssd1306_WriteString(main_menu_list[array_position + 2], Font_7x10, White);
+//
+//
+//            ssd1306_SetCursor(10, select_arrow_locations[cursor_position]);
+//            ssd1306_WriteString(">", Font_6x8, White);
+//
+//            ssd1306_UpdateScreen();
+//            }
             /* Developer test code END */
 //            break;
             /* ----------------------- UNKNOWN STATES ---------------------- */
