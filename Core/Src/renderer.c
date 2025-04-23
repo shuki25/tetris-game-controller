@@ -276,8 +276,9 @@ renderer_status_t renderer_render(renderer_t *renderer, matrix_t *matrix, tetrim
  * @param  None
  * @retval None
  */
-void renderer_clear(void) {
-    // TODO: Clear WS2812 LED matrix
+void renderer_clear(renderer_t *renderer) {
+    WS2812_clear(renderer->led);
+    WS2812_send(renderer->led);
 }
 
 renderer_status_t renderer_top_out_start(renderer_t *renderer) {
@@ -339,3 +340,46 @@ renderer_status_t renderer_test_render(renderer_t *renderer) {
     return RENDERER_UPDATED;
 
 }
+
+void renderer_brightness_test(renderer_t *renderer) {
+    led_t *led_obj = renderer->led;
+    uint16_t num_leds = led_obj->num_leds;
+    uint16_t part_size = num_leds / 4;
+    uint8_t color_increment = 255 / part_size;
+    if (color_increment < 1) {
+        color_increment = 1;
+    }
+    uint8_t color_group = 0;
+    uint8_t counter = 0;
+    uint16_t part_counter = 0;
+
+    WS2812_clear(led_obj);
+
+    for (int y = 0; y < MATRIX_WIDTH; y++) {
+        if (part_counter >= part_size) {
+            color_group++;
+            counter = 0;
+            part_counter = 0;
+        }
+        for (int x = 0; x < MATRIX_HEIGHT; x++) {
+
+            uint16_t led_pos = lookup_table[x][y];
+            if (color_group == 1) {
+                WS2812_set_LED(led_obj, led_pos, counter, 0, 0);
+            } else if (color_group == 2) {
+                WS2812_set_LED(led_obj, led_pos, 0, counter, 0);
+            } else if (color_group == 3) {
+                WS2812_set_LED(led_obj, led_pos, 0, 0, counter);
+            } else {
+                WS2812_set_LED(led_obj, led_pos, counter, counter, counter);
+            }
+            counter += color_increment;
+            if (counter > 255) {
+                counter = 255;
+            }
+            part_counter++;
+        }
+    }
+    WS2812_send(led_obj);
+}
+

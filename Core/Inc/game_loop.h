@@ -26,6 +26,15 @@
 #include "main.h"
 #include "tetrimino.h"
 
+// Set to true to allow L/R button to change tetrimino piece
+#define TEST_TETRIMINO_CHANGE 0
+
+// Set to true to allow Y/X to change levels
+#define TEST_LEVEL_CHANGE 0
+
+// Set to true to allow Y/X to rotate tetrimino pieces like B/A buttons
+#define YX_ROTATE_TETRIMINO 1
+
 // Game loop struct definitions
 
 typedef enum {
@@ -44,7 +53,8 @@ typedef enum {
     GAME_STATE_GAME_OVER_WAIT,
     GAME_STATE_HIGH_SCORE,
     GAME_STATE_SETTINGS,
-    GAME_STATE_TEST_FEATURE
+    GAME_STATE_TEST_FEATURE,
+    GAME_STATE_CREDITS
 } game_state_t;
 
 typedef enum {
@@ -85,6 +95,7 @@ typedef struct {
     uint32_t drop_time_start;
     uint32_t lock_time_delay; // in microseconds (determines lock length)
     uint32_t lock_time_start;
+    uint32_t game_start_time; // time when the game started to calculate elapsed time
 } game_t;
 
 // Game loop function prototypes
