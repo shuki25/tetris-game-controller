@@ -759,7 +759,7 @@ void game_loop(void) {
 
                 if (is_new_score){
                     uint8_t new_score_index = get_high_score_index(&game, high_score_ptrs); // retrieve the index of the high score
-                    ui_get_initials_high_score(&game, high_score_ptrs[new_score_index], &snes_controller);
+                    if (new_score_index != -1) ui_get_initials_high_score(&game, high_score_ptrs[new_score_index], &snes_controller);
                 }
 
                 eeprom_write_settings(&eeprom, &settings);

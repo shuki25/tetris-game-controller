@@ -23,8 +23,9 @@ uint8_t check_high_score(game_t *game, game_high_score_t **high_score) {
 
 uint8_t get_high_score_index(game_t *game, game_high_score_t **high_score){
     for(int i = 0; i < EEPROM_NUM_HIGH_SCORES; i++){
-        if (game->score > high_score[i]){
+        if (game->score > high_score[i]->score) {
             return i;
         }
     }
+    return -1;
 }
