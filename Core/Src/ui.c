@@ -31,6 +31,8 @@
 #include "splash_bitmap.h"
 #include "util.h"
 #include "tetris.h"
+#include "snes_controller.h"
+#include "high_score_handler.h"
 #include "eeprom.h"
 
 //@formatter:off
@@ -129,7 +131,8 @@ void ui_splash_screen() {
     for (int i = 100; i >= 60; i -= 10) { // Moves left
         ssd1306_SetCursor(i, 0);
         ssd1306_WriteString("    ", Font_16x24, White);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -138,7 +141,8 @@ void ui_splash_screen() {
     for (int i = 60; i <= 90; i += 10) { // Moves right}
         ssd1306_SetCursor(i, 0);
         ssd1306_WriteString("     ", Font_16x26, White);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 13, 20, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 13, 20,
+                White);
         ssd1306_UpdateScreen();
         ssd1306_SetCursor((i - 5), 0); // to clean up after displaying
         ssd1306_WriteString("     ", Font_16x26, White);
@@ -150,7 +154,8 @@ void ui_splash_screen() {
     for (int i = 90; i >= 66; i -= 10) { // Moves right to center again
         ssd1306_WriteString("  ", Font_16x24, White);
         ssd1306_SetCursor(i, 0);
-        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(i, 0, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -161,7 +166,8 @@ void ui_splash_screen() {
         }
         ssd1306_WriteString("  ", Font_11x18, White);
         ssd1306_SetCursor(66, i);
-        ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(66, i, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
         ssd1306_UpdateScreen();
         HAL_Delay(250);
     }
@@ -176,7 +182,8 @@ void ui_splash_screen() {
             ssd1306_SetCursor(35, 27);
             ssd1306_WriteString("RI ", Font_16x24, Black);
 
-            ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13, Black);
+            ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20,
+                    13, Black);
 
             ssd1306_SetCursor(59, 55); // x y
             ssd1306_WriteString("presents...", Font_6x8, Black);
@@ -192,7 +199,8 @@ void ui_splash_screen() {
         ssd1306_SetCursor(35, 27);
         ssd1306_WriteString("RI ", Font_16x24, White);
 
-        ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13, White);
+        ssd1306_DrawBitmap(66, 27, tetrimino_allArray[bitmap_number], 20, 13,
+                White);
 
         ssd1306_SetCursor(59, 55); // x y
         ssd1306_WriteString("presents...", Font_6x8, White);
@@ -375,7 +383,8 @@ void ui_display_game_progress(game_t *game) {
 
     ui_display_game_info(game);
     // Display lines cleared, game score, level, tetrimino count and time elapsed
-    if (util_time_expired_delay(ui_stats.animate_start_time, ui_stats.animate_delay)) {
+    if (util_time_expired_delay(ui_stats.animate_start_time,
+            ui_stats.animate_delay)) {
         ui_stats.animate_start_time = TIM2->CNT;
         ui_stats.animate_delay = UI_STATS_DELAY;
         ui_stats.animate_frame++;
@@ -621,4 +630,121 @@ void ui_test() {
     ssd1306_SetCursor(30, 0);
     ssd1306_WriteString("TEST", Font_16x26, White);
     ssd1306_UpdateScreen();
+}
+
+// Gets the player's input for their name
+// Returns a pointer to the buffer containing the initials
+void ui_get_initials_high_score(game_t *game, game_high_score_t *high_score,
+        snes_controller_t *controller) {
+    char player_initials_buffer[7];
+    memset(player_initials_buffer, '_', sizeof(player_initials_buffer) - 1);
+    player_initials_buffer[6] = '\0';
+    char score_buffer[20];
+
+    ssd1306_Init();
+    ssd1306_Fill(Black);
+    ssd1306_SetCursor(9, 2);
+    ssd1306_WriteString("High Score", Font_11x18, White);
+    ssd1306_SetCursor(31, 20);
+    sprintf(score_buffer, "%06ld", game->score);
+    ssd1306_WriteString(score_buffer, Font_11x18, White);
+    ssd1306_SetCursor(53, 40);
+    ssd1306_WriteString("___", Font_7x10, White);
+    ssd1306_DrawRectangle(0, 0, 127, 63, White);
+    ssd1306_SetCursor(36, 53);
+    ssd1306_WriteString("B = Save", Font_7x10, White);
+    ssd1306_UpdateScreen();
+
+    uint8_t is_done = 0;
+    uint8_t initial_position = 0;
+    uint8_t blink_state = 1;
+    uint8_t counter = 3;
+    uint8_t done = 0;
+
+    // Wait til no buttons are pressed
+    while (done < 2) {
+        snes_controller_read(controller);
+        if (controller->buttons_state == 0) {
+            done++;
+        }
+        HAL_Delay(100);
+    }
+
+    // enter your initials
+    while (!is_done) {
+        snes_controller_read(controller);
+
+        if ((controller->buttons_state != controller->previous_buttons_state
+                || (controller->buttons_state
+                        == controller->previous_buttons_state))
+                && controller->buttons_state) {
+            if (controller->buttons_state & SNES_BUTTON_DOWN) {
+                if (player_initials_buffer[initial_position] < 'Z') {
+                    player_initials_buffer[initial_position]++;
+                    blink_state = 1;
+                    counter = 0;
+                } else {
+                    player_initials_buffer[initial_position] = 'A';
+                    blink_state = 1;
+                    counter = 0;
+                }
+            } else if (controller->buttons_state & SNES_BUTTON_UP) {
+                if (player_initials_buffer[initial_position] > 'A') {
+                    player_initials_buffer[initial_position]--;
+                    blink_state = 1;
+                    counter = 0;
+                } else {
+                    player_initials_buffer[initial_position] = 'Z';
+                    blink_state = 1;
+                    counter = 0;
+                }
+            } else if (controller->buttons_state & SNES_BUTTON_LEFT) {
+                if (initial_position > 0) {
+                    ssd1306_SetCursor(46 + (initial_position * 7), 40);
+                    ssd1306_WriteString(
+                            &player_initials_buffer[initial_position],
+                            Font_7x10, White);
+                    initial_position--;
+                    blink_state = 1;
+                    counter = 0;
+                }
+            } else if (controller->buttons_state & SNES_BUTTON_RIGHT) {
+                if (initial_position < 5) {
+                    ssd1306_SetCursor(46 + (initial_position * 7), 40);
+                    ssd1306_WriteString(
+                            &player_initials_buffer[initial_position],
+                            Font_7x10, White);
+                    initial_position++;
+                    blink_state = 1;
+                    counter = 0;
+                }
+            } else if (controller->buttons_state & SNES_BUTTON_B) {
+                // save string
+                player_initials_buffer[6] = '\0';
+                printf("%s\n", player_initials_buffer);
+                is_done = 1;
+            }
+        }
+
+        if (blink_state && !counter) {
+            ssd1306_SetCursor(46 + (initial_position * 7), 40);
+            ssd1306_WriteString(&player_initials_buffer[initial_position],
+                    Font_7x10, White);
+            blink_state = 0;
+            counter = 3;
+            ssd1306_UpdateScreen();
+        } else if (!blink_state && !counter) {
+            ssd1306_SetCursor(46 + (initial_position * 7), 40);
+            ssd1306_WriteString(" ", Font_7x10, White);
+            blink_state = 1;
+            counter = 3;
+            ssd1306_UpdateScreen();
+        }
+        counter--;
+        HAL_Delay(BLINK_DELAY * 3);
+    }
+    strcpy(high_score->name, player_initials_buffer);
+    high_score->score = game->score;
+    high_score->level = game->level;
+    high_score->lines = game->lines;
 }

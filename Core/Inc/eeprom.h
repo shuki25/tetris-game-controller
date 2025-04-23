@@ -64,7 +64,7 @@ typedef struct {
 } saved_settings_t;
 
 typedef struct {
-    char name[16];
+    char name[7];
     uint32_t score;
     uint32_t level;
     uint32_t lines;
