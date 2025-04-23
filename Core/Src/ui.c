@@ -746,4 +746,5 @@ void ui_get_initials_high_score(game_t *game, game_high_score_t *high_score,
     strcpy(high_score->name, player_initials_buffer);
     high_score->score = game->score;
     high_score->level = game->level;
+    high_score->lines = game->lines;
 }
